@@ -1,0 +1,29 @@
+@model IEnumerable<SmartGPON.Core.Entities.SecurityEvent>
+@{ ViewData["Title"] = "Journaux"; }
+<div class="page-header">
+  <div><h1 class="page-title">Journaux &amp; Sécurité</h1><div class="page-subtitle">Traçabilité complète — Audit trail</div></div>
+  <button class="btn-ghost-sg" onclick="window.print()"><i class="bi bi-download"></i> Export</button>
+</div>
+<div class="page-body">
+  <div class="sg-card p-0" style="overflow:hidden"><div style="overflow-x:auto"><table class="sg-table" style="font-size:12.5px">
+    <thead><tr><th style="padding-left:20px">Horodatage</th><th>Niveau</th><th>Type</th><th>Source IP</th><th>OLT</th><th>Description</th></tr></thead>
+    <tbody>
+    @if(!Model.Any()){
+      <tr><td colspan="6" class="text-center py-4" style="color:var(--text-muted)"><i class="bi bi-journal-text me-2"></i>Aucun événement enregistré</td></tr>
+    }
+    @foreach(var e in Model){
+      var pill  = e.Niveau>=3?"pill-red":e.Niveau==2?"pill-amber":e.Niveau>=3?"pill-red":"pill-muted";
+      var label = e.Niveau>=3?"CRITICAL":e.Niveau==2?"WARNING":"INFO";
+      var rowBg = e.Niveau >= 3 ? "background:rgba(255,61,87,.04)" : "";
+      <tr style="@rowBg">
+        <td style="padding-left:20px" class="mono" style="font-size:11.5px;color:var(--text-muted)">@e.DateEvenement.ToString("dd/MM/yyyy HH:mm:ss")</td>
+        <td><span class="pill @pill" style="font-size:9.5px;padding:2px 7px">@label</span></td>
+        <td><span class="pill pill-cyan" style="font-size:10px">@e.Type</span></td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted)">@(e.IpSource??"—")</td>
+        <td class="mono text-accent" style="font-size:11.5px">@(e.Utilisateur??"—")</td>
+        <td style="max-width:300px;white-space:normal;color:var(--text-secondary)">@e.Description</td>
+      </tr>
+    }
+    </tbody>
+  </table></div></div>
+</div>

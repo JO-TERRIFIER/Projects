@@ -1,0 +1,25 @@
+@model SmartGPON.Core.Entities.Fat
+@{ ViewData["Title"] = (Model.Id==0?"Nouvelle":"Modifier")+" FAT"; }
+<div class="page-header"><div><h1 class="page-title">@ViewData["Title"]</h1></div><a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a></div>
+<div class="page-body"><div style="max-width:520px">
+  <form asp-action="@(Model.Id==0?"Create":"Edit")" method="post">
+    @Html.AntiForgeryToken()
+    @if(Model.Id!=0){<input type="hidden" asp-for="Id"/>}
+    <div class="form-section">
+      <div class="form-section-header"><div class="sec-icon" style="background:rgba(255,61,87,.1)"><i class="bi bi-hdd-network" style="color:var(--accent-red)"></i></div><span style="font-size:13px;font-weight:600">Fibre Access Terminal</span></div>
+      <div class="form-section-body"><div class="row g-3">
+        <div class="col-md-8"><label class="sg-label">Nom *</label><input asp-for="Nom" class="sg-input form-control" required/></div>
+        <div class="col-md-4"><label class="sg-label">Capacité ONT</label><input asp-for="Capacite" class="sg-input form-control" type="number" min="1" max="32"/></div>
+        <div class="col-12"><label class="sg-label">FDT parent *</label>
+          <select asp-for="FdtId" class="sg-input form-select" required>
+            <option value="">-- Sélectionner FDT --</option>
+            @foreach(var fd in ViewBag.Fdts as List<SmartGPON.Core.Entities.Fdt>??new()){<option value="@fd.Id">@fd.Nom</option>}
+          </select></div>
+        <div class="col-md-6"><label class="sg-label">Statut</label>
+          <select asp-for="Statut" asp-items="Html.GetEnumSelectList<SmartGPON.Core.Enums.StatutEquipement>()" class="sg-input form-select"></select></div>
+        <div class="col-md-3"><label class="sg-label">Latitude</label><input asp-for="Latitude" class="sg-input form-control" type="number" step="0.0001"/></div>
+        <div class="col-md-3"><label class="sg-label">Longitude</label><input asp-for="Longitude" class="sg-input form-control" type="number" step="0.0001"/></div>
+      </div></div></div>
+    <div class="d-flex gap-2"><button type="submit" class="btn-primary-sg"><i class="bi bi-check-lg"></i> Enregistrer</button><a asp-action="Index" class="btn-ghost-sg">Annuler</a></div>
+  </form>
+</div></div>

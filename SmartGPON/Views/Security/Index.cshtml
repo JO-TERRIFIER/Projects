@@ -1,0 +1,114 @@
+@* Views/Security/Index.cshtml *@
+@model SmartGPON.Web.ViewModels.SecurityDashboardViewModel
+@{ ViewData["Title"] = "Centre Sécurité"; }
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-shield-check me-2"></i>Centre Sécurité</h1>
+        <div class="page-subtitle">Supervision sécurité réseau GPON</div>
+    </div>
+    <a asp-action="LancerSimulation" class="btn-primary-sg"><i class="bi bi-activity me-1"></i>Nouvelle simulation</a>
+</div>
+
+<div class="page-body">
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="sg-card text-center" style="padding:20px">
+                <div style="font-size:28px;font-weight:700;color:var(--accent-red)">@Model.AlertesCritiques</div>
+                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">ALERTES CRITIQUES</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="sg-card text-center" style="padding:20px">
+                <div style="font-size:28px;font-weight:700;color:var(--accent-amber)">@Model.AlertesWarning</div>
+                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">WARNINGS</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="sg-card text-center" style="padding:20px">
+                <div style="font-size:28px;font-weight:700;color:var(--accent-red)">@Model.RogueOltsActifs</div>
+                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">ROGUE OLTs</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="sg-card text-center" style="padding:20px">
+                <div style="font-size:28px;font-weight:700;color:var(--accent-cyan)">@Model.EvenementsAujourdhui</div>
+                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">ÉVÉNEMENTS AUJOURD'HUI</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertes + Simulations -->
+    <div class="row g-3">
+        <div class="col-md-8">
+            <div class="sg-card">
+                <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i class="bi bi-bell me-2"></i>Alertes récentes</h6>
+                <table class="sg-table">
+                    <thead><tr><th>Titre</th><th>Sévérité</th><th>Type</th><th>Date</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var a in Model.DernieresAlertes)
+                    {
+                        var cls = a.Severite == SmartGPON.Core.Enums.AlertSeverite.Critical ? "pill-red"
+                                : a.Severite == SmartGPON.Core.Enums.AlertSeverite.Warning ? "pill-amber" : "pill-cyan";
+                        <tr id="alert-@a.Id" style="@(a.IsRead?"opacity:.5":"")">
+                            <td>@a.Titre</td>
+                            <td><span class="pill @cls">@a.Severite</span></td>
+                            <td><small style="color:var(--text-muted)">@a.Type</small></td>
+                            <td><small class="mono" style="color:var(--text-muted)">@a.DateAlerte.ToString("dd/MM HH:mm")</small></td>
+                            <td>
+                                @if (!a.IsRead)
+                                {
+                                    <button class="icon-btn view mark-read" data-id="@a.Id" title="Marquer lu">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="sg-card mb-3">
+                <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i class="bi bi-activity me-2"></i>Simulations récentes</h6>
+                @foreach (var s in Model.SimulationsRecentes.Take(5))
+                {
+                    var simCls = s.Statut == SmartGPON.Core.Enums.SimulationStatut.EnCours ? "pill-amber"
+                               : s.Statut == SmartGPON.Core.Enums.SimulationStatut.Termine ? "pill-green" : "pill-muted";
+                    <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--border-subtle)">
+                        <div>
+                            <div style="font-size:12.5px;font-weight:500">@s.TypeAttaque</div>
+                            <small class="mono" style="color:var(--text-muted)">@s.DateLancement.ToString("dd/MM HH:mm")</small>
+                        </div>
+                        <span class="pill @simCls">@s.Statut</span>
+                    </div>
+                }
+            </div>
+            <div class="sg-card">
+                <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i class="bi bi-exclamation-diamond me-2"></i>Rogue OLTs</h6>
+                @foreach (var r in Model.RogueOlts.Take(5))
+                {
+                    <div class="py-2" style="border-bottom:1px solid var(--border-subtle)">
+                        <div style="font-size:12.5px;font-weight:500;color:var(--accent-red)">@(r.IpSuspecte ?? "IP inconnue")</div>
+                        <small class="mono" style="color:var(--text-muted)">Confiance: @r.NiveauConfiance% — @r.DateDetection.ToString("dd/MM")</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.mark-read').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        await fetch(`/Security/MarkRead/${id}`, { method:'POST', headers:{'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value||''} });
+        document.getElementById('alert-'+id)?.style.setProperty('opacity','0.5');
+        btn.remove();
+    });
+});
+</script>
+}

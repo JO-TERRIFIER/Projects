@@ -1,0 +1,37 @@
+@model IEnumerable<SmartGPON.Core.Entities.TrafficCapture>
+@{ ViewData["Title"] = "Traffic Captures"; }
+<div class="page-header"><div><h1 class="page-title"><i class="bi bi-wifi me-2 text-accent"></i>Captures de trafic</h1><div class="page-subtitle">Analyse du trafic GPON — anomalies détectées</div></div>
+  <a asp-controller="Security" asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Sécurité</a>
+</div>
+<div class="page-body">
+  @{ var anomalies = Model.Count(c => c.AnomalieDetectee); }
+  @if(anomalies > 0){
+    <div class="sg-alert sg-alert-red mb-3"><i class="bi bi-exclamation-octagon-fill text-r fs-5"></i>
+      <div><div style="font-size:13px;font-weight:600;color:var(--accent-red)">@anomalies anomalie(s) détectée(s)</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Vérifiez les entrées marquées <span class="pill pill-red" style="font-size:9.5px;padding:2px 6px">ANOMALIE</span></div></div>
+    </div>
+  }
+  <div class="sg-card p-0" style="overflow:hidden"><div style="overflow-x:auto"><table class="sg-table">
+    <thead><tr><th style="padding-left:20px">OLT</th><th>IP Source</th><th>IP Destination</th><th>Protocole</th><th>Paquets</th><th>Taille</th><th>Date</th><th>Anomalie</th></tr></thead>
+    <tbody>
+    @foreach(var c in Model){
+      <tr style="@(c.AnomalieDetectee?"background:rgba(255,61,87,.04)":"")">
+        <td style="padding-left:20px;font-size:12px;color:var(--text-muted)">@(c.Olt?.Nom??"-")</td>
+        <td class="mono" style="font-size:11.5px;color:var(--accent-cyan)">@(c.IpSource??"—")</td>
+        <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@(c.IpDestination??"—")</td>
+        <td><span class="pill pill-muted" style="font-size:10px">@(c.Protocole??"—")</span></td>
+        <td class="mono">@c.NombrePaquets.ToString("N0")</td>
+        <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@(c.TailleOctets/1024) KB</td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted)">@c.DateCapture.ToString("dd/MM HH:mm")</td>
+        <td>
+          @if(c.AnomalieDetectee){
+            <span class="pill pill-red" style="font-size:9.5px;padding:2px 6px">@(c.TypeAnomalie??"ANOMALIE")</span>
+          } else {
+            <span class="pill pill-green" style="font-size:9.5px;padding:2px 6px">Normal</span>
+          }
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table></div></div>
+</div>

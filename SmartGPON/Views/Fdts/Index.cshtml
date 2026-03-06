@@ -1,0 +1,20 @@
+@* Views/Fdts/Index.cshtml *@
+@model IEnumerable<SmartGPON.Core.Entities.Fdt>
+@{ ViewData["Title"] = "FDTs"; }
+<div class="page-header"><div><h1 class="page-title">FDTs</h1><div class="page-subtitle">Fiber Distribution Terminals</div></div><a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouveau FDT</a></div>
+<div class="page-body"><div class="sg-card p-0" style="overflow:hidden"><div style="overflow-x:auto"><table class="sg-table">
+  <thead><tr><th style="padding-left:20px">Nom</th><th>OLT parent</th><th>Capacité</th><th>Statut</th><th style="padding-right:20px;text-align:right">Actions</th></tr></thead>
+  <tbody>
+  @foreach(var f in Model){
+    var pill = f.Statut==SmartGPON.Core.Enums.StatutEquipement.Actif?"pill-green":f.Statut==SmartGPON.Core.Enums.StatutEquipement.EnPanne?"pill-red":"pill-amber";
+    <tr><td style="padding-left:20px;font-weight:500;color:var(--text-primary)">@f.Nom</td>
+    <td><span class="pill pill-muted" style="font-size:10px">@f.Olt?.Nom</span></td>
+    <td class="mono" style="color:var(--accent-cyan)">@f.Capacite</td>
+    <td><span class="pill @pill">@f.Statut</span></td>
+    <td style="padding-right:20px;text-align:right"><div class="d-flex justify-content-end gap-1">
+      <a asp-action="Edit" asp-route-id="@f.Id" class="icon-btn edit"><i class="bi bi-pencil"></i></a>
+      <form asp-action="Delete" asp-route-id="@f.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn danger"><i class="bi bi-trash3"></i></button></form>
+    </div></td></tr>
+  }
+  </tbody>
+</table></div></div></div>

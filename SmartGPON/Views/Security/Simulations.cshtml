@@ -1,0 +1,35 @@
+@model IEnumerable<SmartGPON.Core.Entities.AttackSimulation>
+@{ ViewData["Title"] = "Simulations"; }
+<div class="page-header"><div><h1 class="page-title"><i class="bi bi-activity me-2" style="color:var(--accent-violet)"></i>Simulations d'attaques</h1><div class="page-subtitle">Historique et statut des simulations GPON</div></div>
+  <div class="d-flex gap-2">
+    <a asp-controller="Security" asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Sécurité</a>
+    <a asp-action="LancerSimulation" class="btn-primary-sg"><i class="bi bi-play-fill"></i> Nouvelle simulation</a>
+  </div>
+</div>
+<div class="page-body">
+  <div class="sg-card p-0" style="overflow:hidden"><div style="overflow-x:auto"><table class="sg-table">
+    <thead><tr><th style="padding-left:20px">#</th><th>Type d'attaque</th><th>OLT cible</th><th>Risque</th><th>Statut</th><th>Lancé par</th><th>Début</th><th>Fin</th><th style="padding-right:20px;text-align:right">Détails</th></tr></thead>
+    <tbody>
+    @if(!Model.Any()){
+      <tr><td colspan="9" class="text-center py-4" style="color:var(--text-muted)">Aucune simulation lancée</td></tr>
+    }
+    @foreach(var s in Model){
+      var statPill = s.Statut==SmartGPON.Core.Enums.SimulationStatut.Termine?"pill-green":s.Statut==SmartGPON.Core.Enums.SimulationStatut.EnCours?"pill-cyan":s.Statut==SmartGPON.Core.Enums.SimulationStatut.Echoue?"pill-red":"pill-muted";
+      var riskPill = s.NiveauRisque==SmartGPON.Core.Enums.NiveauRisque.Critique?"pill-red":s.NiveauRisque==SmartGPON.Core.Enums.NiveauRisque.Eleve?"pill-amber":"pill-cyan";
+      <tr>
+        <td style="padding-left:20px" class="mono" style="color:var(--text-muted);font-size:11.5px">#@s.Id</td>
+        <td style="font-weight:600;color:var(--text-primary)">@s.TypeAttaque</td>
+        <td style="font-size:12px;color:var(--text-muted)">@(s.Olt?.Nom??"-")</td>
+        <td><span class="pill @riskPill" style="font-size:10px">@s.NiveauRisque</span></td>
+        <td><span class="pill @statPill">@s.Statut</span></td>
+        <td style="font-size:12px;color:var(--text-muted)">@(s.LancePar??"Système")</td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted)">@s.DateLancement.ToString("dd/MM HH:mm")</td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted)">@s.DateFin?.ToString("dd/MM HH:mm")</td>
+        <td style="padding-right:20px;text-align:right">
+          <a asp-action="SimulationDetails" asp-route-id="@s.Id" class="icon-btn view" title="Voir détails"><i class="bi bi-eye"></i></a>
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table></div></div>
+</div>

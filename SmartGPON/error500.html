@@ -1,0 +1,43 @@
+﻿System.InvalidCastException: Unable to cast object of type 'System.Byte' to type 'System.Int32'.
+   at Microsoft.Data.SqlClient.SqlBuffer.get_Int32()
+   at Microsoft.Data.SqlClient.SqlDataReader.GetInt32(Int32 i)
+   at Microsoft.EntityFrameworkCore.Query.Internal.BufferedDataReader.BufferedDataRecord.ReadInt(DbDataReader reader, Int32 ordinal, ReaderColumn column)
+   at Microsoft.EntityFrameworkCore.Query.Internal.BufferedDataReader.BufferedDataRecord.ReadRow()
+   at Microsoft.EntityFrameworkCore.Query.Internal.BufferedDataReader.BufferedDataRecord.InitializeAsync(DbDataReader reader, IReadOnlyList`1 columns, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.BufferedDataReader.InitializeAsync(IReadOnlyList`1 columns, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.BufferedDataReader.InitializeAsync(IReadOnlyList`1 columns, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at SmartGPON.Infrastructure.Services.DashboardService.GetDashboardAsync(Nullable`1 clientId) in C:\Projets\SmartGPON\Infrastructure\Services\Services.cs:line 35
+   at SmartGPON.Web.Controllers.HomeController.Index() in C:\Projets\SmartGPON\Controllers\Controllers.cs:line 33
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+
+HEADERS
+=======
+Host: localhost:5000
+User-Agent: Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.7920
+Cookie: .AspNetCore.Antiforgery.uOOo-wVAaIE=CfDJ8JChi80SDRZBhuvhkOLxTjSonTYPUgRQgR2sOwjsIvL2jOfATutxiCKeGzyX0AvrizB-J9cAECy5eBLYMBQrEKdC53IA4AIDtHvXSaQzY3Wqh411Y_JF9YraCR-8q9KXouIgP2Wbxp8DcHQnpC0hFEU; .AspNetCore.Identity.Application=CfDJ8JChi80SDRZBhuvhkOLxTjQBgL65ts8N4mNugTMAfdtUYR7QQGL_VsVQVtCktZIkDqqTgUX90x3eqT33jwVwsJ2kxIgzz0KdoMiwd9XBuKd-_XeqdSspLhxJVICnijFflvPq2XSUSzmGhike0HthaVNhkCVfPdPPyJaEvGhoTz9LEqyOFihgBvE4roQ_XOkXiOYFf7uU8gXtsLQpb7uuDk11xa37JVa7s9AZoBBjQ3GlRCbX1q6E5GaUt4xzU2tdRb7efya-BsjUj3VCpkB8rPqYx_zhq77dwhph8RnR7xeHtdPrD_EzvC4dlckJ4v1VuFKJ8Y43nRzFHMCDX5_UAN4pLqBVuU-5jWtXx6jf6OnQBqs2m5eMzM1RIf5Pzw5Viq_jkifgT0Zp4SsQI6Skzc9wsB4DHzNr5FRYf1pMksPRp7ctVZA2quM9QJ795H2ZzAYIwd-S6LCu57OVettCr4FxvGl03h3ykAueufICf7lgLmzPMtOzwrANDNIAkpepEk-UGf1IVJD7GnkEBra32vs5Muhiat2DLumcIs_mnHuwsqN2vKv4g5rurxzzzktJBQR-D-7jZkTvKmzcyPOoYpQlzvAC4oZTK-AgRzIb84rn7V-JNV6-2rydMLZ9Vud8ns4QATp4jy8nbqfRFW1cYMvOlZsNr75pEPxShsjTG9KIADzXXBmO5V3PjE2XlGSBBfW022XCYJvUFLrbcEzKBUJrN5M35GWjg14EpE05pPcP6N2vHCOupzOfNHGvPVPTXBvRzWdSy2gY4v-0Yz-ymco7Oh40Cssqkp3SMmRtanSyl_c4UsPFzxFa_uiWeISn4BfnH_07zCIbB9JW-5MWCgjbReqSuU1NJQiSupKxvU15
+

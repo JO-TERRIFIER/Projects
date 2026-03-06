@@ -1,0 +1,29 @@
+﻿  Identification des projets ├á restaurer...
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+  Restauration effectu├®e de C:\Projets\SmartGPON\SmartGPON.csproj (en 1.38 sec).
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+C:\Projets\SmartGPON\Views\Shared\_Layout.cshtml(124,12): error CS0103: Le nom 'unread' n'existe pas dans le contexte actuel [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Shared\_Layout.cshtml(124,31): error CS0103: Le nom 'unread' n'existe pas dans le contexte actuel [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Shared\_Layout.cshtml(126,34): error CS0103: Le nom 'unread' n'existe pas dans le contexte actuel [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(13,17): error CS1061: 'IEnumerable<Client>' ne contient pas de d├®finition pour 'Clients' et aucune m├®thode d'extension accessible 'Clients' acceptant un premier argument de type 'IEnumerable<Client>' n'a ├®t├® trouv├®e (une directive using ou une r├®f├®rence d'assembly est-elle manquante┬á?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(13,44): error CS1061: 'IEnumerable<Client>' ne contient pas de d├®finition pour 'Clients' et aucune m├®thode d'extension accessible 'Clients' acceptant un premier argument de type 'IEnumerable<Client>' n'a ├®t├® trouv├®e (une directive using ou une r├®f├®rence d'assembly est-elle manquante┬á?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(65,87): error CS0144: Impossible de cr├®er une instance du type abstract ou de l'interface 'ICollection<Ont>' [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(81,77): error CS0144: Impossible de cr├®er une instance du type abstract ou de l'interface 'ICollection<Splitter>' [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(82,74): error CS0144: Impossible de cr├®er une instance du type abstract ou de l'interface 'ICollection<Ont>' [C:\Projets\SmartGPON\SmartGPON.csproj]
+
+├ëCHEC de la build.
+
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+C:\Projets\SmartGPON\Views\Shared\_Layout.cshtml(124,12): error CS0103: Le nom 'unread' n'existe pas dans le contexte actuel [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Shared\_Layout.cshtml(124,31): error CS0103: Le nom 'unread' n'existe pas dans le contexte actuel [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Shared\_Layout.cshtml(126,34): error CS0103: Le nom 'unread' n'existe pas dans le contexte actuel [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(13,17): error CS1061: 'IEnumerable<Client>' ne contient pas de d├®finition pour 'Clients' et aucune m├®thode d'extension accessible 'Clients' acceptant un premier argument de type 'IEnumerable<Client>' n'a ├®t├® trouv├®e (une directive using ou une r├®f├®rence d'assembly est-elle manquante┬á?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(13,44): error CS1061: 'IEnumerable<Client>' ne contient pas de d├®finition pour 'Clients' et aucune m├®thode d'extension accessible 'Clients' acceptant un premier argument de type 'IEnumerable<Client>' n'a ├®t├® trouv├®e (une directive using ou une r├®f├®rence d'assembly est-elle manquante┬á?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(65,87): error CS0144: Impossible de cr├®er une instance du type abstract ou de l'interface 'ICollection<Ont>' [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(81,77): error CS0144: Impossible de cr├®er une instance du type abstract ou de l'interface 'ICollection<Splitter>' [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Views\Home\Tree.cshtml(82,74): error CS0144: Impossible de cr├®er une instance du type abstract ou de l'interface 'ICollection<Ont>' [C:\Projets\SmartGPON\SmartGPON.csproj]
+    2 Avertissement(s)
+    8 Erreur(s)
+
+Temps ├®coul├® 00:00:05.90

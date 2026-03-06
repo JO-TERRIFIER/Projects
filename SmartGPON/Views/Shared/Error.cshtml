@@ -1,0 +1,12 @@
+@* Views/Shared/Error.cshtml *@
+@{ ViewData["Title"] = "Erreur"; }
+<div class="page-header"><div><h1 class="page-title text-r"><i class="bi bi-exclamation-octagon me-2"></i>Erreur</h1><div class="page-subtitle">Une erreur est survenue</div></div></div>
+<div class="page-body">
+  <div class="sg-card" style="max-width:500px">
+    <div class="sg-alert sg-alert-red"><i class="bi bi-exclamation-octagon-fill text-r fs-5"></i>
+      <div><div style="font-size:13px;font-weight:600;color:var(--accent-red)">Erreur application</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Veuillez réessayer ou contacter l'administrateur.</div></div>
+    </div>
+    <a asp-controller="Home" asp-action="Index" class="btn-primary-sg mt-3"><i class="bi bi-house me-2"></i>Retour accueil</a>
+  </div>
+</div>

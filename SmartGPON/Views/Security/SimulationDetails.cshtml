@@ -1,0 +1,37 @@
+@model SmartGPON.Core.Entities.AttackSimulation
+@{ ViewData["Title"] = "Simulation #" + Model.Id; }
+<div class="page-header"><div><h1 class="page-title">Simulation #@Model.Id</h1><div class="page-subtitle">@Model.TypeAttaque — @Model.Statut</div></div>
+  <a asp-action="Simulations" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour liste</a>
+</div>
+<div class="page-body"><div class="row g-3">
+  <div class="col-lg-5">
+    <div class="sg-card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:16px">Informations</div>
+      @{
+        var statPill = Model.Statut==SmartGPON.Core.Enums.SimulationStatut.Termine?"pill-green":Model.Statut==SmartGPON.Core.Enums.SimulationStatut.EnCours?"pill-cyan":Model.Statut==SmartGPON.Core.Enums.SimulationStatut.Echoue?"pill-red":"pill-muted";
+        var riskPill = Model.NiveauRisque==SmartGPON.Core.Enums.NiveauRisque.Critique?"pill-red":Model.NiveauRisque==SmartGPON.Core.Enums.NiveauRisque.Eleve?"pill-amber":"pill-cyan";
+      }
+      <div class="detail-kv"><span class="detail-key">Type attaque</span><span class="detail-val text-accent mono">@Model.TypeAttaque</span></div>
+      <div class="detail-kv"><span class="detail-key">OLT cible</span><span class="detail-val">@(Model.Olt?.Nom??"—")</span></div>
+      <div class="detail-kv"><span class="detail-key">Niveau de risque</span><span class="detail-val"><span class="pill @riskPill">@Model.NiveauRisque</span></span></div>
+      <div class="detail-kv"><span class="detail-key">Statut</span><span class="detail-val"><span class="pill @statPill">@Model.Statut</span></span></div>
+      <div class="detail-kv"><span class="detail-key">Lancé par</span><span class="detail-val">@(Model.LancePar??"Système")</span></div>
+      <div class="detail-kv"><span class="detail-key">Début</span><span class="detail-val mono">@Model.DateLancement.ToString("dd/MM/yyyy HH:mm:ss")</span></div>
+      <div class="detail-kv"><span class="detail-key">Fin</span><span class="detail-val mono">@(Model.DateFin?.ToString("dd/MM/yyyy HH:mm:ss")??"—")</span></div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    @if(!string.IsNullOrEmpty(Model.ResultatDetails)){
+      <div class="sg-card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">Résultats de la simulation</div>
+        <pre style="background:var(--navy-950);border:1px solid var(--border-subtle);border-radius:8px;padding:16px;font-family:var(--font-mono);font-size:12px;color:var(--accent-cyan);overflow-x:auto;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word">@Model.ResultatDetails</pre>
+      </div>
+    }
+    @if(!string.IsNullOrEmpty(Model.Parametres)){
+      <div class="sg-card mt-3">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">Paramètres utilisés</div>
+        <pre style="background:var(--navy-950);border:1px solid var(--border-subtle);border-radius:8px;padding:16px;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);overflow-x:auto">@Model.Parametres</pre>
+      </div>
+    }
+  </div>
+</div></div>

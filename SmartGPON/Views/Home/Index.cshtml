@@ -1,0 +1,86 @@
+@* Views/Home/Index.cshtml — Dashboard *@
+@model SmartGPON.Web.ViewModels.DashboardViewModel
+@{ ViewData["Title"] = "Tableau de bord"; }
+<div class="page-header">
+  <div><h1 class="page-title">Tableau de bord</h1><div class="page-subtitle">Vue d'ensemble en temps réel — SmartGPON NOC</div></div>
+  <a asp-controller="Security" asp-action="LancerSimulation" class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouvelle simulation</a>
+</div>
+<div class="page-body">
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+      <div class="sg-card d-flex align-items-center gap-3 py-3">
+        <div style="width:36px;height:36px;background:rgba(0,200,224,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi bi-server" style="color:var(--accent-cyan)"></i></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:var(--font-mono)">@Model.OltsActifs<span style="font-size:14px;color:var(--text-muted)">/@Model.TotalOlts</span></div><div style="font-size:11px;color:var(--text-muted)">OLTs actifs</div></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="sg-card d-flex align-items-center gap-3 py-3">
+        <div style="width:36px;height:36px;background:rgba(0,230,118,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi bi-router" style="color:var(--accent-green)"></i></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:var(--font-mono)">@Model.OntsActifs<span style="font-size:14px;color:var(--text-muted)">/@Model.TotalOnts</span></div><div style="font-size:11px;color:var(--text-muted)">ONTs actifs</div></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="sg-card d-flex align-items-center gap-3 py-3">
+        <div style="width:36px;height:36px;background:rgba(255,61,87,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi bi-bell" style="color:var(--accent-red)"></i></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:var(--font-mono);@(Model.AlertesNonLues>0?"color:var(--accent-red)":"")">@Model.AlertesNonLues</div><div style="font-size:11px;color:var(--text-muted)">Alertes non lues</div></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="sg-card d-flex align-items-center gap-3 py-3">
+        <div style="width:36px;height:36px;background:rgba(255,179,0,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi bi-exclamation-diamond" style="color:var(--accent-amber)"></i></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:var(--font-mono);@(Model.RogueOltsActifs>0?"color:var(--accent-amber)":"")">@Model.RogueOltsActifs</div><div style="font-size:11px;color:var(--text-muted)">Rogue OLTs</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="sg-card">
+        <div style="font-size:12px;font-weight:600;margin-bottom:12px;color:var(--text-primary)">Disponibilité OLTs</div>
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <div class="cap-bar-lg" style="flex:1"><div class="cap-bar-lg-fill" style="width:@Model.TauxDisponibiliteOlts%;background:var(--accent-cyan)"></div></div>
+          <span class="mono" style="font-size:13px;color:var(--accent-cyan);min-width:40px;text-align:right">@Model.TauxDisponibiliteOlts%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted)">@Model.OltsActifs actifs sur @Model.TotalOlts total</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="sg-card">
+        <div style="font-size:12px;font-weight:600;margin-bottom:12px;color:var(--text-primary)">Disponibilité ONTs</div>
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <div class="cap-bar-lg" style="flex:1"><div class="cap-bar-lg-fill" style="width:@Model.TauxDisponibiliteOnts%;background:var(--accent-green)"></div></div>
+          <span class="mono" style="font-size:13px;color:var(--accent-green);min-width:40px;text-align:right">@Model.TauxDisponibiliteOnts%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted)">@Model.OntsActifs actifs sur @Model.TotalOnts total</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sg-card p-0" style="overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:13px;font-weight:600">Dernières alertes</div>
+      <a asp-controller="Security" asp-action="Alertes" class="btn-ghost-sg" style="font-size:11.5px;padding:5px 12px">Voir tout <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="sg-table">
+        <thead><tr><th style="padding-left:20px">Titre</th><th>Sévérité</th><th>Type</th><th>Date</th></tr></thead>
+        <tbody>
+        @if (!Model.DernieresAlertes.Any())
+        {
+          <tr><td colspan="4" class="text-center py-4" style="color:var(--text-muted)"><i class="bi bi-check-circle me-2 text-g"></i>Aucune alerte active</td></tr>
+        }
+        @foreach (var a in Model.DernieresAlertes)
+        {
+          var pill = a.Severite == SmartGPON.Core.Enums.AlertSeverite.Critical ? "pill-red" : a.Severite == SmartGPON.Core.Enums.AlertSeverite.Warning ? "pill-amber" : "pill-cyan";
+          <tr>
+            <td style="padding-left:20px;font-weight:500;color:var(--text-primary)">@a.Titre</td>
+            <td><span class="pill @pill">@a.Severite</span></td>
+            <td style="color:var(--text-muted);font-size:12px">@a.Type</td>
+            <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@a.DateAlerte.ToString("dd/MM HH:mm")</td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>@(ViewData["Title"] != null ? ViewData["Title"] + " — " : "")SmartGPON</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="~/css/site.css" rel="stylesheet" asp-append-version="true"/>
+</head>
+<body>
+
+@{
+  var ctrl   = ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower();
+  var action = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
+  string Nav(string c, string? a = null) =>
+      (ctrl == c.ToLower() && (a == null || action == a.ToLower())) ? "nav-link-sg active" : "nav-link-sg";
+  var unread = ViewBag.UnreadAlerts as int?;
+}
+
+<!-- ── TOPBAR ── -->
+<header id="topbar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+  <a class="topbar-brand" asp-controller="Home" asp-action="Index">
+    <div class="brand-icon"><i class="bi bi-diagram-3"></i></div>
+    <span class="brand-name">Smart<span>GPON</span></span>
+  </a>
+  <span class="topbar-env ms-3">NOC v3</span>
+  <div class="topbar-right">
+    <a asp-controller="Security" asp-action="Alertes" class="topbar-icon-btn" title="Alertes">
+      <i class="bi bi-bell"></i>
+      @if (unread.HasValue && unread > 0) { <span class="notif-dot"></span> }
+    </a>
+    <div class="topbar-divider"></div>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+      <div class="dropdown">
+        <button class="user-drop-btn" data-bs-toggle="dropdown">
+          <div class="user-avatar">@(User.Identity.Name?.Substring(0,2).ToUpper() ?? "??") </div>
+          <div>
+            <div class="u-name">@User.Identity.Name</div>
+            <div class="u-role">Admin NOC</div>
+          </div>
+          <i class="bi bi-chevron-down ms-1" style="font-size:10px;color:var(--text-muted)"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" style="background:var(--navy-800);border:1px solid var(--border-mid);min-width:160px;">
+          <li>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+              @Html.AntiForgeryToken()
+              <button type="submit" class="dropdown-item" style="color:var(--accent-red);font-size:13px;padding:8px 16px;background:transparent;">
+                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    }
+  </div>
+</header>
+
+<!-- ── SIDEBAR ── -->
+<nav id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Supervision</div>
+    <a asp-controller="Home" asp-action="Index" class="@Nav("home")">
+      <span class="nav-icon"><i class="bi bi-speedometer2"></i></span>
+      <span class="nav-text">Tableau de bord</span>
+    </a>
+    <a asp-controller="Home" asp-action="Tree" class="@Nav("home","tree")">
+      <span class="nav-icon"><i class="bi bi-diagram-3"></i></span>
+      <span class="nav-text">Topologie réseau</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Infrastructure</div>
+    <a asp-controller="Olts" asp-action="Index" class="@Nav("olts")">
+      <span class="nav-icon"><i class="bi bi-server"></i></span>
+      <span class="nav-text">OLTs</span>
+    </a>
+    <a asp-controller="Fdts" asp-action="Index" class="@Nav("fdts")">
+      <span class="nav-icon"><i class="bi bi-box"></i></span>
+      <span class="nav-text">FDTs</span>
+    </a>
+    <a asp-controller="Fats" asp-action="Index" class="@Nav("fats")">
+      <span class="nav-icon"><i class="bi bi-hdd-network"></i></span>
+      <span class="nav-text">FATs / Splitters</span>
+    </a>
+    <a asp-controller="Onts" asp-action="Index" class="@Nav("onts")">
+      <span class="nav-icon"><i class="bi bi-router"></i></span>
+      <span class="nav-text">ONTs</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Gestion</div>
+    <a asp-controller="Clients" asp-action="Index" class="@Nav("clients")">
+      <span class="nav-icon"><i class="bi bi-building"></i></span>
+      <span class="nav-text">Clients</span>
+    </a>
+    <a asp-controller="Projets" asp-action="Index" class="@Nav("projets")">
+      <span class="nav-icon"><i class="bi bi-folder2-open"></i></span>
+      <span class="nav-text">Projets</span>
+    </a>
+    <a asp-controller="Zones" asp-action="Index" class="@Nav("zones")">
+      <span class="nav-icon"><i class="bi bi-geo-alt"></i></span>
+      <span class="nav-text">Zones</span>
+    </a>
+    <a asp-controller="Techniciens" asp-action="Index" class="@Nav("techniciens")">
+      <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
+      <span class="nav-text">Techniciens</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Sécurité</div>
+    <a asp-controller="Security" asp-action="Index" class="@Nav("security","index")">
+      <span class="nav-icon"><i class="bi bi-shield-check"></i></span>
+      <span class="nav-text">Centre sécurité</span>
+    </a>
+    <a asp-controller="Security" asp-action="Alertes" class="@Nav("security","alertes")">
+      <span class="nav-icon"><i class="bi bi-bell"></i></span>
+      <span class="nav-text">Alertes</span>
+      @if (unread.HasValue && unread > 0)
+      {
+        <span class="nav-badge">@unread</span>
+      }
+    </a>
+    <a asp-controller="Security" asp-action="Simulations" class="@Nav("security","simulations")">
+      <span class="nav-icon"><i class="bi bi-activity"></i></span>
+      <span class="nav-text">Simulations</span>
+    </a>
+    <a asp-controller="Security" asp-action="RogueOlts" class="@Nav("security","rogueolts")">
+      <span class="nav-icon"><i class="bi bi-exclamation-diamond"></i></span>
+      <span class="nav-text">Rogue OLTs</span>
+    </a>
+    <a asp-controller="Logs" asp-action="Index" class="@Nav("logs")">
+      <span class="nav-icon"><i class="bi bi-journal-text"></i></span>
+      <span class="nav-text">Journaux</span>
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sys-status">
+      <span class="status-dot"></span>
+      <span class="status-text">Système opérationnel</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main id="main">
+  @* TempData toasts *@
+  @if (TempData["Success"] != null)
+  {
+    <div class="sg-toast sg-toast-success" id="sg-toast">
+      <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+    </div>
+  }
+  @if (TempData["Error"] != null)
+  {
+    <div class="sg-toast sg-toast-error" id="sg-toast">
+      <i class="bi bi-exclamation-circle-fill"></i> @TempData["Error"]
+    </div>
+  }
+
+  @RenderBody()
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() { document.body.classList.toggle('collapsed'); }
+
+// Auto-dismiss toast
+const toast = document.getElementById('sg-toast');
+if (toast) setTimeout(() => toast.style.opacity = '0', 3500);
+
+// Tree toggle
+function tToggle(nodeEl) {
+  const group = nodeEl.closest('.tree-node-group');
+  if (!group) return;
+  const children = group.querySelector(':scope > .tree-children');
+  const btn = nodeEl.querySelector('.tree-toggle');
+  const icon = btn?.querySelector('i');
+  if (!children) return;
+  const open = children.classList.toggle('open');
+  btn?.classList.toggle('open', open);
+  if (icon) icon.className = open ? 'bi bi-dash' : 'bi bi-plus';
+}
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

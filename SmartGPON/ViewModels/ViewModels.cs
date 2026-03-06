@@ -1,0 +1,120 @@
+// SmartGPON v3 – Web/ViewModels/ViewModels.cs
+using System;
+using System.Collections.Generic;
+using SmartGPON.Core.Entities;
+using SmartGPON.Core.Enums;
+
+namespace SmartGPON.Web.ViewModels
+{
+    public class DashboardViewModel
+    {
+        public int TotalOlts { get; set; }
+        public int OltsActifs { get; set; }
+        public int TotalOnts { get; set; }
+        public int OntsActifs { get; set; }
+        public int AlertesNonLues { get; set; }
+        public int SimulationsActives { get; set; }
+        public int RogueOltsActifs { get; set; }
+        public List<NetworkAlert> DernieresAlertes { get; set; } = new();
+        public List<Olt> OltsEnPanne { get; set; } = new();
+        public double TauxDisponibiliteOlts => TotalOlts > 0 ? Math.Round((double)OltsActifs / TotalOlts * 100, 1) : 0;
+        public double TauxDisponibiliteOnts => TotalOnts > 0 ? Math.Round((double)OntsActifs / TotalOnts * 100, 1) : 0;
+    }
+
+    public class SecurityDashboardViewModel
+    {
+        public int AlertesCritiques { get; set; }
+        public int AlertesWarning { get; set; }
+        public int RogueOltsActifs { get; set; }
+        public int SimulationsEnCours { get; set; }
+        public int EvenementsAujourdhui { get; set; }
+        public List<NetworkAlert> DernieresAlertes { get; set; } = new();
+        public List<MaliciousOlt> RogueOlts { get; set; } = new();
+        public List<AttackSimulation> SimulationsRecentes { get; set; } = new();
+        public List<SecurityEvent> EvenementsRecents { get; set; } = new();
+    }
+
+    public class OltCapacityViewModel
+    {
+        public int OltId { get; set; }
+        public string OltNom { get; set; } = string.Empty;
+        public int NbrePorts { get; set; }
+        public int NbreFdts { get; set; }
+        public int NbreFats { get; set; }
+        public int NbreSplitters { get; set; }
+        public int TotalOnts { get; set; }
+        public int OntsActifs { get; set; }
+        public decimal TauxActivite { get; set; }
+        public int CapaciteRestante => NbrePorts - NbreFdts;
+    }
+
+    public class NetworkTreeViewModel
+    {
+        public int ZoneId { get; set; }
+        public string ZoneNom { get; set; } = string.Empty;
+        public List<OltTreeNode> Olts { get; set; } = new();
+    }
+
+    public class OltTreeNode
+    {
+        public int Id { get; set; }
+        public string Nom { get; set; } = string.Empty;
+        public string? IpAddress { get; set; }
+        public StatutEquipement Statut { get; set; }
+        public List<FdtTreeNode> Fdts { get; set; } = new();
+    }
+
+    public class FdtTreeNode
+    {
+        public int Id { get; set; }
+        public string Nom { get; set; } = string.Empty;
+        public List<FatTreeNode> Fats { get; set; } = new();
+    }
+
+    public class FatTreeNode
+    {
+        public int Id { get; set; }
+        public string Nom { get; set; } = string.Empty;
+        public List<SplitterTreeNode> Splitters { get; set; } = new();
+    }
+
+    public class SplitterTreeNode
+    {
+        public int Id { get; set; }
+        public string Nom { get; set; } = string.Empty;
+        public string Ratio { get; set; } = string.Empty;
+        public List<OntTreeNode> Onts { get; set; } = new();
+    }
+
+    public class OntTreeNode
+    {
+        public int Id { get; set; }
+        public string Nom { get; set; } = string.Empty;
+        public string SerialNumber { get; set; } = string.Empty;
+        public StatutEquipement Statut { get; set; }
+        public decimal? SignalRx { get; set; }
+        public decimal? SignalTx { get; set; }
+    }
+
+    // Simulation forms
+    public class SimulationFormViewModel
+    {
+        public int? OltId { get; set; }
+        public string TypeAttaque { get; set; } = string.Empty;
+        public NiveauRisque NiveauRisque { get; set; } = NiveauRisque.Moyen;
+        public string? Parametres { get; set; }
+        public List<Olt> Olts { get; set; } = new();
+    }
+
+    // Pagination helper
+    public class PagedResult<T>
+    {
+        public List<T> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+        public bool HasPrev => Page > 1;
+        public bool HasNext => Page < TotalPages;
+    }
+}

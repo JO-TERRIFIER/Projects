@@ -1,0 +1,68 @@
+@model SmartGPON.Web.ViewModels.PagedResult<SmartGPON.Core.Entities.NetworkAlert>
+@{ ViewData["Title"] = "Alertes réseau"; }
+<div class="page-header">
+  <div><h1 class="page-title">Alertes réseau</h1><div class="page-subtitle">Supervision temps réel — @Model.TotalCount alerte(s)</div></div>
+  <div class="d-flex gap-2">
+    <a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Sécurité</a>
+    <button id="btn-mark-all" class="btn-ghost-sg" onclick="markAllRead()"><i class="bi bi-check-all"></i> Tout marquer lu</button>
+  </div>
+</div>
+<div class="page-body">
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    @foreach(var sev in new[]{"All","Critical","Warning","Info"}){
+      var active = (ViewBag.Filter as string ?? "All") == sev;
+      <a asp-action="Alertes" asp-route-filter="@sev" class="@(active?"btn-primary-sg":"btn-ghost-sg")" style="font-size:11.5px;padding:5px 12px">@sev</a>
+    }
+  </div>
+  <div class="sg-card p-0" style="overflow:hidden">
+    <div style="overflow-x:auto"><table class="sg-table">
+      <thead><tr><th style="padding-left:20px">Titre</th><th>Sévérité</th><th>Type</th><th>OLT</th><th>Date</th><th>Lu</th><th style="padding-right:20px;text-align:right">Action</th></tr></thead>
+      <tbody>
+      @if(!Model.Items.Any()){
+        <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted)"><i class="bi bi-check-circle me-2 text-g"></i>Aucune alerte</td></tr>
+      }
+      @foreach(var a in Model.Items){
+        var pill  = a.Severite==SmartGPON.Core.Enums.AlertSeverite.Critical?"pill-red":a.Severite==SmartGPON.Core.Enums.AlertSeverite.Warning?"pill-amber":"pill-cyan";
+        var rowBg = !a.IsRead && a.Severite==SmartGPON.Core.Enums.AlertSeverite.Critical?"background:rgba(255,61,87,.04)":"";
+        <tr style="@rowBg">
+          <td style="padding-left:20px;font-weight:@(a.IsRead?"400":"600");color:@(a.IsRead?"var(--text-secondary)":"var(--text-primary)")">
+            @if(!a.IsRead){<span style="width:6px;height:6px;border-radius:50%;background:var(--accent-red);display:inline-block;margin-right:8px"></span>}
+            @a.Titre
+          </td>
+          <td><span class="pill @pill">@a.Severite</span></td>
+          <td style="font-size:12px;color:var(--text-muted)">@a.Type</td>
+          <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@(a.Olt?.Nom??"-")</td>
+          <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@a.DateAlerte.ToString("dd/MM HH:mm")</td>
+          <td><span class="pill @(a.IsRead?"pill-muted":"pill-amber")" style="font-size:9.5px;padding:2px 6px">@(a.IsRead?"Lu":"Non lu")</span></td>
+          <td style="padding-right:20px;text-align:right">
+            @if(!a.IsRead){
+              <button onclick="markRead(@a.Id, this)" class="icon-btn view" title="Marquer lu"><i class="bi bi-check2"></i></button>
+            }
+          </td>
+        </tr>
+      }
+      </tbody>
+    </table></div>
+  </div>
+  @if(Model.TotalPages > 1){
+    <nav class="mt-3 d-flex justify-content-center gap-2">
+      @for(int i=1; i<=Model.TotalPages; i++){
+        <a asp-action="Alertes" asp-route-page="@i" asp-route-filter="@ViewBag.Filter"
+           class="@(i==Model.Page?"btn-primary-sg":"btn-ghost-sg")" style="padding:5px 12px;font-size:12px;min-width:36px;justify-content:center">@i</a>
+      }
+    </nav>
+  }
+</div>
+@section Scripts {
+<script>
+async function markRead(id, btn) {
+  const res = await fetch('/Security/MarkRead/'+id, {method:'POST', headers:{'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value??''}});
+  if(res.ok){ btn.closest('tr').querySelectorAll('td')[5].innerHTML='<span class="pill pill-muted" style="font-size:9.5px;padding:2px 6px">Lu</span>'; btn.remove(); }
+}
+async function markAllRead() {
+  const res = await fetch('/Security/MarkAllRead', {method:'POST'});
+  if(res.ok) location.reload();
+}
+</script>
+@Html.AntiForgeryToken()
+}
