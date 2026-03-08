@@ -1,0 +1,16 @@
+# .gitignore for ASP.NET Core
+**/bin/
+**/obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

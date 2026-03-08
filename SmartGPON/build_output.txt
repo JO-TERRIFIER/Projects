@@ -1,0 +1,14 @@
+  Determining projects to restore...
+/app/SmartGPON/SmartGPON.csproj : warning NU1903: Package 'Microsoft.Extensions.Caching.Memory' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-qj66-m88j-hmgj
+  All projects are up-to-date for restore.
+/app/SmartGPON/SmartGPON.csproj : warning NU1903: Package 'Microsoft.Extensions.Caching.Memory' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-qj66-m88j-hmgj
+  SmartGPON -> /app/SmartGPON/bin/Debug/net8.0/SmartGPON.dll
+
+Build succeeded.
+
+/app/SmartGPON/SmartGPON.csproj : warning NU1903: Package 'Microsoft.Extensions.Caching.Memory' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-qj66-m88j-hmgj
+/app/SmartGPON/SmartGPON.csproj : warning NU1903: Package 'Microsoft.Extensions.Caching.Memory' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-qj66-m88j-hmgj
+    2 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:04.10
