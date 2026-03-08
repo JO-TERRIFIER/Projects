@@ -15,10 +15,9 @@
         <div class="col-md-8"><label class="sg-label">Spécialité</label>
           <input asp-for="Specialite" class="sg-input form-control" list="specs" placeholder="Senior Tech. GPON…"/>
           <datalist id="specs"><option value="Senior Tech. GPON"/><option value="Maintenance FAT/FDT"/><option value="Installation ONT"/><option value="Supervision NOC"/></datalist></div>
-        <div class="col-md-4"><label class="sg-label">Client</label>
-          <select asp-for="ClientId" class="sg-input form-select">
+        <div class="col-md-4"><label class="sg-label">Projet</label>
+          <select asp-for="ProjetId" class="sg-input form-select" asp-items="ViewBag.Projets">
             <option value="">-- Aucun --</option>
-            @foreach(var c in ViewBag.Clients as List<SmartGPON.Core.Entities.Client>??new()){<option value="@c.Id">@c.Nom</option>}
           </select></div>
         <div class="col-12">
           <div class="form-check form-switch">

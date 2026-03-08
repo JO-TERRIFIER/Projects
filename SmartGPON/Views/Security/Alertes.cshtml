@@ -60,7 +60,8 @@ async function markRead(id, btn) {
   if(res.ok){ btn.closest('tr').querySelectorAll('td')[5].innerHTML='<span class="pill pill-muted" style="font-size:9.5px;padding:2px 6px">Lu</span>'; btn.remove(); }
 }
 async function markAllRead() {
-  const res = await fetch('/Security/MarkAllRead', {method:'POST'});
+  const token = document.querySelector('[name=__RequestVerificationToken]')?.value??'';
+  const res = await fetch('/Security/MarkAllRead', {method:'POST', headers:{'RequestVerificationToken': token}});
   if(res.ok) location.reload();
 }
 </script>

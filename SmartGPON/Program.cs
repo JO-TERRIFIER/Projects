@@ -44,12 +44,21 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ISecurityService, SecurityService>();
 builder.Services.AddScoped<ITreeService, TreeService>();
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    // FIX: Empêche ASP.NET Core de traiter les navigation properties null! comme [Required]
+    // Sans ça, ModelState.IsValid = false sur tous les POST car Zone, Client, etc. sont null
+    options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+});
 
 var app = builder.Build();
 
 // ── Pipeline ─────────────────────────────────────────────────
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -71,7 +80,9 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        // EnsureCreated : crée les tables depuis le modèle sans migrations EF Core
+        // TEMPORAIRE: Supprime puis recrée la BDD avec le nouveau schéma (ProjetId sur Techniciens)
+        // TODO: Supprimer la ligne EnsureDeleted() après le premier lancement réussi
+        db.Database.EnsureDeleted();
         db.Database.EnsureCreated();
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

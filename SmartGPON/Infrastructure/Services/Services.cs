@@ -35,11 +35,11 @@ namespace SmartGPON.Infrastructure.Services
             var olts = await oltsQ.Select(o => new { o.Id, o.Statut }).ToListAsync();
 
             var ontsQ = _db.Onts
-                .Include(n => n.Splitter).ThenInclude(s => s.Fat).ThenInclude(f => f.Fdt)
+                .Include(n => n.Fdt)
                     .ThenInclude(fd => fd.Olt).ThenInclude(o => o.Zone).ThenInclude(z => z.Projet)
                 .AsNoTracking();
             if (clientId.HasValue)
-                ontsQ = ontsQ.Where(n => n.Splitter.Fat.Fdt.Olt.Zone.Projet.ClientId == clientId);
+                ontsQ = ontsQ.Where(n => n.Fdt.Olt.Zone.Projet.ClientId == clientId);
             var onts = await ontsQ.Select(n => new { n.Id, n.Statut }).ToListAsync();
 
             var alertes = await _db.NetworkAlerts.AsNoTracking()
@@ -186,9 +186,14 @@ namespace SmartGPON.Infrastructure.Services
             var zone = await _db.Zones.AsNoTracking()
                 .Include(z => z.Olts)
                     .ThenInclude(o => o.Fdts)
+                        .ThenInclude(fd => fd.Onts)
+                .Include(z => z.Olts)
+                    .ThenInclude(o => o.Fdts)
                         .ThenInclude(fd => fd.Fats)
-                            .ThenInclude(fa => fa.Splitters)
-                                .ThenInclude(sp => sp.Onts)
+                .Include(z => z.Olts)
+                    .ThenInclude(o => o.Fdts)
+                        .ThenInclude(fd => fd.Bpis)
+                            .ThenInclude(b => b.Onts)
                 .FirstOrDefaultAsync(z => z.Id == zoneId);
 
             if (zone == null) return new NetworkTreeViewModel();
@@ -203,20 +208,25 @@ namespace SmartGPON.Infrastructure.Services
                     Fdts = o.Fdts.Select(fd => new FdtTreeNode
                     {
                         Id = fd.Id, Nom = fd.Nom,
+                        NbSplitters1x8 = fd.NbSplitters1x8, NbSplitters1x64 = fd.NbSplitters1x64,
+                        Onts = fd.Onts.Where(n => n.BpiId == null).Select(n => new OntTreeNode
+                        {
+                            Id = n.Id, Nom = n.Nom ?? n.SerialNumber,
+                            SerialNumber = n.SerialNumber, Statut = n.Statut,
+                            SignalRx = n.SignalRx, SignalTx = n.SignalTx
+                        }).ToList(),
                         Fats = fd.Fats.Select(fa => new FatTreeNode
                         {
-                            Id = fa.Id, Nom = fa.Nom,
-                            Splitters = fa.Splitters.Select(sp => new SplitterTreeNode
+                            Id = fa.Id, Nom = fa.Nom, Capacite = fa.Capacite
+                        }).ToList(),
+                        Bpis = fd.Bpis.Select(b => new BpiTreeNode
+                        {
+                            Id = b.Id, Nom = b.Nom, Capacite = b.Capacite, NbSplitters1x8 = b.NbSplitters1x8,
+                            Onts = b.Onts.Select(n => new OntTreeNode
                             {
-                                Id = sp.Id, Nom = sp.Nom, Ratio = sp.Ratio,
-                                Onts = sp.Onts.Select(n => new OntTreeNode
-                                {
-                                    Id = n.Id, Nom = n.Nom ?? n.SerialNumber,
-                                    SerialNumber = n.SerialNumber,
-                                    Statut = n.Statut,
-                                    SignalRx = n.SignalRx,
-                                    SignalTx = n.SignalTx
-                                }).ToList()
+                                Id = n.Id, Nom = n.Nom ?? n.SerialNumber,
+                                SerialNumber = n.SerialNumber, Statut = n.Statut,
+                                SignalRx = n.SignalRx, SignalTx = n.SignalTx
                             }).ToList()
                         }).ToList()
                     }).ToList()

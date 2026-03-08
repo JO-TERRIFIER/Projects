@@ -9,7 +9,10 @@
       <div class="form-section-header"><div class="sec-icon" style="background:rgba(255,61,87,.1)"><i class="bi bi-hdd-network" style="color:var(--accent-red)"></i></div><span style="font-size:13px;font-weight:600">Fibre Access Terminal</span></div>
       <div class="form-section-body"><div class="row g-3">
         <div class="col-md-8"><label class="sg-label">Nom *</label><input asp-for="Nom" class="sg-input form-control" required/></div>
-        <div class="col-md-4"><label class="sg-label">Capacité ONT</label><input asp-for="Capacite" class="sg-input form-control" type="number" min="1" max="32"/></div>
+        <div class="col-md-4"><label class="sg-label">Capacité (8/12)</label>
+          <select asp-for="Capacite" class="sg-input form-select">
+            <option value="8">8</option><option value="12">12</option>
+          </select></div>
         <div class="col-12"><label class="sg-label">FDT parent *</label>
           <select asp-for="FdtId" class="sg-input form-select" required>
             <option value="">-- Sélectionner FDT --</option>

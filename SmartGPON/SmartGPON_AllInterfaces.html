@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SmartGPON v3 — Toutes les interfaces</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* === DESIGN SYSTEM (site.css complet) === */
+        :root {
+            --navy-950: #060d1f;
+            --navy-900: #0b1628;
+            --navy-800: #0f1f3d;
+            --navy-700: #162847;
+            --navy-600: #1e3557;
+            --accent-cyan: #00c8e0;
+            --accent-cyan-dim: #0097a7;
+            --accent-green: #00e676;
+            --accent-amber: #ffb300;
+            --accent-red: #ff3d57;
+            --accent-violet: #7c4dff;
+            --text-primary: #e8edf5;
+            --text-secondary: #8a9bb5;
+            --text-muted: #4a5d78;
+            --border-subtle: rgba(255, 255, 255, .07);
+            --border-mid: rgba(255, 255, 255, .12);
+            --sidebar-w: 260px;
+            --topbar-h: 56px;
+            --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: var(--font-sans);
+            font-size: 13.5px;
+            background: var(--navy-950);
+            color: var(--text-primary);
+            overflow-x: hidden
+        }
+
+        #topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--topbar-h);
+            background: var(--navy-900);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 1050;
+            gap: 0
+        }
+
+        #sidebar-toggle {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: 1px solid var(--border-mid);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s;
+            flex-shrink: 0
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 14px;
+            text-decoration: none
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            color: #fff
+        }
+
+        .brand-name {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: .04em;
+            color: var(--text-primary)
+        }
+
+        .brand-name span {
+            color: var(--accent-cyan)
+        }
+
+        .topbar-env {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            color: var(--accent-cyan);
+            letter-spacing: .12em;
+            background: rgba(0, 200, 224, .08);
+            border: 1px solid rgba(0, 200, 224, .2);
+            padding: 3px 10px;
+            border-radius: 20px
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto
+        }
+
+        .topbar-icon-btn {
+            width: 34px;
+            height: 34px;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all .2s
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 7px;
+            height: 7px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            border: 1.5px solid var(--navy-900)
+        }
+
+        .topbar-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border-subtle);
+            margin: 0 6px
+        }
+
+        .user-drop-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 4px 10px 4px 6px;
+            color: var(--text-primary);
+            cursor: pointer
+        }
+
+        .user-avatar {
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, var(--accent-cyan-dim), var(--accent-violet));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0
+        }
+
+        .u-name {
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.2
+        }
+
+        .u-role {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-family: var(--font-mono)
+        }
+
+        #sidebar {
+            position: fixed;
+            top: var(--topbar-h);
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-w);
+            background: var(--navy-900);
+            border-right: 1px solid var(--border-subtle);
+            overflow-y: auto;
+            z-index: 1040;
+            display: flex;
+            flex-direction: column
+        }
+
+        .sidebar-section {
+            padding: 16px 10px 6px
+        }
+
+        .sidebar-label {
+            font-family: var(--font-mono);
+            font-size: 9.5px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 0 8px;
+            margin-bottom: 4px
+        }
+
+        .nav-link-sg {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 1px;
+            font-family: var(--font-sans)
+        }
+
+        .nav-link-sg:hover {
+            background: var(--navy-700);
+            color: var(--text-primary)
+        }
+
+        .nav-link-sg.active {
+            background: linear-gradient(90deg, rgba(0, 200, 224, .15), rgba(0, 200, 224, .05));
+            color: var(--accent-cyan);
+            border-left: 2px solid var(--accent-cyan)
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .nav-text {
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            background: rgba(255, 179, 0, .15);
+            color: var(--accent-amber);
+            border: 1px solid rgba(255, 179, 0, .3);
+            border-radius: 10px;
+            padding: 1px 6px;
+            flex-shrink: 0
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 12px 10px;
+            border-top: 1px solid var(--border-subtle)
+        }
+
+        .sys-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: rgba(0, 230, 118, .06);
+            border: 1px solid rgba(0, 230, 118, .15)
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            flex-shrink: 0;
+            box-shadow: 0 0 6px var(--accent-green);
+            animation: pulse 2s infinite
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .5
+            }
+        }
+
+        .status-text {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            color: var(--accent-green)
+        }
+
+        #main {
+            margin-top: var(--topbar-h);
+            margin-left: var(--sidebar-w);
+            min-height: calc(100vh - var(--topbar-h));
+            background: var(--navy-950)
+        }
+
+        .page-header {
+            padding: 24px 28px 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.2
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            margin-top: 3px
+        }
+
+        .page-body {
+            padding: 20px 28px 32px
+        }
+
+        .sg-card {
+            background: var(--navy-800);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color .2s, box-shadow .2s
+        }
+
+        .sg-card:hover {
+            border-color: var(--border-mid);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, .3)
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            white-space: nowrap
+        }
+
+        .pill-green {
+            background: rgba(0, 230, 118, .12);
+            color: var(--accent-green);
+            border: 1px solid rgba(0, 230, 118, .25)
+        }
+
+        .pill-amber {
+            background: rgba(255, 179, 0, .12);
+            color: var(--accent-amber);
+            border: 1px solid rgba(255, 179, 0, .25)
+        }
+
+        .pill-red {
+            background: rgba(255, 61, 87, .12);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 61, 87, .25)
+        }
+
+        .pill-cyan {
+            background: rgba(0, 200, 224, .12);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 200, 224, .25)
+        }
+
+        .pill-violet {
+            background: rgba(124, 77, 255, .12);
+            color: #a78bff;
+            border: 1px solid rgba(124, 77, 255, .25)
+        }
+
+        .pill-muted {
+            background: rgba(255, 255, 255, .06);
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle)
+        }
+
+        .btn-primary-sg {
+            background: linear-gradient(135deg, var(--accent-cyan-dim), var(--accent-cyan));
+            color: var(--navy-950);
+            border: none;
+            font-weight: 600;
+            font-size: 12.5px;
+            border-radius: 8px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: var(--font-sans);
+            text-decoration: none
+        }
+
+        .btn-ghost-sg {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-mid);
+            font-size: 12.5px;
+            border-radius: 8px;
+            padding: 7px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: var(--font-sans);
+            text-decoration: none
+        }
+
+        .icon-btn {
+            width: 30px;
+            height: 30px;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none
+        }
+
+        .icon-btn.edit:hover {
+            background: rgba(0, 200, 224, .1);
+            color: var(--accent-cyan)
+        }
+
+        .icon-btn.danger:hover {
+            background: rgba(255, 61, 87, .15);
+            color: var(--accent-red)
+        }
+
+        .sg-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0
+        }
+
+        .sg-table thead th {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-weight: 600;
+            white-space: nowrap
+        }
+
+        .sg-table tbody td {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 13px;
+            color: var(--text-secondary);
+            vertical-align: middle
+        }
+
+        .sg-table tbody tr:last-child td {
+            border-bottom: none
+        }
+
+        .sg-table tbody tr:hover td {
+            background: rgba(255, 255, 255, .025);
+            color: var(--text-primary)
+        }
+
+        .sg-input {
+            background: var(--navy-700);
+            border: 1px solid var(--border-mid);
+            border-radius: 8px;
+            color: var(--text-primary) !important;
+            padding: 7px 12px;
+            font-size: 12.5px;
+            font-family: var(--font-sans);
+            width: 100%;
+            transition: border-color .2s
+        }
+
+        .sg-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 200, 224, .1)
+        }
+
+        .sg-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: .08em
+        }
+
+        .cap-bar-lg {
+            height: 6px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 3px;
+            overflow: hidden;
+            min-width: 80px
+        }
+
+        .cap-bar-lg-fill {
+            height: 100%;
+            border-radius: 3px
+        }
+
+        .si {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: inline-block
+        }
+
+        .si-on {
+            background: var(--accent-green);
+            box-shadow: 0 0 5px var(--accent-green)
+        }
+
+        .mono {
+            font-family: var(--font-mono)
+        }
+
+        .text-accent {
+            color: var(--accent-cyan)
+        }
+
+        .page-section {
+            display: none
+        }
+
+        .page-section.active-page {
+            display: block
+        }
+
+        .page-nav {
+            position: fixed;
+            top: var(--topbar-h);
+            left: 0;
+            right: 0;
+            background: var(--navy-900);
+            border-bottom: 2px solid var(--accent-cyan);
+            z-index: 1060;
+            display: flex;
+            overflow-x: auto;
+            padding: 0 10px;
+            gap: 2px
+        }
+
+        .page-nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 10px 14px;
+            font-size: 11.5px;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all .2s
+        }
+
+        .page-nav a:hover {
+            color: var(--text-primary)
+        }
+
+        .page-nav a.sel {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan)
+        }
+
+        #main-preview {
+            margin-top: calc(var(--topbar-h) + 42px)
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══ TOP NAV (switch pages) ═══ -->
+    <div id="topbar">
+        <div class="topbar-brand">
+            <div class="brand-icon"><i class="bi bi-reception-4"></i></div>
+            <div class="brand-name">Smart<span>GPON</span></div>
+        </div>
+        <div class="topbar-env" style="margin-left:12px">NOC v3</div>
+        <div class="topbar-right">
+            <div class="topbar-icon-btn"><i class="bi bi-bell"></i><span class="notif-dot"></span></div>
+            <div class="topbar-divider"></div>
+            <div class="user-drop-btn">
+                <div class="user-avatar">AD</div>
+                <div>
+                    <div class="u-name">admin@smartgpon.local</div>
+                    <div class="u-role">Admin · NOC</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-nav">
+        <a href="#" onclick="showPage('login')" class="sel">Login</a>
+        <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+        <a href="#" onclick="showPage('clients')">Clients</a>
+        <a href="#" onclick="showPage('olts')">OLTs</a>
+        <a href="#" onclick="showPage('fdts')">FDTs</a>
+        <a href="#" onclick="showPage('fats')">FATs</a>
+        <a href="#" onclick="showPage('onts')">ONTs</a>
+        <a href="#" onclick="showPage('projets')">Projets</a>
+        <a href="#" onclick="showPage('zones')">Zones</a>
+        <a href="#" onclick="showPage('techniciens')">Techniciens</a>
+        <a href="#" onclick="showPage('security')">Sécurité</a>
+        <a href="#" onclick="showPage('alertes')">Alertes</a>
+        <a href="#" onclick="showPage('logs')">Journaux</a>
+        <a href="#" onclick="showPage('forms')">Formulaires</a>
+    </div>
+
+    <div id="main-preview">
+
+        <!-- ═══ LOGIN ═══ -->
+        <div class="page-section active-page" id="p-login">
+            <div style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+                <div class="sg-card" style="width:380px;text-align:center">
+                    <div style="margin-bottom:20px">
+                        <div class="brand-icon" style="width:48px;height:48px;font-size:22px;margin:0 auto"><i
+                                class="bi bi-reception-4"></i></div>
+                    </div>
+                    <h5 style="font-weight:700;margin-bottom:4px">SmartGPON</h5>
+                    <div class="mono" style="font-size:11px;color:var(--text-muted);margin-bottom:24px">Connexion au
+                        système NOC</div>
+                    <div style="text-align:left;margin-bottom:12px"><label class="sg-label">Email</label><input
+                            class="sg-input" value="admin@smartgpon.local"></div>
+                    <div style="text-align:left;margin-bottom:16px"><label class="sg-label">Mot de passe</label><input
+                            class="sg-input" type="password" value="Admin@12345"></div>
+                    <label
+                        style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);margin-bottom:16px"><input
+                            type="checkbox"> Se souvenir de moi</label>
+                    <button class="btn-primary-sg" style="width:100%;justify-content:center"><i
+                            class="bi bi-box-arrow-in-right"></i> Connexion</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <div class="page-section" id="p-dashboard">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</h1>
+                    <div class="page-subtitle">Vue d'ensemble en temps réel — SmartGPON NOC</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouvelle simulation</button>
+            </div>
+            <div class="page-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="sg-card d-flex align-items-center gap-3 py-3">
+                            <div
+                                style="width:36px;height:36px;background:rgba(0,200,224,.12);border-radius:8px;display:flex;align-items:center;justify-content:center">
+                                <i class="bi bi-server" style="color:var(--accent-cyan)"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:22px;font-weight:700;font-family:var(--font-mono)">3<span
+                                        style="font-size:14px;color:var(--text-muted)">/3</span></div>
+                                <div style="font-size:11px;color:var(--text-muted)">OLTs actifs</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="sg-card d-flex align-items-center gap-3 py-3">
+                            <div
+                                style="width:36px;height:36px;background:rgba(0,230,118,.1);border-radius:8px;display:flex;align-items:center;justify-content:center">
+                                <i class="bi bi-router" style="color:var(--accent-green)"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:22px;font-weight:700;font-family:var(--font-mono)">4<span
+                                        style="font-size:14px;color:var(--text-muted)">/5</span></div>
+                                <div style="font-size:11px;color:var(--text-muted)">ONTs actifs</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="sg-card d-flex align-items-center gap-3 py-3">
+                            <div
+                                style="width:36px;height:36px;background:rgba(255,61,87,.1);border-radius:8px;display:flex;align-items:center;justify-content:center">
+                                <i class="bi bi-bell" style="color:var(--accent-red)"></i>
+                            </div>
+                            <div>
+                                <div
+                                    style="font-size:22px;font-weight:700;font-family:var(--font-mono);color:var(--accent-red)">
+                                    3</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Alertes non lues</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="sg-card d-flex align-items-center gap-3 py-3">
+                            <div
+                                style="width:36px;height:36px;background:rgba(255,179,0,.1);border-radius:8px;display:flex;align-items:center;justify-content:center">
+                                <i class="bi bi-exclamation-diamond" style="color:var(--accent-amber)"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:22px;font-weight:700;font-family:var(--font-mono)">0</div>
+                                <div style="font-size:11px;color:var(--text-muted)">Rogue OLTs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="sg-card">
+                            <div style="font-size:12px;font-weight:600;margin-bottom:12px">Disponibilité OLTs</div>
+                            <div class="d-flex align-items-center gap-3 mb-1">
+                                <div class="cap-bar-lg" style="flex:1">
+                                    <div class="cap-bar-lg-fill" style="width:100%;background:var(--accent-cyan)"></div>
+                                </div><span class="mono" style="font-size:13px;color:var(--accent-cyan)">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="sg-card">
+                            <div style="font-size:12px;font-weight:600;margin-bottom:12px">Disponibilité ONTs</div>
+                            <div class="d-flex align-items-center gap-3 mb-1">
+                                <div class="cap-bar-lg" style="flex:1">
+                                    <div class="cap-bar-lg-fill" style="width:80%;background:var(--accent-green)"></div>
+                                </div><span class="mono" style="font-size:13px;color:var(--accent-green)">80%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-card p-0" style="overflow:hidden">
+                    <div
+                        style="padding:16px 20px;border-bottom:1px solid var(--border-subtle);display:flex;justify-content:space-between">
+                        <div style="font-size:13px;font-weight:600">Dernières alertes</div><a class="btn-ghost-sg"
+                            style="font-size:11.5px;padding:5px 12px">Voir tout <i
+                                class="bi bi-arrow-right ms-1"></i></a>
+                    </div>
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:20px">Titre</th>
+                                <th>Sévérité</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding-left:20px;font-weight:500">Signal faible détecté</td>
+                                <td><span class="pill pill-amber">Warning</span></td>
+                                <td style="color:var(--text-muted)">SignalDegradation</td>
+                                <td class="mono" style="font-size:11.5px;color:var(--text-muted)">06/03 14:22</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left:20px;font-weight:500">Tentative accès non autorisé</td>
+                                <td><span class="pill pill-red">Critical</span></td>
+                                <td style="color:var(--text-muted)">Security</td>
+                                <td class="mono" style="font-size:11.5px;color:var(--text-muted)">06/03 13:45</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left:20px;font-weight:500">Taux charge élevé</td>
+                                <td><span class="pill pill-amber">Warning</span></td>
+                                <td style="color:var(--text-muted)">Performance</td>
+                                <td class="mono" style="font-size:11.5px;color:var(--text-muted)">06/03 12:10</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ CLIENTS ═══ -->
+        <div class="page-section" id="p-clients">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-building me-2"></i>Clients</h1>
+                    <div class="page-subtitle">Gestion des clients GPON</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouveau client</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Téléphone</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="mono text-accent fw-bold">TT</span></td>
+                                <td class="fw-semibold">Tunisie Telecom</td>
+                                <td class="mono" style="color:var(--text-muted)">admin@tunisietelecom.tn</td>
+                                <td style="color:var(--text-muted)">—</td>
+                                <td><span class="pill pill-green">Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="mono text-accent fw-bold">OO</span></td>
+                                <td class="fw-semibold">Ooredoo Tunisie</td>
+                                <td class="mono" style="color:var(--text-muted)">admin@ooredoo.tn</td>
+                                <td style="color:var(--text-muted)">—</td>
+                                <td><span class="pill pill-green">Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ OLTs ═══ -->
+        <div class="page-section" id="p-olts">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-server me-2"></i>OLTs</h1>
+                    <div class="page-subtitle">Optical Line Terminals</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouvel OLT</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>IP</th>
+                                <th>Marque / Modèle</th>
+                                <th>Zone</th>
+                                <th>Ports</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">OLT-NORD-01</td>
+                                <td><code class="mono text-accent">10.10.1.1</code></td>
+                                <td style="color:var(--text-secondary)">Huawei MA5800-X7</td>
+                                <td style="color:var(--text-muted)">Zone Nord Tunis</td>
+                                <td class="mono text-accent">32</td>
+                                <td><span class="pill pill-green"><span class="si si-on"></span>Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">OLT-NORD-02</td>
+                                <td><code class="mono text-accent">10.10.1.2</code></td>
+                                <td style="color:var(--text-secondary)">ZTE C650</td>
+                                <td style="color:var(--text-muted)">Zone Nord Tunis</td>
+                                <td class="mono text-accent">16</td>
+                                <td><span class="pill pill-green"><span class="si si-on"></span>Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">OLT-CTR-01</td>
+                                <td><code class="mono text-accent">10.10.2.1</code></td>
+                                <td style="color:var(--text-secondary)">Huawei MA5680T</td>
+                                <td style="color:var(--text-muted)">Zone Centre Tunis</td>
+                                <td class="mono text-accent">16</td>
+                                <td><span class="pill pill-green"><span class="si si-on"></span>Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ FDTs ═══ -->
+        <div class="page-section" id="p-fdts">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">FDTs</h1>
+                    <div class="page-subtitle">Fiber Distribution Terminals</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouveau FDT</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>OLT parent</th>
+                                <th>Capacité</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">FDT-01-A</td>
+                                <td><span class="pill pill-muted" style="font-size:10px">OLT-NORD-01</span></td>
+                                <td class="mono" style="color:var(--accent-cyan)">8</td>
+                                <td><span class="pill pill-green">Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">FDT-01-B</td>
+                                <td><span class="pill pill-muted" style="font-size:10px">OLT-NORD-01</span></td>
+                                <td class="mono" style="color:var(--accent-cyan)">8</td>
+                                <td><span class="pill pill-green">Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ FATs ═══ -->
+        <div class="page-section" id="p-fats">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Supervision FAT / Splitters</h1>
+                    <div class="page-subtitle">Seuil max : 12 ONT/FAT</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Ajouter FAT</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Code FAT</th>
+                                <th>FDT parent</th>
+                                <th>ONT actifs</th>
+                                <th>Capacité</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="mono text-accent">FAT-01-A-1</td>
+                                <td class="mono" style="color:var(--text-muted)">FDT-01-A</td>
+                                <td><span class="mono" style="color:var(--accent-green);font-weight:600">2</span><span
+                                        style="font-size:11px;color:var(--text-muted)"> / 8</span></td>
+                                <td style="min-width:140px">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="cap-bar-lg" style="flex:1">
+                                            <div class="cap-bar-lg-fill"
+                                                style="width:25%;background:var(--accent-green)"></div>
+                                        </div><span class="mono"
+                                            style="font-size:12px;color:var(--accent-green)">25%</span>
+                                    </div>
+                                </td>
+                                <td><span class="pill pill-green">Normal</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ ONTs ═══ -->
+        <div class="page-section" id="p-onts">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-router me-2"></i>ONTs</h1>
+                    <div class="page-subtitle">Optical Network Terminals</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouvel ONT</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>N° série</th>
+                                <th>Nom</th>
+                                <th>IP</th>
+                                <th>Splitter</th>
+                                <th>Signal Rx</th>
+                                <th>Signal Tx</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code class="mono text-accent" style="font-size:.8rem">HWTC1234ABCD</code></td>
+                                <td>ONT-001</td>
+                                <td style="color:var(--text-muted)">192.168.1.1</td>
+                                <td style="color:var(--text-muted)">SPL-01</td>
+                                <td style="color:var(--accent-green);font-weight:600">-22.5 dBm</td>
+                                <td style="color:var(--text-muted)">-1.2 dBm</td>
+                                <td><span class="pill pill-green"><span class="si si-on"></span>Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td><code class="mono text-accent" style="font-size:.8rem">ZTXC2222BBBB</code></td>
+                                <td>ONT-004</td>
+                                <td style="color:var(--text-muted)">192.168.1.4</td>
+                                <td style="color:var(--text-muted)">SPL-02</td>
+                                <td style="color:var(--text-muted)">—</td>
+                                <td style="color:var(--text-muted)">—</td>
+                                <td><span class="pill pill-muted">Inactif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ PROJETS ═══ -->
+        <div class="page-section" id="p-projets">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Gestion des projets</h1>
+                    <div class="page-subtitle">Portefeuille opérationnel GPON</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouveau projet</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Client</th>
+                                <th>Statut</th>
+                                <th>Date début</th>
+                                <th>Date fin</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">Déploiement GPON Grand Tunis</td>
+                                <td>Tunisie Telecom</td>
+                                <td><span class="pill pill-green">Terminé</span></td>
+                                <td class="mono" style="font-size:11.5px;color:var(--text-muted)">15/01/2023</td>
+                                <td class="mono" style="color:var(--text-muted)">—</td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Extension FTTH Sfax</td>
+                                <td>Tunisie Telecom</td>
+                                <td><span class="pill pill-cyan">Actif</span></td>
+                                <td class="mono" style="font-size:11.5px;color:var(--text-muted)">01/03/2024</td>
+                                <td class="mono" style="color:var(--text-muted)">—</td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ ZONES ═══ -->
+        <div class="page-section" id="p-zones">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Zones</h1>
+                    <div class="page-subtitle">Zones géographiques de déploiement</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouvelle zone</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Projet</th>
+                                <th>Latitude</th>
+                                <th>Longitude</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">Zone Nord Tunis</td>
+                                <td><span class="pill pill-cyan" style="font-size:10px">Déploiement GPON Grand
+                                        Tunis</span></td>
+                                <td class="mono" style="color:var(--text-muted)">36.8065</td>
+                                <td class="mono" style="color:var(--text-muted)">10.1815</td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Zone Sfax Centre</td>
+                                <td><span class="pill pill-cyan" style="font-size:10px">Extension FTTH Sfax</span></td>
+                                <td class="mono" style="color:var(--text-muted)">34.7400</td>
+                                <td class="mono" style="color:var(--text-muted)">10.7600</td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ TECHNICIENS ═══ -->
+        <div class="page-section" id="p-techniciens">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Performance techniciens</h1>
+                    <div class="page-subtitle">Suivi activité &amp; indicateurs</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouveau technicien</button>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Technicien</th>
+                                <th>Client</th>
+                                <th>Spécialité</th>
+                                <th>Email</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div
+                                            style="width:30px;height:30px;background:linear-gradient(135deg,rgba(0,200,224,.2),rgba(124,77,255,.2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;position:relative">
+                                            <span>KB</span><span
+                                                style="position:absolute;bottom:0;right:0;width:8px;height:8px;background:var(--accent-green);border-radius:50%;border:1.5px solid var(--navy-800)"></span>
+                                        </div>
+                                        <div style="font-size:13px;font-weight:500">Karim Ben Ali</div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--text-muted)">Tunisie Telecom</td>
+                                <td><span class="pill pill-muted" style="font-size:10px">GPON Splicing</span></td>
+                                <td class="mono" style="color:var(--text-muted)">k.benali@tt.tn</td>
+                                <td><span class="pill pill-green">Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div
+                                            style="width:30px;height:30px;background:linear-gradient(135deg,rgba(0,200,224,.2),rgba(124,77,255,.2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;position:relative">
+                                            <span>IK</span><span
+                                                style="position:absolute;bottom:0;right:0;width:8px;height:8px;background:var(--accent-green);border-radius:50%;border:1.5px solid var(--navy-800)"></span>
+                                        </div>
+                                        <div style="font-size:13px;font-weight:500">Ines Khalil</div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--text-muted)">Ooredoo Tunisie</td>
+                                <td><span class="pill pill-muted" style="font-size:10px">Fiber Testing</span></td>
+                                <td class="mono" style="color:var(--text-muted)">i.khalil@ooredoo.tn</td>
+                                <td><span class="pill pill-green">Actif</span></td>
+                                <td><a class="icon-btn edit"><i class="bi bi-pencil"></i></a> <a
+                                        class="icon-btn danger"><i class="bi bi-trash3"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ SECURITY ═══ -->
+        <div class="page-section" id="p-security">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-shield-check me-2"></i>Centre Sécurité</h1>
+                    <div class="page-subtitle">Supervision sécurité réseau GPON</div>
+                </div><button class="btn-primary-sg"><i class="bi bi-activity"></i> Nouvelle simulation</button>
+            </div>
+            <div class="page-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="sg-card text-center" style="padding:20px">
+                            <div style="font-size:28px;font-weight:700;color:var(--accent-red)">1</div>
+                            <div class="mono" style="font-size:11px;color:var(--text-muted);margin-top:4px">ALERTES
+                                CRITIQUES</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="sg-card text-center" style="padding:20px">
+                            <div style="font-size:28px;font-weight:700;color:var(--accent-amber)">2</div>
+                            <div class="mono" style="font-size:11px;color:var(--text-muted);margin-top:4px">WARNINGS
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="sg-card text-center" style="padding:20px">
+                            <div style="font-size:28px;font-weight:700;color:var(--accent-red)">0</div>
+                            <div class="mono" style="font-size:11px;color:var(--text-muted);margin-top:4px">ROGUE OLTs
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="sg-card text-center" style="padding:20px">
+                            <div style="font-size:28px;font-weight:700;color:var(--accent-cyan)">3</div>
+                            <div class="mono" style="font-size:11px;color:var(--text-muted);margin-top:4px">ÉVÉNEMENTS
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-card">
+                    <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i
+                            class="bi bi-bell me-2"></i>Alertes récentes</h6>
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Sévérité</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Tentative accès non autorisé</td>
+                                <td><span class="pill pill-red">Critical</span></td>
+                                <td style="color:var(--text-muted)">Security</td>
+                                <td class="mono" style="color:var(--text-muted)">06/03 13:45</td>
+                            </tr>
+                            <tr>
+                                <td>Signal faible détecté</td>
+                                <td><span class="pill pill-amber">Warning</span></td>
+                                <td style="color:var(--text-muted)">SignalDegradation</td>
+                                <td class="mono" style="color:var(--text-muted)">06/03 14:22</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ ALERTES ═══ -->
+        <div class="page-section" id="p-alertes">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Alertes réseau</h1>
+                    <div class="page-subtitle">Supervision temps réel — 3 alerte(s)</div>
+                </div>
+                <div class="d-flex gap-2"><a class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Sécurité</a><button
+                        class="btn-ghost-sg"><i class="bi bi-check-all"></i> Tout marquer lu</button></div>
+            </div>
+            <div class="page-body">
+                <div class="d-flex gap-2 mb-3"><a class="btn-primary-sg"
+                        style="font-size:11.5px;padding:5px 12px">All</a><a class="btn-ghost-sg"
+                        style="font-size:11.5px;padding:5px 12px">Critical</a><a class="btn-ghost-sg"
+                        style="font-size:11.5px;padding:5px 12px">Warning</a><a class="btn-ghost-sg"
+                        style="font-size:11.5px;padding:5px 12px">Info</a></div>
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Sévérité</th>
+                                <th>Type</th>
+                                <th>OLT</th>
+                                <th>Date</th>
+                                <th>Lu</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span
+                                        style="width:6px;height:6px;border-radius:50%;background:var(--accent-red);display:inline-block;margin-right:8px"></span>Tentative
+                                    accès non autorisé</td>
+                                <td><span class="pill pill-red">Critical</span></td>
+                                <td style="color:var(--text-muted)">Security</td>
+                                <td class="mono" style="color:var(--text-muted)">OLT-NORD-01</td>
+                                <td class="mono" style="color:var(--text-muted)">06/03 13:45</td>
+                                <td><span class="pill pill-amber" style="font-size:9.5px;padding:2px 6px">Non lu</span>
+                                </td>
+                                <td><button class="icon-btn view"><i class="bi bi-check2"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ LOGS ═══ -->
+        <div class="page-section" id="p-logs">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-journal-text me-2"></i>Journaux</h1>
+                    <div class="page-subtitle">Événements de sécurité</div>
+                </div>
+            </div>
+            <div class="page-body">
+                <div class="sg-card">
+                    <table class="sg-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>IP Source</th>
+                                <th>Utilisateur</th>
+                                <th>Niveau</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="pill pill-red" style="font-size:10px">LoginFailed</span></td>
+                                <td>5 tentatives échouées</td>
+                                <td class="mono" style="color:var(--text-muted)">10.10.1.100</td>
+                                <td style="color:var(--text-muted)">unknown</td>
+                                <td class="mono">3</td>
+                                <td class="mono" style="color:var(--text-muted)">06/03 14:00</td>
+                            </tr>
+                            <tr>
+                                <td><span class="pill pill-amber" style="font-size:10px">PortScan</span></td>
+                                <td>Scan ports détecté</td>
+                                <td class="mono" style="color:var(--text-muted)">192.168.99.1</td>
+                                <td style="color:var(--text-muted)">unknown</td>
+                                <td class="mono">2</td>
+                                <td class="mono" style="color:var(--text-muted)">06/03 13:30</td>
+                            </tr>
+                            <tr>
+                                <td><span class="pill pill-cyan" style="font-size:10px">ConfigChange</span></td>
+                                <td>Modification config OLT</td>
+                                <td class="mono" style="color:var(--text-muted)">10.10.1.1</td>
+                                <td style="color:var(--text-muted)">admin</td>
+                                <td class="mono">1</td>
+                                <td class="mono" style="color:var(--text-muted)">06/03 12:15</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ FORMULAIRES (Create/Edit) ═══ -->
+        <div class="page-section" id="p-forms">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-pencil-square me-2"></i>Formulaires (Create/Edit)</h1>
+                    <div class="page-subtitle">Exemples de formulaires d'ajout et modification</div>
+                </div>
+            </div>
+            <div class="page-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="sg-card">
+                            <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i
+                                    class="bi bi-building me-2"></i>Nouveau client</h6>
+                            <div class="row g-3">
+                                <div class="col-8"><label class="sg-label">Nom *</label><input class="sg-input"
+                                        value="Tunisie Telecom"></div>
+                                <div class="col-4"><label class="sg-label">Code *</label><input class="sg-input"
+                                        value="TT"></div>
+                                <div class="col-12"><label class="sg-label">Adresse</label><input class="sg-input"
+                                        value="Avenue Mohamed V, Tunis"></div>
+                                <div class="col-6"><label class="sg-label">Email</label><input class="sg-input"
+                                        value="admin@tt.tn"></div>
+                                <div class="col-6"><label class="sg-label">Téléphone</label><input class="sg-input"
+                                        value="+216 71 000 000"></div>
+                            </div>
+                            <div class="d-flex gap-2 mt-4"><button class="btn-primary-sg"><i class="bi bi-check-lg"></i>
+                                    Enregistrer</button><button class="btn-ghost-sg">Annuler</button></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="sg-card">
+                            <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i
+                                    class="bi bi-activity me-2"></i>Lancer simulation</h6>
+                            <div class="mb-3"><label class="sg-label">OLT cible</label><select class="sg-input">
+                                    <option>OLT-NORD-01 (10.10.1.1)</option>
+                                    <option>OLT-NORD-02 (10.10.1.2)</option>
+                                </select></div>
+                            <div class="mb-3"><label class="sg-label">Type d'attaque *</label><select class="sg-input">
+                                    <option>MITM (Man-in-the-Middle)</option>
+                                    <option>Rogue OLT Injection</option>
+                                    <option>DoS / Flooding</option>
+                                </select></div>
+                            <div class="mb-3"><label class="sg-label">Niveau de risque</label><select class="sg-input">
+                                    <option>Moyen</option>
+                                    <option>Élevé</option>
+                                    <option>Critique</option>
+                                </select></div>
+                            <div class="mb-4"><label class="sg-label">Paramètres (JSON)</label><textarea
+                                    class="sg-input" rows="2" placeholder='{"intensity": 5}'></textarea></div>
+                            <div class="d-flex gap-2"><button class="btn-primary-sg"><i class="bi bi-play-fill"></i>
+                                    Lancer</button><button class="btn-ghost-sg">Annuler</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /main-preview -->
+
+    <script>
+        function showPage(id) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active-page'));
+            document.getElementById('p-' + id)?.classList.add('active-page');
+            document.querySelectorAll('.page-nav a').forEach(a => a.classList.remove('sel'));
+            event.target.classList.add('sel');
+        }
+    </script>
+</body>
+
+</html>

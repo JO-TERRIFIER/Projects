@@ -1,11 +1,6 @@
 // SmartGPON v3 – Controllers.cs
-// FIXES APPLIED:
-//   FIX-1: All using directives at file top (no CS1529)
-//   FIX-3: SecurityController.Alertes returns PagedResult<NetworkAlert>
-//   FIX-4: FatsController.Index includes Splitters -> Onts
-//   FIX-5: SplitersController.Index includes Onts
-//   FIX-6: OntsController ViewBag key = "Spliters" (matches view)
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -42,9 +37,18 @@ namespace SmartGPON.Web.Controllers
                     .ThenInclude(p => p.Zones)
                         .ThenInclude(z => z.Olts)
                             .ThenInclude(o => o.Fdts)
+                                .ThenInclude(f => f.Onts)
+                .Include(c => c.Projets)
+                    .ThenInclude(p => p.Zones)
+                        .ThenInclude(z => z.Olts)
+                            .ThenInclude(o => o.Fdts)
                                 .ThenInclude(f => f.Fats)
-                                    .ThenInclude(fat => fat.Splitters)
-                                        .ThenInclude(s => s.Onts)
+                .Include(c => c.Projets)
+                    .ThenInclude(p => p.Zones)
+                        .ThenInclude(z => z.Olts)
+                            .ThenInclude(o => o.Fdts)
+                                .ThenInclude(f => f.Bpis)
+                                    .ThenInclude(b => b.Onts)
                 .AsNoTracking()
                 .OrderBy(c => c.Nom)
                 .ToListAsync();
@@ -131,6 +135,7 @@ namespace SmartGPON.Web.Controllers
             var m = await _db.Projets.FindAsync(id);
             if (m == null) return NotFound();
             ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
+            ViewBag.Resources = await _db.Resources.AsNoTracking().Where(r => r.ProjetId == id).OrderByDescending(r => r.DateUpload).ToListAsync();
             return View(m);
         }
 
@@ -182,6 +187,7 @@ namespace SmartGPON.Web.Controllers
             var m = await _db.Zones.FindAsync(id);
             if (m == null) return NotFound();
             ViewBag.Projets = await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync();
+            ViewBag.Resources = await _db.Resources.AsNoTracking().Where(r => r.ZoneId == id).OrderByDescending(r => r.DateUpload).ToListAsync();
             return View(m);
         }
 
@@ -315,11 +321,9 @@ namespace SmartGPON.Web.Controllers
         private readonly ApplicationDbContext _db;
         public FatsController(ApplicationDbContext db) { _db = db; }
 
-        // FIX-4: Include Splitters->Onts pour affichage capacité en vue
         public async Task<IActionResult> Index() =>
             View(await _db.Fats.AsNoTracking()
                 .Include(f => f.Fdt).ThenInclude(fd => fd.Olt)
-                .Include(f => f.Splitters).ThenInclude(s => s.Onts)
                 .OrderBy(f => f.Nom)
                 .ToListAsync());
 
@@ -366,55 +370,52 @@ namespace SmartGPON.Web.Controllers
 namespace SmartGPON.Web.Controllers
 {
     [Authorize]
-    public class SplitersController : Controller
+    public class BpisController : Controller
     {
         private readonly ApplicationDbContext _db;
-        public SplitersController(ApplicationDbContext db) { _db = db; }
+        public BpisController(ApplicationDbContext db) { _db = db; }
 
-        // FIX-5: Include Onts pour affichage occupation en vue
         public async Task<IActionResult> Index() =>
-            View(await _db.Splitters.AsNoTracking()
-                .Include(s => s.Fat)
-                .Include(s => s.Onts)
-                .OrderBy(s => s.Nom)
-                .ToListAsync());
+            View(await _db.Bpis.AsNoTracking()
+                .Include(b => b.Fdt)
+                .OrderBy(b => b.Nom).ToListAsync());
 
         public async Task<IActionResult> Create()
         {
-            ViewBag.Fats = await _db.Fats.AsNoTracking().OrderBy(f => f.Nom).ToListAsync();
-            return View(new Splitter());
+            ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync();
+            return View(new Bpi());
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Splitter m)
+        public async Task<IActionResult> Create(Bpi m)
         {
-            if (!ModelState.IsValid) { ViewBag.Fats = await _db.Fats.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
-            _db.Splitters.Add(m); await _db.SaveChangesAsync();
-            TempData["Success"] = "Splitter créé."; return RedirectToAction(nameof(Index));
+            if (!ModelState.IsValid) { ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
+            _db.Bpis.Add(m); await _db.SaveChangesAsync();
+            TempData["Success"] = "BPI créé."; return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var m = await _db.Splitters.FindAsync(id);
+            var m = await _db.Bpis.FindAsync(id);
             if (m == null) return NotFound();
-            ViewBag.Fats = await _db.Fats.AsNoTracking().OrderBy(f => f.Nom).ToListAsync();
+            ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync();
             return View(m);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Splitter m)
+        public async Task<IActionResult> Edit(Bpi m)
         {
-            if (!ModelState.IsValid) { ViewBag.Fats = await _db.Fats.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
-            _db.Splitters.Update(m); await _db.SaveChangesAsync();
-            TempData["Success"] = "Splitter mis à jour."; return RedirectToAction(nameof(Index));
+            if (!ModelState.IsValid) { ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
+            _db.Bpis.Update(m); await _db.SaveChangesAsync();
+            TempData["Success"] = "BPI mis à jour."; return RedirectToAction(nameof(Index));
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var m = await _db.Splitters.FindAsync(id);
-            if (m != null) { _db.Splitters.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "Splitter supprimé."; return RedirectToAction(nameof(Index));
+            var m = await _db.Bpis.FindAsync(id);
+            if (m != null) { _db.Bpis.Remove(m); await _db.SaveChangesAsync(); }
+            TempData["Success"] = "BPI supprimé."; return RedirectToAction(nameof(Index));
         }
     }
 }
@@ -428,19 +429,24 @@ namespace SmartGPON.Web.Controllers
         public OntsController(ApplicationDbContext db) { _db = db; }
 
         public async Task<IActionResult> Index() =>
-            View(await _db.Onts.AsNoTracking().Include(n => n.Splitter).OrderBy(n => n.SerialNumber).ToListAsync());
+            View(await _db.Onts.AsNoTracking().Include(n => n.Fdt).Include(n => n.Bpi).OrderBy(n => n.SerialNumber).ToListAsync());
+
+        private async Task PopulateOntViewBags()
+        {
+            ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync();
+            ViewBag.Bpis = await _db.Bpis.AsNoTracking().OrderBy(b => b.Nom).ToListAsync();
+        }
 
         public async Task<IActionResult> Create()
         {
-            // FIX-6: ViewBag.Spliters — correspond exactement au nom utilisé dans Onts/Create.cshtml
-            ViewBag.Spliters = await _db.Splitters.AsNoTracking().OrderBy(s => s.Nom).ToListAsync();
+            await PopulateOntViewBags();
             return View(new Ont());
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Ont m)
         {
-            if (!ModelState.IsValid) { ViewBag.Spliters = await _db.Splitters.AsNoTracking().OrderBy(s => s.Nom).ToListAsync(); return View(m); }
+            if (!ModelState.IsValid) { await PopulateOntViewBags(); return View(m); }
             _db.Onts.Add(m); await _db.SaveChangesAsync();
             TempData["Success"] = "ONT créé."; return RedirectToAction(nameof(Index));
         }
@@ -449,14 +455,14 @@ namespace SmartGPON.Web.Controllers
         {
             var m = await _db.Onts.FindAsync(id);
             if (m == null) return NotFound();
-            ViewBag.Spliters = await _db.Splitters.AsNoTracking().OrderBy(s => s.Nom).ToListAsync();
+            await PopulateOntViewBags();
             return View(m);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Ont m)
         {
-            if (!ModelState.IsValid) { ViewBag.Spliters = await _db.Splitters.AsNoTracking().OrderBy(s => s.Nom).ToListAsync(); return View(m); }
+            if (!ModelState.IsValid) { await PopulateOntViewBags(); return View(m); }
             _db.Onts.Update(m); await _db.SaveChangesAsync();
             TempData["Success"] = "ONT mis à jour."; return RedirectToAction(nameof(Index));
         }
@@ -474,24 +480,112 @@ namespace SmartGPON.Web.Controllers
 namespace SmartGPON.Web.Controllers
 {
     [Authorize]
+    public class ResourcesController : Controller
+    {
+        private readonly ApplicationDbContext _db;
+        private readonly IWebHostEnvironment _env;
+        private static readonly string[] ZoneExtensions = { ".dwg", ".pdf", ".png", ".jpg", ".jpeg", ".xlsx" };
+        private static readonly string[] ProjetExtensions = { ".pdf", ".png", ".jpg", ".jpeg", ".xlsx" };
+
+        public ResourcesController(ApplicationDbContext db, IWebHostEnvironment env) { _db = db; _env = env; }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Upload(int? zoneId, int? projetId, IFormFile file)
+        {
+            if (file == null || file.Length == 0) { TempData["Error"] = "Fichier vide."; return Back(zoneId, projetId); }
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowed = zoneId.HasValue ? ZoneExtensions : ProjetExtensions;
+            if (!allowed.Contains(ext)) { TempData["Error"] = $"Type {ext} non autorisé."; return Back(zoneId, projetId); }
+
+            var folder = zoneId.HasValue
+                ? Path.Combine(_env.WebRootPath, "resources", "zones", zoneId.ToString()!)
+                : Path.Combine(_env.WebRootPath, "resources", "projets", projetId.ToString()!);
+            Directory.CreateDirectory(folder);
+
+            var fileName = $"{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(folder, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+                await file.CopyToAsync(stream);
+
+            _db.Resources.Add(new Resource
+            {
+                ZoneId = zoneId, ProjetId = projetId,
+                NomFichier = file.FileName,
+                CheminFichier = filePath,
+                TypeFichier = ext,
+                TailleFichier = file.Length
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier uploadé.";
+            return Back(zoneId, projetId);
+        }
+
+        public async Task<IActionResult> Download(int id)
+        {
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null || !System.IO.File.Exists(r.CheminFichier)) return NotFound();
+            var ct = r.TypeFichier switch
+            {
+                ".pdf" => "application/pdf",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".dwg" => "application/acad",
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                _ => "application/octet-stream"
+            };
+            return PhysicalFile(r.CheminFichier, ct, r.NomFichier);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var r = await _db.Resources.FindAsync(id);
+            if (r != null)
+            {
+                if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+                _db.Resources.Remove(r); await _db.SaveChangesAsync();
+            }
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r?.ZoneId, r?.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
+        }
+    }
+}
+
+namespace SmartGPON.Web.Controllers
+{
+    [Authorize]
     public class TechniciensController : Controller
     {
         private readonly ApplicationDbContext _db;
         public TechniciensController(ApplicationDbContext db) { _db = db; }
 
         public async Task<IActionResult> Index() =>
-            View(await _db.Techniciens.AsNoTracking().Include(t => t.Client).OrderBy(t => t.Nom).ToListAsync());
+            View(await _db.Techniciens.AsNoTracking().Include(t => t.Projet).OrderBy(t => t.Nom).ToListAsync());
 
         public async Task<IActionResult> Create()
         {
-            ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
+            ViewBag.Projets = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync(), "Id", "Nom");
             return View(new Technicien());
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Technicien m)
         {
-            if (!ModelState.IsValid) { ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync(); return View(m); }
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Projets = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                    await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync(), "Id", "Nom", m.ProjetId);
+                return View(m);
+            }
             _db.Techniciens.Add(m); await _db.SaveChangesAsync();
             TempData["Success"] = "Technicien créé."; return RedirectToAction(nameof(Index));
         }
@@ -500,14 +594,20 @@ namespace SmartGPON.Web.Controllers
         {
             var m = await _db.Techniciens.FindAsync(id);
             if (m == null) return NotFound();
-            ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
+            ViewBag.Projets = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync(), "Id", "Nom", m.ProjetId);
             return View(m);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Technicien m)
         {
-            if (!ModelState.IsValid) { ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync(); return View(m); }
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Projets = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                    await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync(), "Id", "Nom", m.ProjetId);
+                return View(m);
+            }
             _db.Techniciens.Update(m); await _db.SaveChangesAsync();
             TempData["Success"] = "Technicien mis à jour."; return RedirectToAction(nameof(Index));
         }

@@ -1,28 +1,32 @@
 @model SmartGPON.Core.Entities.Ont
-@{ ViewData["Title"] = (Model.Id==0?"Nouveau":"Modifier")+" ONT"; }
+@{ ViewData["Title"] = (Model.Id==0?"Nouvel":"Modifier")+" ONT"; }
 <div class="page-header"><div><h1 class="page-title">@ViewData["Title"]</h1></div><a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a></div>
-<div class="page-body"><div style="max-width:580px">
+<div class="page-body"><div style="max-width:500px">
   <form asp-action="@(Model.Id==0?"Create":"Edit")" method="post">
     @Html.AntiForgeryToken()
     @if(Model.Id!=0){<input type="hidden" asp-for="Id"/>}
     <div class="form-section">
-      <div class="form-section-header"><div class="sec-icon" style="background:rgba(0,230,118,.08)"><i class="bi bi-router" style="color:var(--accent-green)"></i></div><span style="font-size:13px;font-weight:600">Optical Network Terminal</span></div>
+      <div class="form-section-header"><div class="sec-icon" style="background:rgba(0,230,118,.1)"><i class="bi bi-router" style="color:var(--accent-green)"></i></div><span style="font-size:13px;font-weight:600">ONT</span></div>
       <div class="form-section-body"><div class="row g-3">
-        <div class="col-md-6"><label class="sg-label">Numéro de série *</label><input asp-for="SerialNumber" class="sg-input form-control" required placeholder="HWTC12345678"/></div>
-        <div class="col-md-6"><label class="sg-label">Nom / Label</label><input asp-for="Nom" class="sg-input form-control"/></div>
-        <div class="col-md-6"><label class="sg-label">Modèle</label><input asp-for="Modele" class="sg-input form-control" placeholder="HG8245H…"/></div>
-        <div class="col-md-6"><label class="sg-label">Adresse MAC</label><input asp-for="MacAddress" class="sg-input form-control" placeholder="AA:BB:CC:DD:EE:FF"/></div>
-        <div class="col-md-6"><label class="sg-label">Adresse IP</label><input asp-for="IpAddress" class="sg-input form-control"/></div>
-        <div class="col-md-6"><label class="sg-label">Splitter parent *</label>
-          <select asp-for="SplitterId" class="sg-input form-select" required>
-            <option value="">-- Sélectionner Splitter --</option>
-            @foreach(var sp in ViewBag.Spliters as List<SmartGPON.Core.Entities.Splitter>??new()){<option value="@sp.Id">@sp.Nom (@sp.Ratio)</option>}
+        <div class="col-md-6"><label class="sg-label">Serial Number *</label><input asp-for="SerialNumber" class="sg-input form-control" required/></div>
+        <div class="col-md-6"><label class="sg-label">Nom</label><input asp-for="Nom" class="sg-input form-control"/></div>
+        <div class="col-12"><label class="sg-label">FDT parent *</label>
+          <select asp-for="FdtId" class="sg-input form-select" required>
+            <option value="">-- Sélectionner FDT --</option>
+            @foreach(var f in ViewBag.Fdts as List<SmartGPON.Core.Entities.Fdt>??new()){<option value="@f.Id">@f.Nom</option>}
           </select></div>
+        <div class="col-12"><label class="sg-label">BPI (optionnel, si immeuble)</label>
+          <select asp-for="BpiId" class="sg-input form-select">
+            <option value="">— Aucun (villa) —</option>
+            @foreach(var b in ViewBag.Bpis as List<SmartGPON.Core.Entities.Bpi>??new()){<option value="@b.Id">@b.Nom (cap @b.Capacite)</option>}
+          </select></div>
+        <div class="col-md-6"><label class="sg-label">IP</label><input asp-for="IpAddress" class="sg-input form-control"/></div>
+        <div class="col-md-6"><label class="sg-label">MAC</label><input asp-for="MacAddress" class="sg-input form-control"/></div>
+        <div class="col-md-6"><label class="sg-label">Modèle</label><input asp-for="Modele" class="sg-input form-control"/></div>
         <div class="col-md-6"><label class="sg-label">Statut</label>
           <select asp-for="Statut" asp-items="Html.GetEnumSelectList<SmartGPON.Core.Enums.StatutEquipement>()" class="sg-input form-select"></select></div>
-        <div class="col-md-3"><label class="sg-label">Signal Rx (dBm)</label><input asp-for="SignalRx" class="sg-input form-control" type="number" step="0.01"/></div>
-        <div class="col-md-3"><label class="sg-label">Signal Tx (dBm)</label><input asp-for="SignalTx" class="sg-input form-control" type="number" step="0.01"/></div>
-        <div class="col-md-6"><label class="sg-label">Date installation</label><input asp-for="DateInstall" type="date" class="sg-input form-control"/></div>
+        <div class="col-md-6"><label class="sg-label">Signal Rx (dBm)</label><input asp-for="SignalRx" class="sg-input form-control" type="number" step="0.1"/></div>
+        <div class="col-md-6"><label class="sg-label">Signal Tx (dBm)</label><input asp-for="SignalTx" class="sg-input form-control" type="number" step="0.1"/></div>
       </div></div></div>
     <div class="d-flex gap-2"><button type="submit" class="btn-primary-sg"><i class="bi bi-check-lg"></i> Enregistrer</button><a asp-action="Index" class="btn-ghost-sg">Annuler</a></div>
   </form>

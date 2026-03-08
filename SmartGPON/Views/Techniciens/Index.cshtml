@@ -2,7 +2,7 @@
 @{ ViewData["Title"] = "Techniciens"; }
 <div class="page-header"><div><h1 class="page-title">Performance techniciens</h1><div class="page-subtitle">Suivi activité &amp; indicateurs</div></div><a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouveau technicien</a></div>
 <div class="page-body"><div class="sg-card p-0" style="overflow:hidden"><div style="overflow-x:auto"><table class="sg-table">
-  <thead><tr><th style="padding-left:20px">Technicien</th><th>Client</th><th>Spécialité</th><th>Email</th><th>Téléphone</th><th>Statut</th><th style="padding-right:20px;text-align:right">Actions</th></tr></thead>
+  <thead><tr><th style="padding-left:20px">Technicien</th><th>Projet</th><th>Spécialité</th><th>Email</th><th>Téléphone</th><th>Statut</th><th style="padding-right:20px;text-align:right">Actions</th></tr></thead>
   <tbody>
   @foreach(var t in Model){
     var initials = ((t.Prenom?.Substring(0,1)??"")+(t.Nom.Substring(0,1))).ToUpper();
@@ -14,7 +14,7 @@
         </div>
         <div><div style="font-size:13px;font-weight:500;color:var(--text-primary)">@t.Prenom @t.Nom</div></div>
       </div></td>
-    <td style="font-size:12px;color:var(--text-muted)">@t.Client?.Nom</td>
+    <td style="font-size:12px;color:var(--text-muted)">@t.Projet?.Nom</td>
     <td><span class="pill pill-muted" style="font-size:10px">@(t.Specialite??"—")</span></td>
     <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@(t.Email??"—")</td>
     <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@(t.Telephone??"—")</td>

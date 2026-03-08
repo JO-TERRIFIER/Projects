@@ -65,6 +65,8 @@ CREATE TABLE Fdts (
     OltId       INT NOT NULL REFERENCES Olts(Id) ON DELETE CASCADE,
     Nom         NVARCHAR(100) NOT NULL,
     Capacite    INT DEFAULT 8,
+    NbSplitters1x8  INT DEFAULT 0,
+    NbSplitters1x64 INT DEFAULT 0,
     Latitude    DECIMAL(10,7),
     Longitude   DECIMAL(10,7),
     Statut      TINYINT DEFAULT 1
@@ -82,19 +84,22 @@ CREATE TABLE Fats (
 );
 CREATE INDEX IX_Fats_FdtId ON Fats(FdtId);
 
-CREATE TABLE Splitters (
+CREATE TABLE Bpis (
     Id          INT IDENTITY PRIMARY KEY,
-    FatId       INT NOT NULL REFERENCES Fats(Id) ON DELETE CASCADE,
+    FdtId       INT NOT NULL REFERENCES Fdts(Id) ON DELETE CASCADE,
     Nom         NVARCHAR(100) NOT NULL,
-    Ratio       NVARCHAR(10) DEFAULT '1:8',
-    NombreSorties INT DEFAULT 8,
+    Capacite    INT DEFAULT 24,
+    NbSplitters1x8 INT DEFAULT 1,
+    Latitude    DECIMAL(10,7),
+    Longitude   DECIMAL(10,7),
     Statut      TINYINT DEFAULT 1
 );
-CREATE INDEX IX_Splitters_FatId ON Splitters(FatId);
+CREATE INDEX IX_Bpis_FdtId ON Bpis(FdtId);
 
 CREATE TABLE Onts (
     Id          INT IDENTITY PRIMARY KEY,
-    SplitterId  INT NOT NULL REFERENCES Splitters(Id) ON DELETE CASCADE,
+    FdtId       INT NOT NULL REFERENCES Fdts(Id) ON DELETE CASCADE,
+    BpiId       INT NULL REFERENCES Bpis(Id) ON DELETE NO ACTION,
     SerialNumber NVARCHAR(50) NOT NULL,
     Nom         NVARCHAR(100),
     MacAddress  NVARCHAR(17),
@@ -106,8 +111,9 @@ CREATE TABLE Onts (
     DateInstall DATE,
     DateCreation DATETIME2 DEFAULT SYSDATETIME()
 );
-CREATE INDEX IX_Onts_SplitterId ON Onts(SplitterId);
-CREATE INDEX IX_Onts_SerialNumber ON Onts(SerialNumber);
+CREATE INDEX IX_Onts_FdtId ON Onts(FdtId);
+CREATE INDEX IX_Onts_BpiId ON Onts(BpiId);
+CREATE UNIQUE INDEX IX_Onts_SerialNumber ON Onts(SerialNumber);
 
 CREATE TABLE Fibres (
     Id          INT IDENTITY PRIMARY KEY,
@@ -128,9 +134,22 @@ CREATE TABLE Chambres (
     Statut      TINYINT DEFAULT 1
 );
 
+CREATE TABLE Resources (
+    Id              INT IDENTITY PRIMARY KEY,
+    ZoneId          INT NULL REFERENCES Zones(Id) ON DELETE CASCADE,
+    ProjetId        INT NULL REFERENCES Projets(Id) ON DELETE NO ACTION,
+    NomFichier      NVARCHAR(255) NOT NULL,
+    CheminFichier   NVARCHAR(500) NOT NULL,
+    TypeFichier     NVARCHAR(10) NOT NULL,
+    TailleFichier   BIGINT DEFAULT 0,
+    DateUpload      DATETIME2 DEFAULT SYSDATETIME()
+);
+CREATE INDEX IX_Resources_ZoneId ON Resources(ZoneId);
+CREATE INDEX IX_Resources_ProjetId ON Resources(ProjetId);
+
 CREATE TABLE Techniciens (
     Id          INT IDENTITY PRIMARY KEY,
-    ClientId    INT NOT NULL REFERENCES Clients(Id),
+    ProjetId    INT NOT NULL REFERENCES Projets(Id) ON DELETE CASCADE,
     Nom         NVARCHAR(100) NOT NULL,
     Prenom      NVARCHAR(100),
     Email       NVARCHAR(150),
@@ -138,6 +157,7 @@ CREATE TABLE Techniciens (
     Specialite  NVARCHAR(100),
     IsActive    BIT DEFAULT 1
 );
+CREATE INDEX IX_Techniciens_ProjetId ON Techniciens(ProjetId);
 
 CREATE TABLE Tests (
     Id          INT IDENTITY PRIMARY KEY,

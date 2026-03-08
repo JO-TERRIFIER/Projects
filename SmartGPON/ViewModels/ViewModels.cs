@@ -41,7 +41,7 @@ namespace SmartGPON.Web.ViewModels
         public int NbrePorts { get; set; }
         public int NbreFdts { get; set; }
         public int NbreFats { get; set; }
-        public int NbreSplitters { get; set; }
+        public int NbreBpis { get; set; }
         public int TotalOnts { get; set; }
         public int OntsActifs { get; set; }
         public decimal TauxActivite { get; set; }
@@ -68,21 +68,26 @@ namespace SmartGPON.Web.ViewModels
     {
         public int Id { get; set; }
         public string Nom { get; set; } = string.Empty;
+        public int NbSplitters1x8 { get; set; }
+        public int NbSplitters1x64 { get; set; }
+        public List<OntTreeNode> Onts { get; set; } = new();
         public List<FatTreeNode> Fats { get; set; } = new();
+        public List<BpiTreeNode> Bpis { get; set; } = new();
     }
 
     public class FatTreeNode
     {
         public int Id { get; set; }
         public string Nom { get; set; } = string.Empty;
-        public List<SplitterTreeNode> Splitters { get; set; } = new();
+        public int Capacite { get; set; }
     }
 
-    public class SplitterTreeNode
+    public class BpiTreeNode
     {
         public int Id { get; set; }
         public string Nom { get; set; } = string.Empty;
-        public string Ratio { get; set; } = string.Empty;
+        public int Capacite { get; set; }
+        public int NbSplitters1x8 { get; set; }
         public List<OntTreeNode> Onts { get; set; } = new();
     }
 

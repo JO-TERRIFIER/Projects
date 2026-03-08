@@ -1,7 +1,7 @@
 @model IEnumerable<SmartGPON.Core.Entities.Client>
 @{ ViewData["Title"] = "Topologie réseau"; }
 <div class="page-header">
-  <div><h1 class="page-title">Topologie réseau</h1><div class="page-subtitle">Hiérarchie Client → Projet → Zone → OLT → FDT → FAT → Splitter → ONT</div></div>
+  <div><h1 class="page-title">Topologie réseau</h1><div class="page-subtitle">Client → Projet → Zone → OLT → FDT → [ONT | FAT | BPI→ONT]</div></div>
   <div class="d-flex gap-2">
     <button class="btn-ghost-sg" onclick="expandAll()"><i class="bi bi-arrows-expand"></i> Tout déplier</button>
     <button class="btn-ghost-sg" onclick="collapseAll()"><i class="bi bi-arrows-collapse"></i> Tout replier</button>
@@ -20,7 +20,6 @@
             <span class="tree-icon" style="background:rgba(124,77,255,.15)"><i class="bi bi-building" style="color:#a78bff"></i></span>
             <span class="tree-label">@client.Nom</span>
             <span class="lbadge lvl-client ms-2">Client</span>
-            <span class="si si-on ms-2"></span>
           </div>
           <div class="tree-children open"><div class="tree-connector">
             @foreach(var projet in client.Projets){
@@ -57,38 +56,51 @@
                                   <div class="tree-node" onclick="tToggle(this)">
                                     <span class="tree-toggle"><i class="bi bi-plus"></i></span>
                                     <span class="tree-icon" style="background:rgba(255,255,255,.06)"><i class="bi bi-box" style="color:var(--text-secondary)"></i></span>
-                                    <span class="tree-label">@fdt.Nom</span>
+                                    <span class="tree-label">@fdt.Nom <span style="font-size:10px;color:var(--text-muted)">(1:64×@fdt.NbSplitters1x64 + 1:8×@fdt.NbSplitters1x8)</span></span>
                                     <span class="lbadge lvl-fdt ms-2">FDT</span>
                                   </div>
                                   <div class="tree-children"><div class="tree-connector">
-                                    @foreach(var fat in fdt.Fats){
-                                      var onts = fat.Splitters?.SelectMany(s=>s.Onts??new List<SmartGPON.Core.Entities.Ont>()).Count()??0;
-                                      var pct  = fat.Capacite>0?Math.Min(100,onts*100/fat.Capacite):0;
-                                      var fColor= pct>=100?"var(--accent-red)":pct>=80?"var(--accent-amber)":"var(--accent-green)";
+                                    @* ── ONTs directement sous FDT (villas, sans BPI) ── *@
+                                    @{var fdtOnts = fdt.Onts?.Where(o => o.BpiId == null) ?? new List<SmartGPON.Core.Entities.Ont>();}
+                                    @foreach(var ont in fdtOnts){
+                                      var oSi = ont.Statut==SmartGPON.Core.Enums.StatutEquipement.Actif?"si-on":ont.Statut==SmartGPON.Core.Enums.StatutEquipement.EnPanne?"si-err":"si-warn";
+                                      <div class="tree-node">
+                                        <span class="tree-spacer"></span>
+                                        <span class="tree-icon" style="background:rgba(0,230,118,.06)"><i class="bi bi-router" style="color:var(--accent-green);font-size:11px"></i></span>
+                                        <span class="tree-label">@(ont.Nom??ont.SerialNumber)</span>
+                                        <span class="lbadge lvl-ont ms-2">ONT</span>
+                                        <span class="si @oSi ms-2"></span>
+                                      </div>
+                                    }
+                                    @* ── FATs ── *@
+                                    @foreach(var fat in fdt.Fats??new List<SmartGPON.Core.Entities.Fat>()){
+                                      <div class="tree-node">
+                                        <span class="tree-spacer"></span>
+                                        <span class="tree-icon" style="background:rgba(255,61,87,.08)"><i class="bi bi-hdd-network" style="color:var(--accent-red);font-size:11px"></i></span>
+                                        <span class="tree-label">@fat.Nom <span style="font-size:10px;color:var(--text-muted)">(cap: @fat.Capacite)</span></span>
+                                        <span class="lbadge lvl-fat ms-2">FAT</span>
+                                      </div>
+                                    }
+                                    @* ── BPIs avec ONTs ── *@
+                                    @foreach(var bpi in fdt.Bpis??new List<SmartGPON.Core.Entities.Bpi>()){
+                                      var bpiOnts = fdt.Onts?.Where(o => o.BpiId == bpi.Id) ?? new List<SmartGPON.Core.Entities.Ont>();
                                       <div class="tree-node-group">
-                                        <div class="tree-node @(pct>=100?"":"")">
+                                        <div class="tree-node" onclick="tToggle(this)">
                                           <span class="tree-toggle"><i class="bi bi-plus"></i></span>
-                                          <span class="tree-icon" style="background:rgba(0,230,118,.08)"><i class="bi bi-hdd-network" style="color:@fColor"></i></span>
-                                          <span class="tree-label @(pct>=100?"text-r":"")">@fat.Nom</span>
-                                          <span class="lbadge lvl-fat ms-2">FAT</span>
-                                          <span class="si @(pct>=100?"si-err":pct>=80?"si-warn":"si-on") ms-2"></span>
-                                          <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
-                                            <span style="font-size:10.5px;color:@fColor">@onts/@fat.Capacite</span>
-                                            <div class="cap-bar"><div class="cap-fill" style="width:@pct%;background:@fColor"></div></div>
-                                          </div>
+                                          <span class="tree-icon" style="background:rgba(0,200,224,.08)"><i class="bi bi-building" style="color:var(--accent-cyan);font-size:11px"></i></span>
+                                          <span class="tree-label">@bpi.Nom <span style="font-size:10px;color:var(--text-muted)">(cap:@bpi.Capacite — @bpi.NbSplitters1x8×1:8 — @bpiOnts.Count() ONTs)</span></span>
+                                          <span class="lbadge lvl-projet ms-2">BPI</span>
                                         </div>
                                         <div class="tree-children"><div class="tree-connector">
-                                          @foreach(var sp in fat.Splitters??new List<SmartGPON.Core.Entities.Splitter>()){
-                                            @foreach(var ont in sp.Onts??new List<SmartGPON.Core.Entities.Ont>()){
-                                              var oSi = ont.Statut==SmartGPON.Core.Enums.StatutEquipement.Actif?"si-on":ont.Statut==SmartGPON.Core.Enums.StatutEquipement.EnPanne?"si-err":"si-warn";
-                                              <div class="tree-node">
-                                                <span class="tree-spacer"></span>
-                                                <span class="tree-icon" style="background:rgba(0,230,118,.06)"><i class="bi bi-router" style="color:var(--accent-green);font-size:11px"></i></span>
-                                                <span class="tree-label">@(ont.Nom??ont.SerialNumber)</span>
-                                                <span class="lbadge lvl-ont ms-2">ONT</span>
-                                                <span class="si @oSi ms-2"></span>
-                                              </div>
-                                            }
+                                          @foreach(var ont in bpiOnts){
+                                            var oSi2 = ont.Statut==SmartGPON.Core.Enums.StatutEquipement.Actif?"si-on":ont.Statut==SmartGPON.Core.Enums.StatutEquipement.EnPanne?"si-err":"si-warn";
+                                            <div class="tree-node">
+                                              <span class="tree-spacer"></span>
+                                              <span class="tree-icon" style="background:rgba(0,230,118,.06)"><i class="bi bi-router" style="color:var(--accent-green);font-size:11px"></i></span>
+                                              <span class="tree-label">@(ont.Nom??ont.SerialNumber)</span>
+                                              <span class="lbadge lvl-ont ms-2">ONT</span>
+                                              <span class="si @oSi2 ms-2"></span>
+                                            </div>
                                           }
                                         </div></div>
                                       </div>
@@ -113,18 +125,16 @@
   <div class="col-xl-4">
     <div class="sg-card" style="position:sticky;top:72px">
       <div style="font-size:13px;font-weight:600;margin-bottom:16px">Légende</div>
-      @foreach(var (label, cls, icon, color) in new[]{("Client","lvl-client","bi-building","#a78bff"),("Projet","lvl-projet","bi-folder2-open","var(--accent-cyan)"),("Zone","lvl-zone","bi-geo-alt","var(--accent-green)"),("OLT","lvl-olt","bi-server","var(--accent-amber)"),("FDT","lvl-fdt","bi-box","var(--text-secondary)"),("FAT","lvl-fat","bi-hdd-network","var(--accent-red)"),("ONT","lvl-ont","bi-router","var(--accent-green)")}){
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <span class="lbadge @cls">@label</span>
-          <i class="bi @icon" style="color:@color;font-size:13px"></i>
-        </div>
+      @foreach(var (label, cls, icon, color) in new[]{("Client","lvl-client","bi-building","#a78bff"),("Projet","lvl-projet","bi-folder2-open","var(--accent-cyan)"),("Zone","lvl-zone","bi-geo-alt","var(--accent-green)"),("OLT","lvl-olt","bi-server","var(--accent-amber)"),("FDT","lvl-fdt","bi-box","var(--text-secondary)"),("FAT","lvl-fat","bi-hdd-network","var(--accent-red)"),("BPI","lvl-projet","bi-building","var(--accent-cyan)"),("ONT","lvl-ont","bi-router","var(--accent-green)")}){
+        <div class="d-flex align-items-center gap-2 mb-2"><span class="lbadge @cls">@label</span><i class="bi @icon" style="color:@color;font-size:13px"></i></div>
       }
       <hr style="border-color:var(--border-subtle);margin:12px 0"/>
-      <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em">Statut ONT</div>
-      <div class="d-flex gap-3 flex-wrap">
-        <div class="d-flex align-items-center gap-2"><span class="si si-on"></span><span style="font-size:11.5px;color:var(--text-muted)">Actif</span></div>
-        <div class="d-flex align-items-center gap-2"><span class="si si-warn"></span><span style="font-size:11.5px;color:var(--text-muted)">Alerte</span></div>
-        <div class="d-flex align-items-center gap-2"><span class="si si-err"></span><span style="font-size:11.5px;color:var(--text-muted)">En panne</span></div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em">Architecture</div>
+      <div style="font-size:11.5px;color:var(--text-muted);line-height:1.8">
+        <div>🏠 <b>FDT → ONT</b> (villas, via splitter 1:64)</div>
+        <div>🏢 <b>FDT → BPI → ONT</b> (immeubles, via splitter 1:8)</div>
+        <div>📦 <b>FDT → FAT</b> (cap 8/12)</div>
+        <div style="margin-top:4px;font-size:10.5px">BPI 24=1×1:8 | BPI 48=2×1:8 | FDT: libre config splitters</div>
       </div>
     </div>
   </div>

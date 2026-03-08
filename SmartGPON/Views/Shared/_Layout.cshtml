@@ -4,9 +4,11 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>@(ViewData["Title"] != null ? ViewData["Title"] + " — " : "")SmartGPON</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
-  <link href="~/css/site.css" rel="stylesheet" asp-append-version="true"/>
+  <script src="https://unpkg.com/@@tailwindcss/browser@4"></script>
+  <link href="/css/site.css" rel="stylesheet" type="text/tailwindcss" />
 </head>
 <body>
 
@@ -84,7 +86,11 @@
     </a>
     <a asp-controller="Fats" asp-action="Index" class="@Nav("fats")">
       <span class="nav-icon"><i class="bi bi-hdd-network"></i></span>
-      <span class="nav-text">FATs / Splitters</span>
+      <span class="nav-text">FATs</span>
+    </a>
+    <a asp-controller="Bpis" asp-action="Index" class="@Nav("bpis")">
+      <span class="nav-icon"><i class="bi bi-building"></i></span>
+      <span class="nav-text">BPIs</span>
     </a>
     <a asp-controller="Onts" asp-action="Index" class="@Nav("onts")">
       <span class="nav-icon"><i class="bi bi-router"></i></span>
