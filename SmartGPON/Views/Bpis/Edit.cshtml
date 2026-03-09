@@ -1,4 +1,4 @@
-@model SmartGPON.Core.Entities.Bpi
+﻿@model SmartGPON.Core.Entities.Bpi
 @{ ViewData["Title"] = (Model.Id==0?"Nouveau":"Modifier")+" BPI"; }
 <div class="page-header"><div><h1 class="page-title">@ViewData["Title"]</h1></div><a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a></div>
 <div class="page-body"><div style="max-width:500px">
@@ -11,10 +11,10 @@
         <div class="col-12"><label class="sg-label">Nom *</label><input asp-for="Nom" class="sg-input form-control" required/></div>
         <div class="col-12"><label class="sg-label">FDT parent *</label>
           <select asp-for="FdtId" class="sg-input form-select" required>
-            <option value="">-- Sélectionner FDT --</option>
+            <option value="">-- SÃ©lectionner FDT --</option>
             @foreach(var f in ViewBag.Fdts as List<SmartGPON.Core.Entities.Fdt>??new()){<option value="@f.Id">@f.Nom</option>}
           </select></div>
-        <div class="col-md-6"><label class="sg-label">Capacité</label>
+        <div class="col-md-6"><label class="sg-label">CapacitÃ©</label>
           <select asp-for="Capacite" class="sg-input form-select"><option value="24">24</option><option value="48">48</option></select></div>
         <div class="col-md-6"><label class="sg-label">Splitters 1:8</label>
           <select asp-for="NbSplitters1x8" class="sg-input form-select"><option value="1">1</option><option value="2">2</option></select></div>
@@ -26,3 +26,4 @@
     <div class="d-flex gap-2"><button type="submit" class="btn-primary-sg"><i class="bi bi-check-lg"></i> Enregistrer</button><a asp-action="Index" class="btn-ghost-sg">Annuler</a></div>
   </form>
 </div></div>
+

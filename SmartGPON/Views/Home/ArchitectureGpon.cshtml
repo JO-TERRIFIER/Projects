@@ -1,0 +1,95 @@
+@* Views/Home/ArchitectureGpon.cshtml — Visualisation Architecture GPON par Client/Projet *@
+@{
+  ViewData["Title"] = "Architecture GPON";
+}
+<div class="page-header">
+  <div><h1 class="page-title">Architecture GPON</h1><div class="page-subtitle">Visualisation de l'architecture réseau par client et projet</div></div>
+</div>
+<div class="page-body">
+  <div class="sg-card mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="sg-label">Client</label>
+        <select id="selClient" class="sg-input form-select"><option value="">-- Sélectionner un client --</option></select>
+      </div>
+      <div class="col-md-4">
+        <label class="sg-label">Projet</label>
+        <select id="selProjet" class="sg-input form-select" disabled><option value="">-- Sélectionner un projet --</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="sg-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600"><i class="bi bi-diagram-3 me-2"></i>Arbre GPON</div>
+      <div id="archLegend" style="display:flex;gap:12px;font-size:10px;color:var(--text-muted)">
+        <span><span class="lbadge lvl-zone">Zone</span></span>
+        <span><span class="lbadge lvl-olt">OLT</span></span>
+        <span><span class="lbadge lvl-fdt">FDT</span></span>
+        <span><span class="lbadge lvl-fat">FAT</span></span>
+        <span><span class="lbadge lvl-projet">BPI</span></span>
+      </div>
+    </div>
+    <div id="archTree" style="min-height:80px">
+      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>Sélectionnez un client puis un projet pour visualiser l'architecture GPON</div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+  // Load clients
+  fetch('/Home/GetClients').then(r=>r.json()).then(list=>{
+    const sel=$('selClient');
+    list.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nom;sel.appendChild(o);});
+  });
+
+  // Client change → load projects
+  $('selClient').addEventListener('change',function(){
+    const sp=$('selProjet');sp.innerHTML='<option value="">-- Sélectionner un projet --</option>';
+    $('archTree').innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>Sélectionnez un projet</div>';
+    if(!this.value){sp.disabled=true;return;}
+    sp.disabled=false;
+    fetch('/Home/GetProjectsByClient?clientId='+this.value).then(r=>r.json()).then(list=>{
+      list.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nom+' ('+p.statut+')';sp.appendChild(o);});
+    });
+  });
+
+  // Project change → load tree
+  $('selProjet').addEventListener('change',function(){
+    const container=$('archTree');
+    if(!this.value){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>Sélectionnez un projet</div>';return;}
+    container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted)"><i class="bi bi-arrow-repeat spin"></i> Chargement...</div>';
+    fetch('/Home/GetProjectArchitecture?projectId='+this.value).then(r=>r.json()).then(zones=>{
+      if(!zones.length){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px 0">Aucune donnée pour ce projet</div>';return;}
+      let html='';
+      zones.forEach(z=>{
+        html+='<div class="tree-node-group"><div class="tree-node" onclick="tToggle(this)"><span class="tree-toggle open"><i class="bi bi-dash"></i></span><span class="tree-icon" style="background:rgba(0,230,118,.1)"><i class="bi bi-geo-alt" style="color:var(--accent-green)"></i></span><span class="tree-label">'+esc(z.nom)+'</span><span class="lbadge lvl-zone ms-2">Zone</span></div><div class="tree-children open"><div class="tree-connector">';
+        (z.children||[]).forEach(o=>{
+          const si=o.statut==='Actif'?'si-on':o.statut==='EnPanne'?'si-err':'si-warn';
+          html+='<div class="tree-node-group"><div class="tree-node" onclick="tToggle(this)"><span class="tree-toggle"><i class="bi bi-plus"></i></span><span class="tree-icon" style="background:rgba(255,179,0,.1)"><i class="bi bi-server" style="color:var(--accent-amber)"></i></span><span class="tree-label">'+esc(o.nom)+(o.marque?' ('+esc(o.marque)+')':'')+'</span><span class="lbadge lvl-olt ms-2">OLT</span><span class="si '+si+' ms-2"></span></div><div class="tree-children"><div class="tree-connector">';
+          (o.children||[]).forEach(f=>{
+            html+='<div class="tree-node-group"><div class="tree-node" onclick="tToggle(this)"><span class="tree-toggle"><i class="bi bi-plus"></i></span><span class="tree-icon" style="background:rgba(255,255,255,.06)"><i class="bi bi-box" style="color:var(--text-secondary)"></i></span><span class="tree-label">'+esc(f.nom)+'</span><span class="lbadge lvl-fdt ms-2">FDT</span></div><div class="tree-children"><div class="tree-connector">';
+            (f.children||[]).forEach(item=>{
+              if(item.type==='FAT'){
+                html+='<div class="tree-node"><span class="tree-spacer"></span><span class="tree-icon" style="background:rgba(255,61,87,.08)"><i class="bi bi-hdd-network" style="color:var(--accent-red);font-size:11px"></i></span><span class="tree-label">'+esc(item.nom)+' <span style="font-size:10px;color:var(--text-muted)">(cap:'+item.capacite+')</span></span><span class="lbadge lvl-fat ms-2">FAT</span></div>';
+              } else {
+                html+='<div class="tree-node"><span class="tree-spacer"></span><span class="tree-icon" style="background:rgba(0,200,224,.08)"><i class="bi bi-building" style="color:var(--accent-cyan);font-size:11px"></i></span><span class="tree-label">'+esc(item.nom)+' <span style="font-size:10px;color:var(--text-muted)">(cap:'+item.capacite+')</span></span><span class="lbadge lvl-projet ms-2">BPI</span></div>';
+              }
+            });
+            html+='</div></div></div>';
+          });
+          html+='</div></div></div>';
+        });
+        html+='</div></div></div>';
+      });
+      container.innerHTML=html;
+    });
+  });
+})();
+</script>
+}

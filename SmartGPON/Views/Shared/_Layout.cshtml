@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8"/>
@@ -7,10 +7,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
-  <script src="https://unpkg.com/@@tailwindcss/browser@4"></script>
-  <link href="/css/site.css" rel="stylesheet" type="text/tailwindcss" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
 </head>
 <body>
+<script>if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');</script>
 
 @{
   var ctrl   = ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower();
@@ -18,6 +20,7 @@
   string Nav(string c, string? a = null) =>
       (ctrl == c.ToLower() && (a == null || action == a.ToLower())) ? "nav-link-sg active" : "nav-link-sg";
   var unread = ViewBag.UnreadAlerts as int?;
+  var currentRole = User.IsInRole("Admin") ? "Admin" : (User.IsInRole("Technicien") ? "Technicien" : (User.IsInRole("Lecteur") ? "Lecteur" : "Utilisateur"));
 }
 
 <!-- ── TOPBAR ── -->
@@ -29,6 +32,12 @@
   </a>
   <span class="topbar-env ms-3">NOC v3</span>
   <div class="topbar-right">
+    <button class="topbar-icon-btn me-2" style="color:var(--color-status-offline)" onclick="if(confirm('Voulez-vous vraiment fermer l\'application ?')) { fetch('/Home/Shutdown',{method:'POST'}).then(()=>{window.close();}).catch(()=>{window.close();}); }" title="Quitter l'application">
+      <i class="bi bi-power"></i>
+    </button>
+    <button class="topbar-icon-btn me-2" onclick="toggleTheme()" title="Basculer le thème (Clair/Sombre)">
+      <i class="bi bi-moon" id="theme-icon"></i>
+    </button>
     <a asp-controller="Security" asp-action="Alertes" class="topbar-icon-btn" title="Alertes">
       <i class="bi bi-bell"></i>
       @if (unread.HasValue && unread > 0) { <span class="notif-dot"></span> }
@@ -37,20 +46,21 @@
     @if (User.Identity?.IsAuthenticated == true)
     {
       <div class="dropdown">
-        <button class="user-drop-btn" data-bs-toggle="dropdown">
-          <div class="user-avatar">@(User.Identity.Name?.Substring(0,2).ToUpper() ?? "??") </div>
-          <div>
-            <div class="u-name">@User.Identity.Name</div>
-            <div class="u-role">Admin NOC</div>
+        <button class="user-drop-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="all:unset;display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;color:var(--color-text-main);width:100%;box-sizing:border-box;">
+          <div class="user-avatar" style="width:24px;height:24px;background:var(--color-telecom-blue);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold;flex-shrink:0;">
+            @(User.Identity.Name?.Substring(0,2).ToUpper() ?? "??")
           </div>
-          <i class="bi bi-chevron-down ms-1" style="font-size:10px;color:var(--text-muted)"></i>
+          <div style="flex-grow:1;display:flex;flex-direction:column;align-items:flex-start;">
+            <div class="u-name" style="font-size:12px;font-weight:bold;">@User.Identity.Name</div>
+            <div class="u-role" style="font-size:10px;color:var(--color-text-muted);">@currentRole</div>
+          </div>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end" style="background:var(--navy-800);border:1px solid var(--border-mid);min-width:160px;">
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="background:var(--color-bg-surface);border:1px solid var(--color-border);border-radius:4px;width:100%;min-width:0;margin-top:2px;padding:2px;box-sizing:border-box;">
           <li>
             <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
               @Html.AntiForgeryToken()
-              <button type="submit" class="dropdown-item" style="color:var(--accent-red);font-size:13px;padding:8px 16px;background:transparent;">
-                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+              <button type="submit" class="dropdown-item fw-bold d-flex align-items-center justify-content-center" style="color:var(--color-status-offline);font-size:12px;padding:4px 0;width:100%;border-radius:4px;transition:background-color 0.2s ease;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="bi bi-box-arrow-right me-2" style="font-size:13px;"></i> Déconnexion
               </button>
             </form>
           </li>
@@ -64,37 +74,13 @@
 <nav id="sidebar">
   <div class="sidebar-section">
     <div class="sidebar-label">Supervision</div>
-    <a asp-controller="Home" asp-action="Index" class="@Nav("home")">
+    <a asp-controller="Home" asp-action="Index" class="@Nav("home","index")">
       <span class="nav-icon"><i class="bi bi-speedometer2"></i></span>
       <span class="nav-text">Tableau de bord</span>
     </a>
-    <a asp-controller="Home" asp-action="Tree" class="@Nav("home","tree")">
+    <a asp-controller="Home" asp-action="ArchitectureGpon" class="@Nav("home","architecturegpon")">
       <span class="nav-icon"><i class="bi bi-diagram-3"></i></span>
-      <span class="nav-text">Topologie réseau</span>
-    </a>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-label">Infrastructure</div>
-    <a asp-controller="Olts" asp-action="Index" class="@Nav("olts")">
-      <span class="nav-icon"><i class="bi bi-server"></i></span>
-      <span class="nav-text">OLTs</span>
-    </a>
-    <a asp-controller="Fdts" asp-action="Index" class="@Nav("fdts")">
-      <span class="nav-icon"><i class="bi bi-box"></i></span>
-      <span class="nav-text">FDTs</span>
-    </a>
-    <a asp-controller="Fats" asp-action="Index" class="@Nav("fats")">
-      <span class="nav-icon"><i class="bi bi-hdd-network"></i></span>
-      <span class="nav-text">FATs</span>
-    </a>
-    <a asp-controller="Bpis" asp-action="Index" class="@Nav("bpis")">
-      <span class="nav-icon"><i class="bi bi-building"></i></span>
-      <span class="nav-text">BPIs</span>
-    </a>
-    <a asp-controller="Onts" asp-action="Index" class="@Nav("onts")">
-      <span class="nav-icon"><i class="bi bi-router"></i></span>
-      <span class="nav-text">ONTs</span>
+      <span class="nav-text">Architecture GPON</span>
     </a>
   </div>
 
@@ -111,6 +97,10 @@
     <a asp-controller="Zones" asp-action="Index" class="@Nav("zones")">
       <span class="nav-icon"><i class="bi bi-geo-alt"></i></span>
       <span class="nav-text">Zones</span>
+    </a>
+    <a asp-controller="Home" asp-action="GponBuilder" class="@Nav("home","gponbuilder")">
+      <span class="nav-icon"><i class="bi bi-sliders"></i></span>
+      <span class="nav-text">Config. Architecture GPON</span>
     </a>
     <a asp-controller="Techniciens" asp-action="Index" class="@Nav("techniciens")">
       <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
@@ -140,17 +130,17 @@
       <span class="nav-icon"><i class="bi bi-exclamation-diamond"></i></span>
       <span class="nav-text">Rogue OLTs</span>
     </a>
-    <a asp-controller="Logs" asp-action="Index" class="@Nav("logs")">
-      <span class="nav-icon"><i class="bi bi-journal-text"></i></span>
-      <span class="nav-text">Journaux</span>
-    </a>
+
   </div>
 
   <div class="sidebar-footer">
-    <div class="sys-status">
-      <span class="status-dot"></span>
-      <span class="status-text">Système opérationnel</span>
-    </div>
+    @if (User.IsInRole("Admin"))
+    {
+      <a asp-controller="Users" asp-action="Index" class="nav-link-sg" style="display:flex;align-items:center;gap:8px">
+        <span class="nav-icon"><i class="bi bi-people"></i></span>
+        <span class="nav-text">Gestion des utilisateurs</span>
+      </a>
+    }
   </div>
 </nav>
 
@@ -193,7 +183,25 @@ function tToggle(nodeEl) {
   btn?.classList.toggle('open', open);
   if (icon) icon.className = open ? 'bi bi-dash' : 'bi bi-plus';
 }
+
+// Dark Mode Toggle
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  updateThemeIcon(isDark);
+}
+function updateThemeIcon(isDark) {
+  const icon = document.getElementById('theme-icon');
+  if (icon) {
+    icon.className = isDark ? 'bi bi-sun' : 'bi bi-moon';
+  }
+}
+updateThemeIcon(document.body.classList.contains('dark'));
 </script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+
+
+

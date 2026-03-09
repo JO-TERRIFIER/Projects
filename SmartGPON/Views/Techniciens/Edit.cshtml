@@ -1,4 +1,4 @@
-@model SmartGPON.Core.Entities.Technicien
+﻿@model SmartGPON.Core.Entities.Technicien
 @{ ViewData["Title"] = (Model.Id==0?"Nouveau":"Modifier")+" technicien"; }
 <div class="page-header"><div><h1 class="page-title">@ViewData["Title"]</h1></div><a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a></div>
 <div class="page-body"><div style="max-width:560px">
@@ -12,12 +12,16 @@
         <div class="col-md-6"><label class="sg-label">Prénom</label><input asp-for="Prenom" class="sg-input form-control"/></div>
         <div class="col-md-6"><label class="sg-label">Email</label><input asp-for="Email" type="email" class="sg-input form-control"/></div>
         <div class="col-md-6"><label class="sg-label">Téléphone</label><input asp-for="Telephone" class="sg-input form-control" placeholder="+216 XX XXX XXX"/></div>
-        <div class="col-md-8"><label class="sg-label">Spécialité</label>
+        <div class="col-md-12"><label class="sg-label">Spécialité</label>
           <input asp-for="Specialite" class="sg-input form-control" list="specs" placeholder="Senior Tech. GPON…"/>
-          <datalist id="specs"><option value="Senior Tech. GPON"/><option value="Maintenance FAT/FDT"/><option value="Installation ONT"/><option value="Supervision NOC"/></datalist></div>
-        <div class="col-md-4"><label class="sg-label">Projet</label>
+          <datalist id="specs"><option value="Fibre optique"/><option value="Installation FTTH"/><option value="Maintenance"/><option value="Supervision NOC"/></datalist></div>
+        <div class="col-md-6"><label class="sg-label">Projet</label>
           <select asp-for="ProjetId" class="sg-input form-select" asp-items="ViewBag.Projets">
             <option value="">-- Aucun --</option>
+          </select></div>
+        <div class="col-md-6"><label class="sg-label">Zone</label>
+          <select asp-for="ZoneId" class="sg-input form-select" asp-items="ViewBag.Zones">
+            <option value="">-- Aucune --</option>
           </select></div>
         <div class="col-12">
           <div class="form-check form-switch">

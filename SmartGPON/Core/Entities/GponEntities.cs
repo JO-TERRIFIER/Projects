@@ -1,10 +1,9 @@
-// ============================================================
-// SmartGPON v3 – Core/Entities/GponEntities.cs
+﻿// ============================================================
+// SmartGPON v3 - Core/Entities/GponEntities.cs
 // ============================================================
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using SmartGPON.Core.Enums;
 
 namespace SmartGPON.Core.Entities
@@ -88,7 +87,6 @@ namespace SmartGPON.Core.Entities
         public Olt Olt { get; set; } = null!;
         public ICollection<Fat> Fats { get; set; } = new List<Fat>();
         public ICollection<Bpi> Bpis { get; set; } = new List<Bpi>();
-        public ICollection<Ont> Onts { get; set; } = new List<Ont>();
     }
 
     public class Fat
@@ -114,27 +112,6 @@ namespace SmartGPON.Core.Entities
         public decimal? Longitude { get; set; }
         public StatutEquipement Statut { get; set; } = StatutEquipement.Actif;
         public Fdt Fdt { get; set; } = null!;
-        public ICollection<Ont> Onts { get; set; } = new List<Ont>();
-    }
-
-    public class Ont
-    {
-        public int Id { get; set; }
-        public int FdtId { get; set; }
-        public int? BpiId { get; set; }
-        [Required, MaxLength(50)]  public string SerialNumber { get; set; } = string.Empty;
-        [MaxLength(100)] public string? Nom { get; set; }
-        [MaxLength(17)]  public string? MacAddress { get; set; }
-        [MaxLength(45)]  public string? IpAddress { get; set; }
-        [MaxLength(50)]  public string? Modele { get; set; }
-        public StatutEquipement Statut { get; set; } = StatutEquipement.Actif;
-        public decimal? SignalRx { get; set; }
-        public decimal? SignalTx { get; set; }
-        public DateTime? DateInstall { get; set; }
-        public DateTime DateCreation { get; set; } = DateTime.UtcNow;
-        public Fdt Fdt { get; set; } = null!;
-        public Bpi? Bpi { get; set; }
-        public ICollection<Test> Tests { get; set; } = new List<Test>();
     }
 
     public class Fibre
@@ -164,6 +141,7 @@ namespace SmartGPON.Core.Entities
     {
         public int Id { get; set; }
         public int ProjetId { get; set; }
+        public int? ZoneId { get; set; }
         [Required, MaxLength(100)] public string Nom { get; set; } = string.Empty;
         [MaxLength(100)] public string? Prenom { get; set; }
         [MaxLength(150)] public string? Email { get; set; }
@@ -171,20 +149,7 @@ namespace SmartGPON.Core.Entities
         [MaxLength(100)] public string? Specialite { get; set; }
         public bool IsActive { get; set; } = true;
         public Projet Projet { get; set; } = null!;
-        public ICollection<Test> Tests { get; set; } = new List<Test>();
-    }
-
-    public class Test
-    {
-        public int Id { get; set; }
-        public int OntId { get; set; }
-        public int? TechnicienId { get; set; }
-        [MaxLength(50)] public string? TypeTest { get; set; }
-        public ResultatTest Resultat { get; set; } = ResultatTest.EnCours;
-        [MaxLength(500)] public string? Notes { get; set; }
-        public DateTime DateTest { get; set; } = DateTime.UtcNow;
-        public Ont Ont { get; set; } = null!;
-        public Technicien? Technicien { get; set; }
+        public Zone? Zone { get; set; }
     }
 
     public class Validation
@@ -198,8 +163,6 @@ namespace SmartGPON.Core.Entities
         public Projet Projet { get; set; } = null!;
         public Technicien? Technicien { get; set; }
     }
-
-    // ── SECURITY ENTITIES ────────────────────────────────────
 
     public class AttackSimulation
     {
@@ -268,8 +231,6 @@ namespace SmartGPON.Core.Entities
         public byte Niveau { get; set; } = 1;
         public DateTime DateEvenement { get; set; } = DateTime.UtcNow;
     }
-
-    // ── RESOURCE (fichiers Zone / Projet) ────────────────────
 
     public class Resource
     {

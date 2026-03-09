@@ -1,10 +1,16 @@
-@model SmartGPON.Web.ViewModels.PagedResult<SmartGPON.Core.Entities.NetworkAlert>
-@{ ViewData["Title"] = "Alertes réseau"; }
+﻿@model SmartGPON.Web.ViewModels.PagedResult<SmartGPON.Core.Entities.NetworkAlert>
+@{
+  ViewData["Title"] = "Alertes réseau";
+  var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
+}
 <div class="page-header">
   <div><h1 class="page-title">Alertes réseau</h1><div class="page-subtitle">Supervision temps réel — @Model.TotalCount alerte(s)</div></div>
   <div class="d-flex gap-2">
     <a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Sécurité</a>
-    <button id="btn-mark-all" class="btn-ghost-sg" onclick="markAllRead()"><i class="bi bi-check-all"></i> Tout marquer lu</button>
+    @if (canWrite)
+    {
+      <button id="btn-mark-all" class="btn-ghost-sg" onclick="markAllRead()"><i class="bi bi-check-all"></i> Tout marquer lu</button>
+    }
   </div>
 </div>
 <div class="page-body">
@@ -35,7 +41,7 @@
           <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@a.DateAlerte.ToString("dd/MM HH:mm")</td>
           <td><span class="pill @(a.IsRead?"pill-muted":"pill-amber")" style="font-size:9.5px;padding:2px 6px">@(a.IsRead?"Lu":"Non lu")</span></td>
           <td style="padding-right:20px;text-align:right">
-            @if(!a.IsRead){
+            @if(canWrite && !a.IsRead){
               <button onclick="markRead(@a.Id, this)" class="icon-btn view" title="Marquer lu"><i class="bi bi-check2"></i></button>
             }
           </td>

@@ -1,0 +1,43 @@
+﻿@model IEnumerable<SmartGPON.Web.ViewModels.UserListItemViewModel>
+@{ ViewData["Title"] = "Gestion des utilisateurs"; }
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="bi bi-people me-2"></i>Gestion des utilisateurs</h1>
+        <div class="page-subtitle">Administration des comptes et rôles</div>
+    </div>
+    <a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg me-1"></i>Nouveau compte</a>
+</div>
+
+<div class="page-body">
+    <div class="sg-card">
+        <table class="sg-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th style="text-align:right;padding-right:20px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td class="mono">@u.Email</td>
+                    <td><span class="pill pill-cyan">@u.Role</span></td>
+                    <td><span class="pill @(u.IsActive ? "pill-green" : "pill-red")">@(u.IsActive ? "Actif" : "Inactif")</span></td>
+                    <td style="text-align:right;padding-right:20px;white-space:nowrap">
+                        <a asp-action="Details" asp-route-id="@u.Id" class="icon-btn" title="Détails"><i class="bi bi-eye"></i></a>
+                        <a asp-action="Edit" asp-route-id="@u.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
+                        <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ce compte ?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

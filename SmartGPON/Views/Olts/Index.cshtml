@@ -1,13 +1,20 @@
-@* Views/Olts/Index.cshtml *@
+﻿@* Views/Olts/Index.cshtml *@
 @model IEnumerable<SmartGPON.Core.Entities.Olt>
-@{ ViewData["Title"] = "OLTs"; }
+@{
+    ViewData["Title"] = "OLTs";
+    var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
+    var canDelete = User.IsInRole("Admin");
+}
 
 <div class="page-header">
     <div>
         <h1 class="page-title"><i class="bi bi-server me-2"></i>OLTs</h1>
         <div class="page-subtitle">Optical Line Terminals — Infrastructure réseau</div>
     </div>
-    <a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg me-1"></i>Nouvel OLT</a>
+    @if (canWrite)
+    {
+      <a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg me-1"></i>Nouvel OLT</a>
+    }
 </div>
 
 <div class="page-body">
@@ -41,11 +48,17 @@
                         }
                     </td>
                     <td>
-                        <a asp-action="Edit" asp-route-id="@o.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
-                        <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer cet OLT ?')">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash"></i></button>
-                        </form>
+                        @if (canWrite)
+                        {
+                          <a asp-action="Edit" asp-route-id="@o.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
+                        }
+                        @if (canDelete)
+                        {
+                          <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer cet OLT ?')">
+                              @Html.AntiForgeryToken()
+                              <button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash"></i></button>
+                          </form>
+                        }
                     </td>
                 </tr>
             }

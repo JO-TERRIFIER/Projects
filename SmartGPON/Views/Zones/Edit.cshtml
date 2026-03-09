@@ -1,5 +1,5 @@
-@model SmartGPON.Core.Entities.Zone
-@{ ViewData["Title"] = (Model.Id==0?"Nouvelle":"Modifier")+" zone"; }
+﻿@model SmartGPON.Core.Entities.Zone
+@{ ViewData["Title"] = (Model.Id==0?"Nouvelle":"Modifier")+" zone"; var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien"); var canDelete = User.IsInRole("Admin"); }
 <div class="page-header"><div><h1 class="page-title">@ViewData["Title"]</h1></div><a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a></div>
 <div class="page-body">
   <div class="row g-4">
@@ -7,12 +7,12 @@
       <form asp-action="@(Model.Id==0?"Create":"Edit")" method="post">
         @Html.AntiForgeryToken()
         @if(Model.Id!=0){<input type="hidden" asp-for="Id"/>}
-        <div class="form-section"><div class="form-section-header"><div class="sec-icon" style="background:rgba(0,230,118,.1)"><i class="bi bi-geo-alt" style="color:var(--accent-green)"></i></div><span style="font-size:13px;font-weight:600">Zone géographique</span></div>
+        <div class="form-section"><div class="form-section-header"><div class="sec-icon" style="background:rgba(0,230,118,.1)"><i class="bi bi-geo-alt" style="color:var(--accent-green)"></i></div><span style="font-size:13px;font-weight:600">Zone gÃ©ographique</span></div>
         <div class="form-section-body"><div class="row g-3">
           <div class="col-12"><label class="sg-label">Nom *</label><input asp-for="Nom" class="sg-input form-control" required/></div>
           <div class="col-12"><label class="sg-label">Projet *</label>
             <select asp-for="ProjetId" class="sg-input form-select" required>
-              <option value="">-- Sélectionner --</option>
+              <option value="">-- SÃ©lectionner --</option>
               @foreach(var p in ViewBag.Projets as List<SmartGPON.Core.Entities.Projet>??new()){<option value="@p.Id">@p.Nom</option>}
             </select></div>
           <div class="col-md-6"><label class="sg-label">Latitude</label><input asp-for="Latitude" class="sg-input form-control" type="number" step="0.0000001"/></div>
@@ -29,14 +29,14 @@
           <span class="pill pill-violet ms-2" style="font-size:9px">.dwg .pdf .png .jpg .xlsx</span>
         </div>
         <div class="form-section-body">
-          <form asp-controller="Resources" asp-action="Upload" method="post" enctype="multipart/form-data" class="mb-3">
+          @if (canWrite) {<form asp-controller="Resources" asp-action="Upload" method="post" enctype="multipart/form-data" class="mb-3">
             @Html.AntiForgeryToken()
             <input type="hidden" name="zoneId" value="@Model.Id"/>
             <div class="d-flex gap-2 align-items-end">
               <div style="flex:1"><label class="sg-label">Fichier</label><input type="file" name="file" class="sg-input form-control" accept=".dwg,.pdf,.png,.jpg,.jpeg,.xlsx" required/></div>
               <button type="submit" class="btn-primary-sg" style="height:38px"><i class="bi bi-upload"></i> Upload</button>
             </div>
-          </form>
+          </form>}
           @{ var resources = ViewBag.Resources as List<SmartGPON.Core.Entities.Resource> ?? new(); }
           @if(!resources.Any()){
             <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:16px 0"><i class="bi bi-inbox d-block mb-2 fs-4"></i>Aucun fichier</div>
@@ -49,10 +49,10 @@
                 <i class="bi @icon" style="color:@color;font-size:16px"></i>
                 <div style="flex:1;min-width:0">
                   <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@r.NomFichier</div>
-                  <div style="font-size:10px;color:var(--text-muted)">@(r.TailleFichier/1024) Ko — @r.DateUpload.ToString("dd/MM/yyyy HH:mm")</div>
+                  <div style="font-size:10px;color:var(--text-muted)">@(r.TailleFichier/1024) Ko â€” @r.DateUpload.ToString("dd/MM/yyyy HH:mm")</div>
                 </div>
-                <a asp-controller="Resources" asp-action="Download" asp-route-id="@r.Id" class="icon-btn edit" title="Télécharger"><i class="bi bi-download"></i></a>
-                <form asp-controller="Resources" asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash3"></i></button></form>
+                <a asp-controller="Resources" asp-action="Download" asp-route-id="@r.Id" class="icon-btn edit" title="TÃ©lÃ©charger"><i class="bi bi-download"></i></a>
+                @if (canDelete) {<form asp-controller="Resources" asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash3"></i></button></form>}
               </div>
             }
             </div>
@@ -63,3 +63,5 @@
     }
   </div>
 </div>
+
+

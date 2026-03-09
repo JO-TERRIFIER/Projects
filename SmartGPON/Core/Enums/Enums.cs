@@ -1,4 +1,4 @@
-// SmartGPON v3 – Core/Enums/Enums.cs
+﻿// SmartGPON v3 â€“ Core/Enums/Enums.cs
 namespace SmartGPON.Core.Enums
 {
     public enum StatutEquipement   : byte { Inactif = 0, Actif = 1, EnPanne = 2, EnMaintenance = 3 }
@@ -12,9 +12,10 @@ namespace SmartGPON.Core.Enums
 
     public static class UserRoles
     {
-        public const string Admin      = "Admin";
-        public const string Superviseur = "Superviseur";
+        public const string Admin = "Admin";
         public const string Technicien = "Technicien";
-        public const string Readonly   = "Readonly";
+        public const string Lecteur = "Lecteur";
     }
 }
+
+

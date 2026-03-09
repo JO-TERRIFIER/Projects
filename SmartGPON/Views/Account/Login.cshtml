@@ -1,75 +1,75 @@
-@model SmartGPON.Web.ViewModels.LoginViewModel
+﻿@model SmartGPON.Web.ViewModels.LoginViewModel
 @{ Layout = null; }
-<!DOCTYPE html><html lang="fr"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>SmartGPON — Connexion</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SmartGPON - Connexion</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
-<script src="https://unpkg.com/@@tailwindcss/browser@4"></script>
-<style type="text/tailwindcss">
-@@theme {
-  --color-telecom-blue: #1e3a8a;
-  --color-telecom-blue-dark: #1e293b;
-  --color-steel: #64748b;
-  --color-steel-light: #f8fafc;
-  --color-steel-border: #e2e8f0;
-  --color-fiber-orange: #ea580c;
-  --color-status-offline: #ef4444;
-  --color-bg-base: #f8fafc;
-  --color-bg-surface: #ffffff;
-  --color-text-main: #0f172a;
-  --color-text-muted: #64748b;
-  --color-border: #e2e8f0;
-  --font-sans: 'Inter', system-ui, sans-serif;
-}
-@@layer base {
-  body {
-    @@apply bg-[var(--color-bg-base)] text-[var(--color-text-main)] font-sans antialiased text-[13.5px] min-h-screen flex items-center justify-center m-0;
-  }
-}
-</style>
+<link href="/css/site.css" rel="stylesheet"/>
 </head>
 <body>
-<div class="w-full max-w-[420px] p-4">
-  <div class="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg p-10 shadow-sm">
-  <div class="text-center mb-8">
-    <div class="w-[52px] h-[52px] bg-telecom-blue rounded-xl flex items-center justify-center text-2xl text-white mx-auto mb-3 shadow-sm"><i class="bi bi-diagram-3"></i></div>
-    <div class="font-sans text-[1.4rem] font-bold tracking-tight text-[var(--color-text-main)]">Smart<span class="text-telecom-blue ml-0.5">GPON</span></div>
-    <div class="text-[11.5px] text-[var(--color-text-muted)] mt-1 font-medium tracking-wide">Supervision réseau GPON/FTTH</div>
+<div class="auth-shell">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo auth-logo-primary"><i class="bi bi-diagram-3"></i></div>
+        <div class="auth-title">Smart<span>GPON</span></div>
+        <div class="auth-subtitle">Supervision reseau GPON/FTTH</div>
+      </div>
+
+      @{ var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList(); }
+      @if (errors.Any()) {
+        <div class="auth-error"><i class="bi bi-exclamation-circle-fill"></i><span>@errors.First()</span></div>
+      }
+
+      @{
+        var returnUrlEncoded = ViewBag.ReturnUrl != null ? "?returnUrl=" + Uri.EscapeDataString((string)ViewBag.ReturnUrl) : "";
+      }
+      <form method="post" action="/Account/Login@(returnUrlEncoded)">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="RememberMe" value="false"/>
+
+        <div class="auth-group">
+          <label for="Email" class="auth-label">Adresse email</label>
+          <input
+            type="text"
+            id="Email"
+            name="Email"
+            class="auth-input"
+            value="@(Model?.Email ?? "")"
+            placeholder="admin@smartgpon.local"
+            autofocus
+            autocomplete="username"/>
+        </div>
+
+        <div class="auth-group auth-group-last">
+          <label for="Password" class="auth-label">Mot de passe</label>
+          <input
+            type="password"
+            id="Password"
+            name="Password"
+            class="auth-input"
+            placeholder="********"
+            autocomplete="current-password"/>
+        </div>
+
+        <div class="form-check auth-remember">
+          <input type="checkbox" id="RememberMeChk" name="RememberMe" value="true" class="form-check-input"/>
+          <label class="form-check-label" for="RememberMeChk">Se souvenir de moi</label>
+        </div>
+
+        <button type="submit" class="auth-submit">
+          <i class="bi bi-box-arrow-in-right"></i> Connexion
+        </button>
+      </form>
+
+      <p class="auth-footer">SmartGPON v3 &copy; @DateTime.Now.Year</p>
+    </div>
   </div>
-
-  @{ var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList(); }
-  @if (errors.Any()) {
-    <div class="bg-status-offline/10 border border-status-offline/30 rounded px-3.5 py-2.5 mb-4 text-[12.5px] text-status-offline flex items-center gap-2"><i class="bi bi-exclamation-circle-fill"></i><span>@errors.First()</span></div>
-  }
-
-  @{
-    var returnUrlEncoded = ViewBag.ReturnUrl != null ? "?returnUrl=" + Uri.EscapeDataString((string)ViewBag.ReturnUrl) : "";
-  }
-  <form method="post" action="/Account/Login@(returnUrlEncoded)">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="RememberMe" value="false"/>
-
-    <div class="mb-4">
-      <label for="Email" class="text-[11px] text-[var(--color-text-muted)] font-bold block mb-1 uppercase tracking-wider">Adresse email</label>
-      <input type="text" id="Email" name="Email" class="bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded text-[var(--color-text-main)] px-3 py-2 text-[13px] font-sans w-full transition-shadow focus:outline-none focus:border-telecom-blue focus:ring-2 focus:ring-telecom-blue/20 shadow-sm appearance-none"
-             value="@(Model?.Email ?? "")" placeholder="admin@smartgpon.local" autofocus autocomplete="username"/>
-    </div>
-    <div class="mb-5">
-      <label for="Password" class="text-[11px] text-[var(--color-text-muted)] font-bold block mb-1 uppercase tracking-wider">Mot de passe</label>
-      <input type="password" id="Password" name="Password" class="bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded text-[var(--color-text-main)] px-3 py-2 text-[13px] font-sans w-full transition-shadow focus:outline-none focus:border-telecom-blue focus:ring-2 focus:ring-telecom-blue/20 shadow-sm appearance-none"
-             placeholder="••••••••" autocomplete="current-password"/>
-    </div>
-    <div class="form-check mb-6">
-      <input type="checkbox" id="RememberMeChk" name="RememberMe" value="true" class="form-check-input mt-0.5"/>
-      <label class="form-check-label text-xs font-medium text-[var(--color-text-muted)] cursor-pointer tracking-wide" for="RememberMeChk">Se souvenir de moi</label>
-    </div>
-    <button type="submit" class="w-full bg-telecom-blue text-white border-transparent font-semibold text-[13.5px] rounded px-4 py-2.5 flex items-center justify-center gap-2 cursor-pointer transition-all no-underline shadow-sm hover:bg-[#1e40af] hover:shadow-md hover:-translate-y-px">
-      <i class="bi bi-box-arrow-in-right"></i> Connexion
-    </button>
-  </form>
-  <p class="text-center mt-6 text-[11px] text-[var(--color-text-muted)] font-medium">SmartGPON v3 &copy; @DateTime.Now.Year</p>
-</div></div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body></html>
+</body>
+</html>

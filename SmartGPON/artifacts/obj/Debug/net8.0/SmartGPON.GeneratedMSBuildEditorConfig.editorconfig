@@ -1,0 +1,185 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = SmartGPON
+build_property.RootNamespace = SmartGPON
+build_property.ProjectDir = C:\Projets\SmartGPON\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Projets\SmartGPON
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 8.0
+build_property.EnableCodeStyleSeverity = 
+
+[C:/Projets/SmartGPON/Views/Account/AccessDenied.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBY2Nlc3NEZW5pZWQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Bpis/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnBpc1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Bpis/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnBpc1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Bpis/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnBpc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Clients/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xpZW50c1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Clients/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xpZW50c1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Clients/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xpZW50c1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Fats/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmF0c1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Fats/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmF0c1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Fats/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmF0c1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Fdts/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmR0c1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Fdts/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmR0c1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Fdts/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmR0c1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Home/Tree.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxUcmVlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Logs/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9nc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Olts/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2x0c1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Olts/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2x0c1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Olts/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2x0c1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Projets/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvamV0c1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Projets/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvamV0c1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Projets/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvamV0c1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Security/Alertes.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcQWxlcnRlcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Security/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Security/LancerSimulation.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcTGFuY2VyU2ltdWxhdGlvbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Security/RogueOlts.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcUm9ndWVPbHRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Security/SimulationDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcU2ltdWxhdGlvbkRldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Security/Simulations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcU2ltdWxhdGlvbnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Security/TrafficCaptures.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcVHJhZmZpY0NhcHR1cmVzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Shared/_ValidationScripts.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Techniciens/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVjaG5pY2llbnNcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Techniciens/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVjaG5pY2llbnNcRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Techniciens/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVjaG5pY2llbnNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Zones/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWm9uZXNcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Zones/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWm9uZXNcRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Zones/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWm9uZXNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 

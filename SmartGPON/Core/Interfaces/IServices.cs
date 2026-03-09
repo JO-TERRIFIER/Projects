@@ -1,4 +1,4 @@
-// SmartGPON v3 – Core/Interfaces/IServices.cs
+﻿// SmartGPON v3 - Core/Interfaces/IServices.cs
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SmartGPON.Core.Entities;
@@ -26,8 +26,6 @@ namespace SmartGPON.Core.Interfaces
     {
         Task<List<Olt>> GetOltsAsync(int? zoneId = null);
         Task<OltCapacityViewModel> GetOltCapacityAsync(int oltId);
-        Task<List<Ont>> GetOntsAlarmesAsync();
-        Task UpdateOntStatutAsync(int ontId, int statut);
     }
 
     public interface ITreeService

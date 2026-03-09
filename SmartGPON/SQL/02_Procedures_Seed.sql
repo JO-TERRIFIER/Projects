@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- SmartGPON v3 - Stored Procedures & Seed Data
 -- ============================================================
 USE SmartGPON;
@@ -13,8 +13,6 @@ BEGIN
     SELECT
         (SELECT COUNT(1) FROM Olts o JOIN Zones z ON z.Id=o.ZoneId JOIN Projets p ON p.Id=z.ProjetId WHERE (@ClientId IS NULL OR p.ClientId=@ClientId)) AS TotalOlts,
         (SELECT COUNT(1) FROM Olts o JOIN Zones z ON z.Id=o.ZoneId JOIN Projets p ON p.Id=z.ProjetId WHERE o.Statut=1 AND (@ClientId IS NULL OR p.ClientId=@ClientId)) AS OltsActifs,
-        (SELECT COUNT(1) FROM Onts n JOIN Fdts fd ON fd.Id=n.FdtId JOIN Olts o ON o.Id=fd.OltId JOIN Zones z ON z.Id=o.ZoneId JOIN Projets p ON p.Id=z.ProjetId WHERE (@ClientId IS NULL OR p.ClientId=@ClientId)) AS TotalOnts,
-        (SELECT COUNT(1) FROM Onts n JOIN Fdts fd ON fd.Id=n.FdtId JOIN Olts o ON o.Id=fd.OltId JOIN Zones z ON z.Id=o.ZoneId JOIN Projets p ON p.Id=z.ProjetId WHERE n.Statut=1 AND (@ClientId IS NULL OR p.ClientId=@ClientId)) AS OntsActifs,
         (SELECT COUNT(1) FROM NetworkAlerts WHERE IsRead=0) AS AlertesNonLues,
         (SELECT COUNT(1) FROM AttackSimulations WHERE Statut IN (0,1)) AS SimulationsActives,
         (SELECT COUNT(1) FROM MaliciousOlts WHERE Statut=0) AS RogueOltsActifs;
@@ -30,15 +28,14 @@ BEGIN
     SELECT
         o.Id AS OltId, o.Nom AS OltNom, o.IpAddress, o.Statut AS OltStatut,
         fd.Id AS FdtId, fd.Nom AS FdtNom, fd.NbSplitters1x8, fd.NbSplitters1x64,
-        n.Id AS OntId, n.Nom AS OntNom, n.SerialNumber, n.Statut AS OntStatut,
-        n.SignalRx, n.SignalTx, n.BpiId,
-        b.Nom AS BpiNom, b.Capacite AS BpiCapacite
+        b.Id AS BpiId, b.Nom AS BpiNom, b.Capacite AS BpiCapacite,
+        fa.Id AS FatId, fa.Nom AS FatNom, fa.Capacite AS FatCapacite
     FROM Olts o
     JOIN Fdts fd ON fd.OltId = o.Id
-    LEFT JOIN Onts n ON n.FdtId = fd.Id
-    LEFT JOIN Bpis b ON b.Id = n.BpiId
+    LEFT JOIN Bpis b ON b.FdtId = fd.Id
+    LEFT JOIN Fats fa ON fa.FdtId = fd.Id
     WHERE o.ZoneId = @ZoneId
-    ORDER BY o.Nom, fd.Nom, n.Nom;
+    ORDER BY o.Nom, fd.Nom, b.Nom, fa.Nom;
 END
 GO
 
@@ -59,7 +56,7 @@ BEGIN
 END
 GO
 
--- Capacity report per OLT
+-- Capacity report per OLT (sans ONT)
 CREATE OR ALTER PROCEDURE sp_GetOltCapacity
     @OltId INT
 AS
@@ -69,22 +66,17 @@ BEGIN
         o.Id, o.Nom, o.NbrePorts,
         COUNT(DISTINCT fd.Id) AS NbreFdts,
         COUNT(DISTINCT fa.Id) AS NbreFats,
-        COUNT(DISTINCT b.Id) AS NbreBpis,
-        COUNT(n.Id) AS TotalOnts,
-        SUM(CASE WHEN n.Statut=1 THEN 1 ELSE 0 END) AS OntsActifs,
-        CAST(COUNT(CASE WHEN n.Statut=1 THEN 1 END)*100.0/NULLIF(COUNT(n.Id),0) AS DECIMAL(5,2)) AS TauxActivite
+        COUNT(DISTINCT b.Id) AS NbreBpis
     FROM Olts o
     LEFT JOIN Fdts fd ON fd.OltId=o.Id
     LEFT JOIN Fats fa ON fa.FdtId=fd.Id
     LEFT JOIN Bpis b ON b.FdtId=fd.Id
-    LEFT JOIN Onts n ON n.FdtId=fd.Id
     WHERE o.Id=@OltId
     GROUP BY o.Id, o.Nom, o.NbrePorts;
 END
 GO
 
--- ── SEED DATA ────────────────────────────────────────────────
-
+-- SEED DATA
 INSERT INTO Clients (Nom, Code, Adresse, Email) VALUES
 ('Tunisie Telecom', 'TT', 'Avenue Mohamed V, Tunis', 'admin@tunisietelecom.tn'),
 ('Ooredoo Tunisie', 'OO', 'Rue du Lac Biwa, Tunis', 'admin@ooredoo.tn');
@@ -113,19 +105,11 @@ INSERT INTO Fdts (OltId, Nom, Capacite, NbSplitters1x8, NbSplitters1x64) VALUES
 INSERT INTO Fats (FdtId, Nom, Capacite) VALUES
 (1,'FAT-01-A-1',8),(1,'FAT-01-A-2',8),(2,'FAT-01-B-1',8),(3,'FAT-02-A-1',8),(4,'FAT-03-A-1',8);
 
--- BPIs — capacité 24 (1×1:8) ou 48 (2×1:8)
+-- BPIs: capacité 24 (1x1:8) ou 48 (2x1:8)
 INSERT INTO Bpis (FdtId, Nom, Capacite, NbSplitters1x8) VALUES
 (1, 'BPI-01-A', 24, 1),(1, 'BPI-01-B', 48, 2),(2, 'BPI-02-A', 24, 1),(3, 'BPI-03-A', 48, 2);
 
--- ONTs sous FDT (villas) ou sous BPI (immeubles)
-INSERT INTO Onts (FdtId, BpiId, SerialNumber, Nom, IpAddress, Modele, Statut, SignalRx, SignalTx) VALUES
-(1, NULL, 'HWTC1234ABCD','ONT-001','192.168.1.1','HG8245H',1,-22.5,-1.2),
-(1, NULL, 'HWTC5678EFGH','ONT-002','192.168.1.2','HG8245H',1,-23.1,-1.5),
-(1, 1,    'ZTXC1111AAAA','ONT-003','192.168.1.3','F601',1,-24.0,-1.8),
-(1, 2,    'ZTXC2222BBBB','ONT-004','192.168.1.4','F601',0,NULL,NULL),
-(2, NULL, 'HWTC9999ZZZZ','ONT-005','192.168.2.1','HG8145V',1,-21.8,-1.1);
-
--- Techniciens Sotetel affectés par projet
+-- Techniciens affectés par projet
 INSERT INTO Techniciens (ProjetId, Nom, Prenom, Email, Specialite) VALUES
 (1,'Ben Ali','Karim','k.benali@sotetel.tn','GPON Splicing'),
 (1,'Trabelsi','Sami','s.trabelsi@sotetel.tn','OLT Configuration'),
@@ -133,7 +117,7 @@ INSERT INTO Techniciens (ProjetId, Nom, Prenom, Email, Specialite) VALUES
 
 -- Security seed
 INSERT INTO NetworkAlerts (Titre, Description, Severite, Type, OltId) VALUES
-(N'Signal faible détecté','ONT-004 signal Rx dégradé',2,'SignalDegradation',1),
+(N'Signal faible détecté','Anomalie signal sur branche de distribution',2,'SignalDegradation',1),
 (N'Tentative accès non autorisé','Login échoué x5 sur OLT-NORD-01',3,'Security',1),
 (N'Taux charge élevé','OLT-NORD-01 CPU > 85%',2,'Performance',1);
 

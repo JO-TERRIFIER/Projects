@@ -1,5 +1,4 @@
-// SmartGPON v3 – Infrastructure/Services.cs
-// FIX-2: All using directives at file top — no CS1529
+﻿// SmartGPON v3 - Infrastructure/Services.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,41 +29,22 @@ namespace SmartGPON.Infrastructure.Services
             if (_cache.TryGetValue(key, out DashboardViewModel? cached) && cached != null)
                 return cached;
 
-            var oltsQ = _db.Olts.Include(o => o.Zone).ThenInclude(z => z.Projet).AsNoTracking();
-            if (clientId.HasValue) oltsQ = oltsQ.Where(o => o.Zone.Projet.ClientId == clientId);
-            var olts = await oltsQ.Select(o => new { o.Id, o.Statut }).ToListAsync();
-
-            var ontsQ = _db.Onts
-                .Include(n => n.Fdt)
-                    .ThenInclude(fd => fd.Olt).ThenInclude(o => o.Zone).ThenInclude(z => z.Projet)
-                .AsNoTracking();
-            if (clientId.HasValue)
-                ontsQ = ontsQ.Where(n => n.Fdt.Olt.Zone.Projet.ClientId == clientId);
-            var onts = await ontsQ.Select(n => new { n.Id, n.Statut }).ToListAsync();
-
-            var alertes = await _db.NetworkAlerts.AsNoTracking()
-                .Where(a => !a.IsRead)
-                .OrderByDescending(a => a.DateAlerte)
-                .Take(5)
-                .ToListAsync();
+            var projetsQ = _db.Projets.AsNoTracking();
+            if (clientId.HasValue) projetsQ = projetsQ.Where(p => p.ClientId == clientId);
 
             var vm = new DashboardViewModel
             {
-                TotalOlts          = olts.Count,
-                OltsActifs         = olts.Count(o => o.Statut == StatutEquipement.Actif),
-                TotalOnts          = onts.Count,
-                OntsActifs         = onts.Count(n => n.Statut == StatutEquipement.Actif),
-                AlertesNonLues     = await _db.NetworkAlerts.CountAsync(a => !a.IsRead),
-                SimulationsActives = await _db.AttackSimulations.CountAsync(s =>
-                    s.Statut == SimulationStatut.EnAttente || s.Statut == SimulationStatut.EnCours),
-                RogueOltsActifs    = await _db.MaliciousOlts.CountAsync(m => m.Statut == StatutMaliciousOlt.Actif),
-                DernieresAlertes   = alertes
+                TotalProjets = await projetsQ.CountAsync(),
+                ProjetsTermines = await projetsQ.CountAsync(p => p.Statut == ProjetStatut.Termine),
+                ProjetsEnCours = await projetsQ.CountAsync(p => p.Statut == ProjetStatut.EnCours),
+                ProjetsSuspendus = await projetsQ.CountAsync(p => p.Statut == ProjetStatut.Suspendu)
             };
 
             _cache.Set(key, vm, TimeSpan.FromMinutes(2));
             return vm;
         }
     }
+
 
     public class SecurityService : ISecurityService
     {
@@ -76,22 +56,15 @@ namespace SmartGPON.Infrastructure.Services
             var today = DateTime.UtcNow.Date;
             return new SecurityDashboardViewModel
             {
-                AlertesCritiques     = await _db.NetworkAlerts.CountAsync(a => a.Severite == AlertSeverite.Critical && !a.IsRead),
-                AlertesWarning       = await _db.NetworkAlerts.CountAsync(a => a.Severite == AlertSeverite.Warning && !a.IsRead),
-                RogueOltsActifs      = await _db.MaliciousOlts.CountAsync(m => m.Statut == StatutMaliciousOlt.Actif),
-                SimulationsEnCours   = await _db.AttackSimulations.CountAsync(s => s.Statut == SimulationStatut.EnCours),
+                AlertesCritiques = await _db.NetworkAlerts.CountAsync(a => a.Severite == AlertSeverite.Critical && !a.IsRead),
+                AlertesWarning = await _db.NetworkAlerts.CountAsync(a => a.Severite == AlertSeverite.Warning && !a.IsRead),
+                RogueOltsActifs = await _db.MaliciousOlts.CountAsync(m => m.Statut == StatutMaliciousOlt.Actif),
+                SimulationsEnCours = await _db.AttackSimulations.CountAsync(s => s.Statut == SimulationStatut.EnCours),
                 EvenementsAujourdhui = await _db.SecurityEvents.CountAsync(e => e.DateEvenement >= today),
-                DernieresAlertes     = await _db.NetworkAlerts.AsNoTracking()
-                    .OrderByDescending(a => a.DateAlerte).Take(10).ToListAsync(),
-                RogueOlts = await _db.MaliciousOlts.AsNoTracking()
-                    .Include(m => m.Olt)
-                    .Where(m => m.Statut == StatutMaliciousOlt.Actif)
-                    .OrderByDescending(m => m.DateDetection).Take(10).ToListAsync(),
-                SimulationsRecentes = await _db.AttackSimulations.AsNoTracking()
-                    .Include(s => s.Olt)
-                    .OrderByDescending(s => s.DateLancement).Take(10).ToListAsync(),
-                EvenementsRecents = await _db.SecurityEvents.AsNoTracking()
-                    .OrderByDescending(e => e.DateEvenement).Take(20).ToListAsync()
+                DernieresAlertes = await _db.NetworkAlerts.AsNoTracking().OrderByDescending(a => a.DateAlerte).Take(10).ToListAsync(),
+                RogueOlts = await _db.MaliciousOlts.AsNoTracking().Include(m => m.Olt).Where(m => m.Statut == StatutMaliciousOlt.Actif).OrderByDescending(m => m.DateDetection).Take(10).ToListAsync(),
+                SimulationsRecentes = await _db.AttackSimulations.AsNoTracking().Include(s => s.Olt).OrderByDescending(s => s.DateLancement).Take(10).ToListAsync(),
+                EvenementsRecents = await _db.SecurityEvents.AsNoTracking().OrderByDescending(e => e.DateEvenement).Take(20).ToListAsync()
             };
         }
 
@@ -105,9 +78,6 @@ namespace SmartGPON.Infrastructure.Services
             _ = Task.Run(async () =>
             {
                 await Task.Delay(2000);
-                using var scope = _db.Database.GetDbConnection();
-                // Re-fetch in fire-and-forget using a new context instance is safer,
-                // but here we reuse for simplicity — acceptable for demo/single-instance.
                 var s = await _db.AttackSimulations.FindAsync(sim.Id);
                 if (s == null) return;
                 s.Statut = SimulationStatut.EnCours;
@@ -118,19 +88,19 @@ namespace SmartGPON.Infrastructure.Services
                 s.DateFin = DateTime.UtcNow;
                 s.ResultatDetails = JsonSerializer.Serialize(new
                 {
-                    PacketsSent          = new Random().Next(100, 10000),
-                    ResponseTime         = new Random().Next(1, 500),
+                    PacketsSent = new Random().Next(100, 10000),
+                    ResponseTime = new Random().Next(1, 500),
                     VulnerabilitiesFound = new Random().Next(0, 5),
-                    AttackType           = sim.TypeAttaque
+                    AttackType = sim.TypeAttaque
                 });
                 _db.NetworkAlerts.Add(new NetworkAlert
                 {
-                    Titre       = $"Simulation {sim.TypeAttaque} terminée",
-                    Description = $"OLT ID {sim.OltId} — Niveau: {sim.NiveauRisque}",
-                    Severite    = sim.NiveauRisque >= NiveauRisque.Eleve ? AlertSeverite.Critical : AlertSeverite.Warning,
-                    Type        = "AttackSimulation",
-                    OltId       = sim.OltId,
-                    DateAlerte  = DateTime.UtcNow
+                    Titre = $"Simulation {sim.TypeAttaque} terminée",
+                    Description = $"OLT ID {sim.OltId} - Niveau: {sim.NiveauRisque}",
+                    Severite = sim.NiveauRisque >= NiveauRisque.Eleve ? AlertSeverite.Critical : AlertSeverite.Warning,
+                    Type = "AttackSimulation",
+                    OltId = sim.OltId,
+                    DateAlerte = DateTime.UtcNow
                 });
                 await _db.SaveChangesAsync();
             });
@@ -139,10 +109,7 @@ namespace SmartGPON.Infrastructure.Services
         }
 
         public async Task<List<MaliciousOlt>> GetRogueOltsAsync() =>
-            await _db.MaliciousOlts.AsNoTracking()
-                .Include(m => m.Olt)
-                .OrderByDescending(m => m.DateDetection)
-                .ToListAsync();
+            await _db.MaliciousOlts.AsNoTracking().Include(m => m.Olt).OrderByDescending(m => m.DateDetection).ToListAsync();
 
         public async Task<List<NetworkAlert>> GetAlertsAsync(bool unreadOnly = false, int page = 1, int pageSize = 20) =>
             await _db.NetworkAlerts.AsNoTracking()
@@ -169,8 +136,11 @@ namespace SmartGPON.Infrastructure.Services
         {
             _db.SecurityEvents.Add(new SecurityEvent
             {
-                Type = type, Description = description,
-                IpSource = ipSource, Utilisateur = user, Niveau = niveau
+                Type = type,
+                Description = description,
+                IpSource = ipSource,
+                Utilisateur = user,
+                Niveau = niveau
             });
             await _db.SaveChangesAsync();
         }
@@ -186,48 +156,42 @@ namespace SmartGPON.Infrastructure.Services
             var zone = await _db.Zones.AsNoTracking()
                 .Include(z => z.Olts)
                     .ThenInclude(o => o.Fdts)
-                        .ThenInclude(fd => fd.Onts)
-                .Include(z => z.Olts)
-                    .ThenInclude(o => o.Fdts)
                         .ThenInclude(fd => fd.Fats)
                 .Include(z => z.Olts)
                     .ThenInclude(o => o.Fdts)
                         .ThenInclude(fd => fd.Bpis)
-                            .ThenInclude(b => b.Onts)
                 .FirstOrDefaultAsync(z => z.Id == zoneId);
 
             if (zone == null) return new NetworkTreeViewModel();
 
             return new NetworkTreeViewModel
             {
-                ZoneId  = zone.Id,
+                ZoneId = zone.Id,
                 ZoneNom = zone.Nom,
                 Olts = zone.Olts.Select(o => new OltTreeNode
                 {
-                    Id = o.Id, Nom = o.Nom, IpAddress = o.IpAddress, Statut = o.Statut,
+                    Id = o.Id,
+                    Nom = o.Nom,
+                    IpAddress = o.IpAddress,
+                    Statut = o.Statut,
                     Fdts = o.Fdts.Select(fd => new FdtTreeNode
                     {
-                        Id = fd.Id, Nom = fd.Nom,
-                        NbSplitters1x8 = fd.NbSplitters1x8, NbSplitters1x64 = fd.NbSplitters1x64,
-                        Onts = fd.Onts.Where(n => n.BpiId == null).Select(n => new OntTreeNode
-                        {
-                            Id = n.Id, Nom = n.Nom ?? n.SerialNumber,
-                            SerialNumber = n.SerialNumber, Statut = n.Statut,
-                            SignalRx = n.SignalRx, SignalTx = n.SignalTx
-                        }).ToList(),
+                        Id = fd.Id,
+                        Nom = fd.Nom,
+                        NbSplitters1x8 = fd.NbSplitters1x8,
+                        NbSplitters1x64 = fd.NbSplitters1x64,
                         Fats = fd.Fats.Select(fa => new FatTreeNode
                         {
-                            Id = fa.Id, Nom = fa.Nom, Capacite = fa.Capacite
+                            Id = fa.Id,
+                            Nom = fa.Nom,
+                            Capacite = fa.Capacite
                         }).ToList(),
                         Bpis = fd.Bpis.Select(b => new BpiTreeNode
                         {
-                            Id = b.Id, Nom = b.Nom, Capacite = b.Capacite, NbSplitters1x8 = b.NbSplitters1x8,
-                            Onts = b.Onts.Select(n => new OntTreeNode
-                            {
-                                Id = n.Id, Nom = n.Nom ?? n.SerialNumber,
-                                SerialNumber = n.SerialNumber, Statut = n.Statut,
-                                SignalRx = n.SignalRx, SignalTx = n.SignalTx
-                            }).ToList()
+                            Id = b.Id,
+                            Nom = b.Nom,
+                            Capacite = b.Capacite,
+                            NbSplitters1x8 = b.NbSplitters1x8
                         }).ToList()
                     }).ToList()
                 }).ToList()
@@ -235,10 +199,6 @@ namespace SmartGPON.Infrastructure.Services
         }
 
         public async Task<List<Zone>> GetZonesForClientAsync(int clientId) =>
-            await _db.Zones.AsNoTracking()
-                .Include(z => z.Projet)
-                .Where(z => z.Projet.ClientId == clientId)
-                .OrderBy(z => z.Nom)
-                .ToListAsync();
+            await _db.Zones.AsNoTracking().Include(z => z.Projet).Where(z => z.Projet.ClientId == clientId).OrderBy(z => z.Nom).ToListAsync();
     }
 }

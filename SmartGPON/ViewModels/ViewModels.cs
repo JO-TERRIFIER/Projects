@@ -1,4 +1,4 @@
-// SmartGPON v3 – Web/ViewModels/ViewModels.cs
+﻿// SmartGPON v3 - Web/ViewModels/ViewModels.cs
 using System;
 using System.Collections.Generic;
 using SmartGPON.Core.Entities;
@@ -8,18 +8,12 @@ namespace SmartGPON.Web.ViewModels
 {
     public class DashboardViewModel
     {
-        public int TotalOlts { get; set; }
-        public int OltsActifs { get; set; }
-        public int TotalOnts { get; set; }
-        public int OntsActifs { get; set; }
-        public int AlertesNonLues { get; set; }
-        public int SimulationsActives { get; set; }
-        public int RogueOltsActifs { get; set; }
-        public List<NetworkAlert> DernieresAlertes { get; set; } = new();
-        public List<Olt> OltsEnPanne { get; set; } = new();
-        public double TauxDisponibiliteOlts => TotalOlts > 0 ? Math.Round((double)OltsActifs / TotalOlts * 100, 1) : 0;
-        public double TauxDisponibiliteOnts => TotalOnts > 0 ? Math.Round((double)OntsActifs / TotalOnts * 100, 1) : 0;
+        public int TotalProjets { get; set; }
+        public int ProjetsTermines { get; set; }
+        public int ProjetsEnCours { get; set; }
+        public int ProjetsSuspendus { get; set; }
     }
+
 
     public class SecurityDashboardViewModel
     {
@@ -42,8 +36,6 @@ namespace SmartGPON.Web.ViewModels
         public int NbreFdts { get; set; }
         public int NbreFats { get; set; }
         public int NbreBpis { get; set; }
-        public int TotalOnts { get; set; }
-        public int OntsActifs { get; set; }
         public decimal TauxActivite { get; set; }
         public int CapaciteRestante => NbrePorts - NbreFdts;
     }
@@ -70,7 +62,6 @@ namespace SmartGPON.Web.ViewModels
         public string Nom { get; set; } = string.Empty;
         public int NbSplitters1x8 { get; set; }
         public int NbSplitters1x64 { get; set; }
-        public List<OntTreeNode> Onts { get; set; } = new();
         public List<FatTreeNode> Fats { get; set; } = new();
         public List<BpiTreeNode> Bpis { get; set; } = new();
     }
@@ -88,20 +79,8 @@ namespace SmartGPON.Web.ViewModels
         public string Nom { get; set; } = string.Empty;
         public int Capacite { get; set; }
         public int NbSplitters1x8 { get; set; }
-        public List<OntTreeNode> Onts { get; set; } = new();
     }
 
-    public class OntTreeNode
-    {
-        public int Id { get; set; }
-        public string Nom { get; set; } = string.Empty;
-        public string SerialNumber { get; set; } = string.Empty;
-        public StatutEquipement Statut { get; set; }
-        public decimal? SignalRx { get; set; }
-        public decimal? SignalTx { get; set; }
-    }
-
-    // Simulation forms
     public class SimulationFormViewModel
     {
         public int? OltId { get; set; }
@@ -111,7 +90,6 @@ namespace SmartGPON.Web.ViewModels
         public List<Olt> Olts { get; set; } = new();
     }
 
-    // Pagination helper
     public class PagedResult<T>
     {
         public List<T> Items { get; set; } = new();

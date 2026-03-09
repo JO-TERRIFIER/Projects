@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- SmartGPON v3 - Complete Database Schema
 -- SQL Server 2019+ | Optimized with indexes & FK constraints
 -- ============================================================
@@ -10,8 +10,7 @@ GO
 USE SmartGPON;
 GO
 
--- ── CORE TABLES ──────────────────────────────────────────────
-
+-- CORE TABLES
 CREATE TABLE Clients (
     Id          INT IDENTITY PRIMARY KEY,
     Nom         NVARCHAR(100) NOT NULL,
@@ -29,7 +28,7 @@ CREATE TABLE Projets (
     ClientId    INT NOT NULL REFERENCES Clients(Id) ON DELETE CASCADE,
     Nom         NVARCHAR(150) NOT NULL,
     Description NVARCHAR(500),
-    Statut      TINYINT DEFAULT 0,   -- 0=EnCours 1=Termine 2=Suspendu
+    Statut      TINYINT DEFAULT 0,
     DateDebut   DATE,
     DateFin     DATE,
     DateCreation DATETIME2 DEFAULT SYSDATETIME()
@@ -96,25 +95,6 @@ CREATE TABLE Bpis (
 );
 CREATE INDEX IX_Bpis_FdtId ON Bpis(FdtId);
 
-CREATE TABLE Onts (
-    Id          INT IDENTITY PRIMARY KEY,
-    FdtId       INT NOT NULL REFERENCES Fdts(Id) ON DELETE CASCADE,
-    BpiId       INT NULL REFERENCES Bpis(Id) ON DELETE NO ACTION,
-    SerialNumber NVARCHAR(50) NOT NULL,
-    Nom         NVARCHAR(100),
-    MacAddress  NVARCHAR(17),
-    IpAddress   NVARCHAR(45),
-    Modele      NVARCHAR(50),
-    Statut      TINYINT DEFAULT 1,
-    SignalRx    DECIMAL(6,2),
-    SignalTx    DECIMAL(6,2),
-    DateInstall DATE,
-    DateCreation DATETIME2 DEFAULT SYSDATETIME()
-);
-CREATE INDEX IX_Onts_FdtId ON Onts(FdtId);
-CREATE INDEX IX_Onts_BpiId ON Onts(BpiId);
-CREATE UNIQUE INDEX IX_Onts_SerialNumber ON Onts(SerialNumber);
-
 CREATE TABLE Fibres (
     Id          INT IDENTITY PRIMARY KEY,
     ZoneId      INT NOT NULL REFERENCES Zones(Id),
@@ -159,17 +139,6 @@ CREATE TABLE Techniciens (
 );
 CREATE INDEX IX_Techniciens_ProjetId ON Techniciens(ProjetId);
 
-CREATE TABLE Tests (
-    Id          INT IDENTITY PRIMARY KEY,
-    OntId       INT NOT NULL REFERENCES Onts(Id),
-    TechnicienId INT REFERENCES Techniciens(Id),
-    TypeTest    NVARCHAR(50),
-    Resultat    TINYINT DEFAULT 0,   -- 0=EnCours 1=Reussi 2=Echoue
-    Notes       NVARCHAR(500),
-    DateTest    DATETIME2 DEFAULT SYSDATETIME()
-);
-CREATE INDEX IX_Tests_OntId ON Tests(OntId);
-
 CREATE TABLE Validations (
     Id          INT IDENTITY PRIMARY KEY,
     ProjetId    INT NOT NULL REFERENCES Projets(Id),
@@ -179,15 +148,14 @@ CREATE TABLE Validations (
     DateValidation DATETIME2 DEFAULT SYSDATETIME()
 );
 
--- ── SECURITY TABLES ──────────────────────────────────────────
-
+-- SECURITY TABLES
 CREATE TABLE AttackSimulations (
     Id              INT IDENTITY PRIMARY KEY,
     OltId           INT REFERENCES Olts(Id),
-    TypeAttaque     NVARCHAR(50) NOT NULL,  -- MITM, DoS, Replay, Rogue
-    Parametres      NVARCHAR(MAX),          -- JSON config
-    Statut          TINYINT DEFAULT 0,      -- 0=EnAttente 1=EnCours 2=Termine 3=Echoue
-    NiveauRisque    TINYINT DEFAULT 2,      -- 1=Faible 2=Moyen 3=Eleve 4=Critique
+    TypeAttaque     NVARCHAR(50) NOT NULL,
+    Parametres      NVARCHAR(MAX),
+    Statut          TINYINT DEFAULT 0,
+    NiveauRisque    TINYINT DEFAULT 2,
     ResultatDetails NVARCHAR(MAX),
     LancePar        NVARCHAR(100),
     DateLancement   DATETIME2 DEFAULT SYSDATETIME(),
@@ -202,8 +170,8 @@ CREATE TABLE MaliciousOlts (
     IpSuspecte      NVARCHAR(45),
     MacSuspecte     NVARCHAR(17),
     RaisonDetection NVARCHAR(200),
-    NiveauConfiance INT DEFAULT 70,          -- % 0-100
-    Statut          TINYINT DEFAULT 0,       -- 0=Actif 1=Resolu 2=FauxPositif
+    NiveauConfiance INT DEFAULT 70,
+    Statut          TINYINT DEFAULT 0,
     DateDetection   DATETIME2 DEFAULT SYSDATETIME(),
     DateResolution  DATETIME2
 );
@@ -228,7 +196,7 @@ CREATE TABLE NetworkAlerts (
     Id              INT IDENTITY PRIMARY KEY,
     Titre           NVARCHAR(200) NOT NULL,
     Description     NVARCHAR(1000),
-    Severite        TINYINT DEFAULT 2,       -- 1=Info 2=Warning 3=Critical
+    Severite        TINYINT DEFAULT 2,
     Type            NVARCHAR(50),
     OltId           INT REFERENCES Olts(Id),
     IsRead          BIT DEFAULT 0,
@@ -248,8 +216,7 @@ CREATE TABLE SecurityEvents (
 );
 CREATE INDEX IX_SecEvents_Date ON SecurityEvents(DateEvenement DESC);
 
--- ── ASP.NET IDENTITY ─────────────────────────────────────────
-
+-- ASP.NET IDENTITY
 CREATE TABLE AspNetRoles (
     Id              NVARCHAR(450) PRIMARY KEY,
     Name            NVARCHAR(256),

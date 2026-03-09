@@ -1,5 +1,8 @@
-@model IEnumerable<SmartGPON.Core.Entities.MaliciousOlt>
-@{ ViewData["Title"] = "Rogue OLTs"; }
+﻿@model IEnumerable<SmartGPON.Core.Entities.MaliciousOlt>
+@{
+  ViewData["Title"] = "Rogue OLTs";
+  var canDelete = User.IsInRole("Admin");
+}
 <div class="page-header"><div><h1 class="page-title"><i class="bi bi-exclamation-diamond me-2 text-a"></i>Rogue OLTs détectés</h1><div class="page-subtitle">Équipements suspects sur le réseau GPON</div></div>
   <a asp-controller="Security" asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Sécurité</a>
 </div>
@@ -8,7 +11,7 @@
     <div class="sg-card text-center py-5"><i class="bi bi-shield-check fs-1 text-g mb-3 d-block"></i><div style="color:var(--text-muted)">Aucun rogue OLT détecté — réseau sécurisé</div></div>
   } else {
   <div class="sg-card p-0" style="overflow:hidden"><div style="overflow-x:auto"><table class="sg-table">
-    <thead><tr><th style="padding-left:20px">IP Suspecte</th><th>MAC</th><th>OLT associé</th><th>Confiance</th><th>Raison</th><th>Détecté le</th><th>Statut</th><th style="padding-right:20px;text-align:right">Action</th></tr></thead>
+    <thead><tr><th style="padding-left:20px">IP Suspecte</th><th>MAC</th><th>OLT associée</th><th>Confiance</th><th>Raison</th><th>Détecté le</th><th>Statut</th><th style="padding-right:20px;text-align:right">Action</th></tr></thead>
     <tbody>
     @foreach(var m in Model){
       var conf = m.NiveauConfiance;
@@ -26,7 +29,7 @@
         <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@m.DateDetection.ToString("dd/MM HH:mm")</td>
         <td><span class="pill @pillS">@m.Statut</span></td>
         <td style="padding-right:20px;text-align:right">
-          @if(m.Statut==SmartGPON.Core.Enums.StatutMaliciousOlt.Actif){
+          @if(canDelete && m.Statut==SmartGPON.Core.Enums.StatutMaliciousOlt.Actif){
             <form asp-action="ResolveRogue" asp-route-id="@m.Id" method="post" class="d-inline">
               @Html.AntiForgeryToken()<button type="submit" class="btn-ghost-sg" style="font-size:11px;padding:4px 10px"><i class="bi bi-check-circle me-1"></i>Résoudre</button>
             </form>

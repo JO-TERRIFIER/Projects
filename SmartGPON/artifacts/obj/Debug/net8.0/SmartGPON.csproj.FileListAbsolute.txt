@@ -1,0 +1,9 @@
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.csproj.AssemblyReference.cache
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.AssemblyInfoInputs.cache
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.AssemblyInfo.cs
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.csproj.CoreCompileInputs.cache
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.MvcApplicationPartsAssemblyInfo.cache
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.RazorAssemblyInfo.cache
+C:\Projets\SmartGPON\artifacts\obj\Debug\net8.0\SmartGPON.RazorAssemblyInfo.cs
