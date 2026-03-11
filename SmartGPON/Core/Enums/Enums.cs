@@ -1,4 +1,4 @@
-﻿// SmartGPON v3 â€“ Core/Enums/Enums.cs
+// SmartGPON v3 - Core/Enums/Enums.cs
 namespace SmartGPON.Core.Enums
 {
     public enum StatutEquipement   : byte { Inactif = 0, Actif = 1, EnPanne = 2, EnMaintenance = 3 }
@@ -12,9 +12,35 @@ namespace SmartGPON.Core.Enums
 
     public static class UserRoles
     {
-        public const string Admin = "Admin";
-        public const string Technicien = "Technicien";
-        public const string Lecteur = "Lecteur";
+        public const string Superviseur = "Superviseur";
+        public const string ChefProjet = "ChefProjet";
+        public const string TechTerrain = "TechTerrain";
+        public const string TechDessin = "TechDessin";
+        public const string Visiteur = "Visiteur";
+    }
+
+    public enum AssignmentType : byte
+    {
+        ChefProjet = 1,
+        TechTerrain = 2,
+        TechDessin = 3
+    }
+
+    public enum ApprovalActionType : byte
+    {
+        DeleteProjet = 1,
+        DeleteZone = 2,
+        EditEquipment = 3,
+        DeleteEquipment = 4,
+        DeleteResource = 5
+    }
+
+    public enum ApprovalStatus : byte
+    {
+        Pending = 0,
+        Approved = 1,
+        Rejected = 2,
+        Executed = 3
     }
 }
 

@@ -1,8 +1,9 @@
-﻿@model IEnumerable<SmartGPON.Core.Entities.Bpi>
+@model IEnumerable<SmartGPON.Core.Entities.Bpi>
 @{
   ViewData["Title"] = "BPIs";
-  var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
-  var canDelete = User.IsInRole("Admin");
+  var isSuperviseurOrChef = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
+  var isTechTerrain = User.IsInRole("TechTerrain") && !isSuperviseurOrChef;
+  var canWrite = isSuperviseurOrChef || isTechTerrain;
 }
 <div class="page-header">
   <div><h1 class="page-title">BPIs</h1><div class="page-subtitle">Boîtier Pied Immeuble — capacité 24 ou 48 ports (mix possible si besoin)</div></div>
@@ -23,15 +24,19 @@
     <td class="mono" style="font-size:11px;color:var(--text-muted)">@(b.Latitude.HasValue ? $"{b.Latitude:F4}, {b.Longitude:F4}" : "—")</td>
     <td><span class="pill @pill">@b.Statut</span></td>
     <td style="padding-right:20px;text-align:right"><div class="d-flex justify-content-end gap-1">
-      @if (canWrite)
+      @if (isSuperviseurOrChef)
       {
-        <a asp-action="Edit" asp-route-id="@b.Id" class="icon-btn edit"><i class="bi bi-pencil"></i></a>
+        <a asp-action="Edit" asp-route-id="@b.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
+        <form asp-action="Delete" asp-route-id="@b.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash3"></i></button></form>
       }
-      @if (canDelete)
+      else if (isTechTerrain)
       {
-        <form asp-action="Delete" asp-route-id="@b.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn danger"><i class="bi bi-trash3"></i></button></form>
+        <a asp-action="Edit" asp-route-id="@b.Id" class="icon-btn edit" title="Demander modification"><i class="bi bi-pencil-square"></i></a>
+        <form asp-action="Delete" asp-route-id="@b.Id" method="post" class="d-inline" onsubmit="return confirm('Demander la suppression de ce BPI ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn warning" title="Demander suppression" style="color:var(--color-status-warning)"><i class="bi bi-trash3"></i></button></form>
       }
     </div></td></tr>
   }
   </tbody>
 </table></div></div></div>
+
+

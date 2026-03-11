@@ -1,4 +1,4 @@
-﻿// SmartGPON v3 - Core/Interfaces/IServices.cs
+// SmartGPON v3 - Core/Interfaces/IServices.cs
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SmartGPON.Core.Entities;

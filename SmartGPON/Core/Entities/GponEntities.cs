@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // SmartGPON v3 - Core/Entities/GponEntities.cs
 // ============================================================
 using System;
@@ -26,6 +26,7 @@ namespace SmartGPON.Core.Entities
     {
         public int Id { get; set; }
         public int ClientId { get; set; }
+        [MaxLength(450)] public string? ProjectManagerId { get; set; }
         [Required, MaxLength(150)] public string Nom { get; set; } = string.Empty;
         [MaxLength(500)] public string? Description { get; set; }
         public ProjetStatut Statut { get; set; } = ProjetStatut.EnCours;
@@ -244,5 +245,47 @@ namespace SmartGPON.Core.Entities
         public DateTime DateUpload { get; set; } = DateTime.UtcNow;
         public Zone? Zone { get; set; }
         public Projet? Projet { get; set; }
+    }
+    public class UserProjectAssignment
+    {
+        public int Id { get; set; }
+        [Required] public string UserId { get; set; } = string.Empty;
+        public int ProjetId { get; set; }
+        public AssignmentType AssignmentType { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+        [MaxLength(450)] public string? AssignedByUserId { get; set; }
+        public Projet Projet { get; set; } = null!;
+    }
+
+    public class ApprovalRequest
+    {
+        public int Id { get; set; }
+        public int ProjetId { get; set; }
+        [Required] public string RequestedByUserId { get; set; } = string.Empty;
+        [Required, MaxLength(64)] public string TargetType { get; set; } = string.Empty;
+        public int? TargetId { get; set; }
+        public ApprovalActionType ActionType { get; set; }
+        [Required, MaxLength(1000)] public string Reason { get; set; } = string.Empty;
+        public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
+        [MaxLength(450)] public string? DecidedByUserId { get; set; }
+        public DateTime? DecisionAt { get; set; }
+        [MaxLength(1000)] public string? DecisionComment { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Projet Projet { get; set; } = null!;
+    }
+
+    public class AuditLog
+    {
+        public int Id { get; set; }
+        [Required] public string UserId { get; set; } = string.Empty;
+        [MaxLength(256)] public string UserEmail { get; set; } = string.Empty;
+        [MaxLength(45)] public string? IpAddress { get; set; }
+        public int? ProjetId { get; set; }
+        [Required, MaxLength(64)] public string ActionType { get; set; } = string.Empty;
+        [Required, MaxLength(64)] public string EntityType { get; set; } = string.Empty;
+        public int? EntityId { get; set; }
+        [Required, MaxLength(2000)] public string Description { get; set; } = string.Empty;
+        public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     }
 }

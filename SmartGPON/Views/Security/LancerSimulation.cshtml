@@ -5,7 +5,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title"><i class="bi bi-activity me-2"></i>Nouvelle simulation d'attaque</h1>
-        <div class="page-subtitle">Tester la résistance du réseau GPON</div>
+        <div class="page-subtitle">Tester la rÃ©sistance du rÃ©seau GPON</div>
     </div>
     <a asp-action="Simulations" class="btn-ghost-sg"><i class="bi bi-arrow-left me-1"></i>Retour</a>
 </div>
@@ -19,7 +19,7 @@
                     <div class="mb-3">
                         <label class="sg-label">OLT cible</label>
                         <select asp-for="OltId" class="sg-input">
-                            <option value="">-- Sélectionner un OLT --</option>
+                            <option value="">-- SÃ©lectionner un OLT --</option>
                             @foreach (var o in Model.Olts)
                             {
                                 <option value="@o.Id">@o.Nom (@o.IpAddress)</option>
@@ -43,8 +43,8 @@
                         <label class="sg-label">Niveau de risque</label>
                         <select asp-for="NiveauRisque" asp-items="Html.GetEnumSelectList<SmartGPON.Core.Enums.NiveauRisque>()" class="sg-input"></select>
                     </div>
-                    <div class="mb-4">
-                        <label class="sg-label">Paramètres (JSON optionnel)</label>
+                    <div class="mb-3"><label class="sg-label">Description action *</label><input name="actionDescription" class="sg-input" required placeholder="Pourquoi lancer cette simulation ?" /></div><div class="mb-4">
+                        <label class="sg-label">ParamÃ¨tres (JSON optionnel)</label>
                         <textarea asp-for="Parametres" class="sg-input" rows="3" placeholder='{"intensity": 5, "duration": 30}'></textarea>
                     </div>
                     <div class="d-flex gap-2">
@@ -56,3 +56,5 @@
         </div>
     </div>
 </div>
+
+

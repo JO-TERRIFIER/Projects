@@ -1,4 +1,4 @@
-﻿// SmartGPON v3 - Web/ViewModels/ViewModels.cs
+// SmartGPON v3 - Web/ViewModels/ViewModels.cs
 using System;
 using System.Collections.Generic;
 using SmartGPON.Core.Entities;
@@ -22,7 +22,7 @@ namespace SmartGPON.Web.ViewModels
         public int RogueOltsActifs { get; set; }
         public int SimulationsEnCours { get; set; }
         public int EvenementsAujourdhui { get; set; }
-        public List<NetworkAlert> DernieresAlertes { get; set; } = new();
+        public PagedResult<NetworkAlert> AlertesPaginees { get; set; } = new PagedResult<NetworkAlert>();
         public List<MaliciousOlt> RogueOlts { get; set; } = new();
         public List<AttackSimulation> SimulationsRecentes { get; set; } = new();
         public List<SecurityEvent> EvenementsRecents { get; set; } = new();

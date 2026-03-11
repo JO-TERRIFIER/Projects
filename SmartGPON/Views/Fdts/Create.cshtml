@@ -11,10 +11,10 @@
         <div class="col-12"><label class="sg-label">Nom *</label><input asp-for="Nom" class="sg-input form-control" required/></div>
         <div class="col-12"><label class="sg-label">OLT parent *</label>
           <select asp-for="OltId" class="sg-input form-select" required>
-            <option value="">-- Sélectionner OLT --</option>
+            <option value="">-- SÃ©lectionner OLT --</option>
             @foreach(var o in ViewBag.Olts as List<SmartGPON.Core.Entities.Olt>??new()){<option value="@o.Id">@o.Nom</option>}
           </select></div>
-        <div class="col-md-4"><label class="sg-label">Capacité</label>
+        <div class="col-md-4"><label class="sg-label">CapacitÃ©</label>
           <select asp-for="Capacite" class="sg-input form-select"><option value="8">8</option><option value="12">12</option></select></div>
         <div class="col-md-4"><label class="sg-label">Splitters 1:8</label><input asp-for="NbSplitters1x8" class="sg-input form-control" type="number" min="0"/></div>
         <div class="col-md-4"><label class="sg-label">Splitters 1:64</label><input asp-for="NbSplitters1x64" class="sg-input form-control" type="number" min="0"/></div>

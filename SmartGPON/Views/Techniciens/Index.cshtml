@@ -1,8 +1,8 @@
-﻿@model IEnumerable<SmartGPON.Core.Entities.Technicien>
+@model IEnumerable<SmartGPON.Core.Entities.Technicien>
 @{
   ViewData["Title"] = "Techniciens";
-  var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
-  var canDelete = User.IsInRole("Admin");
+  var canWrite = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
+  var canDelete = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
 }
 <div class="page-header"><div><h1 class="page-title">Performance techniciens</h1><div class="page-subtitle">Suivi activité &amp; indicateurs</div></div>
   @if (canWrite)
@@ -42,3 +42,5 @@
   }
   </tbody>
 </table></div></div></div>
+
+

@@ -1,0 +1,3 @@
+[DEBUG] Init AuditLogs count: 22
+[DEBUG] Final SQL count fetched to memory: 0
+[DEBUG] ViewModels rendered: 1

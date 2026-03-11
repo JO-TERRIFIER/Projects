@@ -1,10 +1,10 @@
-﻿@model SmartGPON.Web.ViewModels.UserCreateViewModel
+@model SmartGPON.Web.ViewModels.UserCreateViewModel
 @{ ViewData["Title"] = "Nouveau compte utilisateur"; }
 
 <div class="page-header">
     <div>
         <h1 class="page-title"><i class="bi bi-person-plus me-2"></i>@ViewData["Title"]</h1>
-        <div class="page-subtitle">Création d'un compte par l'administrateur</div>
+        <div class="page-subtitle">Création d'un compte par l'superviseuristrateur</div>
     </div>
     <a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left me-1"></i>Retour</a>
 </div>
@@ -17,6 +17,16 @@
                     @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
                     <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="sg-label">Nom *</label>
+                            <input asp-for="LastName" class="sg-input" required />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="sg-label">Prénom *</label>
+                            <input asp-for="FirstName" class="sg-input" required />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
                         <div class="col-12">
                             <label class="sg-label">Email *</label>
                             <input asp-for="Email" class="sg-input" type="email" required />

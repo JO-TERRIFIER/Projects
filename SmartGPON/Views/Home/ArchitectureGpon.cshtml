@@ -1,20 +1,20 @@
-@* Views/Home/ArchitectureGpon.cshtml — Visualisation Architecture GPON par Client/Projet *@
+@* Views/Home/ArchitectureGpon.cshtml â€” Visualisation Architecture GPON par Client/Projet *@
 @{
   ViewData["Title"] = "Architecture GPON";
 }
 <div class="page-header">
-  <div><h1 class="page-title">Architecture GPON</h1><div class="page-subtitle">Visualisation de l'architecture réseau par client et projet</div></div>
+  <div><h1 class="page-title">Architecture GPON</h1><div class="page-subtitle">Visualisation de l'architecture rÃ©seau par client et projet</div></div>
 </div>
 <div class="page-body">
   <div class="sg-card mb-4">
     <div class="row g-3 align-items-end">
       <div class="col-md-4">
         <label class="sg-label">Client</label>
-        <select id="selClient" class="sg-input form-select"><option value="">-- Sélectionner un client --</option></select>
+        <select id="selClient" class="sg-input form-select"><option value="">-- SÃ©lectionner un client --</option></select>
       </div>
       <div class="col-md-4">
         <label class="sg-label">Projet</label>
-        <select id="selProjet" class="sg-input form-select" disabled><option value="">-- Sélectionner un projet --</option></select>
+        <select id="selProjet" class="sg-input form-select" disabled><option value="">-- SÃ©lectionner un projet --</option></select>
       </div>
     </div>
   </div>
@@ -31,7 +31,7 @@
       </div>
     </div>
     <div id="archTree" style="min-height:80px">
-      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>Sélectionnez un client puis un projet pour visualiser l'architecture GPON</div>
+      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>SÃ©lectionnez un client puis un projet pour visualiser l'architecture GPON</div>
     </div>
   </div>
 </div>
@@ -48,10 +48,10 @@
     list.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nom;sel.appendChild(o);});
   });
 
-  // Client change → load projects
+  // Client change â†’ load projects
   $('selClient').addEventListener('change',function(){
-    const sp=$('selProjet');sp.innerHTML='<option value="">-- Sélectionner un projet --</option>';
-    $('archTree').innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>Sélectionnez un projet</div>';
+    const sp=$('selProjet');sp.innerHTML='<option value="">-- SÃ©lectionner un projet --</option>';
+    $('archTree').innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>SÃ©lectionnez un projet</div>';
     if(!this.value){sp.disabled=true;return;}
     sp.disabled=false;
     fetch('/Home/GetProjectsByClient?clientId='+this.value).then(r=>r.json()).then(list=>{
@@ -59,13 +59,13 @@
     });
   });
 
-  // Project change → load tree
+  // Project change â†’ load tree
   $('selProjet').addEventListener('change',function(){
     const container=$('archTree');
-    if(!this.value){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>Sélectionnez un projet</div>';return;}
+    if(!this.value){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>SÃ©lectionnez un projet</div>';return;}
     container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted)"><i class="bi bi-arrow-repeat spin"></i> Chargement...</div>';
     fetch('/Home/GetProjectArchitecture?projectId='+this.value).then(r=>r.json()).then(zones=>{
-      if(!zones.length){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px 0">Aucune donnée pour ce projet</div>';return;}
+      if(!zones.length){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px 0">Aucune donnÃ©e pour ce projet</div>';return;}
       let html='';
       zones.forEach(z=>{
         html+='<div class="tree-node-group"><div class="tree-node" onclick="tToggle(this)"><span class="tree-toggle open"><i class="bi bi-dash"></i></span><span class="tree-icon" style="background:rgba(0,230,118,.1)"><i class="bi bi-geo-alt" style="color:var(--accent-green)"></i></span><span class="tree-label">'+esc(z.nom)+'</span><span class="lbadge lvl-zone ms-2">Zone</span></div><div class="tree-children open"><div class="tree-connector">';

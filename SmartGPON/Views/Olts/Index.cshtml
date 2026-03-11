@@ -1,9 +1,10 @@
-﻿@* Views/Olts/Index.cshtml *@
+@* Views/Olts/Index.cshtml *@
 @model IEnumerable<SmartGPON.Core.Entities.Olt>
 @{
     ViewData["Title"] = "OLTs";
-    var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
-    var canDelete = User.IsInRole("Admin");
+    var isSuperviseurOrChef = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
+    var isTechTerrain = User.IsInRole("TechTerrain") && !isSuperviseurOrChef;
+    var canWrite = isSuperviseurOrChef || isTechTerrain;
 }
 
 <div class="page-header">
@@ -48,15 +49,20 @@
                         }
                     </td>
                     <td>
-                        @if (canWrite)
+                        @if (isSuperviseurOrChef)
                         {
                           <a asp-action="Edit" asp-route-id="@o.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
-                        }
-                        @if (canDelete)
-                        {
                           <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer cet OLT ?')">
                               @Html.AntiForgeryToken()
                               <button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash"></i></button>
+                          </form>
+                        }
+                        else if (isTechTerrain)
+                        {
+                          <a asp-action="Edit" asp-route-id="@o.Id" class="icon-btn edit" title="Demander modification"><i class="bi bi-pencil-square"></i></a>
+                          <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline" onsubmit="return confirm('Demander la suppression de cet OLT ?')">
+                              @Html.AntiForgeryToken()
+                              <button type="submit" class="icon-btn warning" title="Demander suppression" style="color:var(--color-status-warning)"><i class="bi bi-trash"></i></button>
                           </form>
                         }
                     </td>
@@ -66,3 +72,5 @@
         </table>
     </div>
 </div>
+
+

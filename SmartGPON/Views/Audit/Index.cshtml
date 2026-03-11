@@ -1,0 +1,127 @@
+@model IEnumerable<SmartGPON.Web.Controllers.AuditViewModel>
+@{
+    ViewData["Title"] = "Journal d'audit";
+    var currentAction = ViewBag.CurrentAction as string;
+    var currentEntity = ViewBag.CurrentEntity as string;
+    var actions = ViewBag.Actions as List<string> ?? new List<string>();
+    var entities = ViewBag.Entities as List<string> ?? new List<string>();
+
+    string BadgeClass(string a) => a switch {
+        "Create"       => "bg-success",
+        "Edit"         => "bg-primary",
+        "Delete"       => "bg-danger",
+        "Approve"      => "bg-info text-dark",
+        "Reject"       => "bg-warning text-dark",
+        "RequestDelete"=> "bg-danger bg-opacity-50",
+        "RequestEdit"  => "bg-primary bg-opacity-50",
+        _              => "bg-secondary"
+    };
+}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Journal d'audit</h1>
+    <div class="page-subtitle">Traçabilité complète des actions — <strong>RBAC</strong> appliqué</div>
+  </div>
+</div>
+
+<div class="page-body">
+
+@if (TempData["AuditError"] != null)
+{
+  <div class="alert alert-danger mb-3" role="alert">
+    <strong>Erreur d'audit:</strong> @TempData["AuditError"]
+  </div>
+}
+
+  @* Filter bar *@
+  <div class="sg-card mb-3" style="padding:14px 20px">
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap">
+      <span style="font-size:12px;font-weight:600;color:var(--text-secondary)">FILTRES</span>
+
+      <select name="action" class="sg-input" style="width:auto;font-size:12px;padding:4px 10px"
+              onchange="this.form.submit()">
+        <option value="">Toutes les actions</option>
+        @foreach (var a in actions)
+        {
+          <option value="@a" selected="@(currentAction == a ? "selected" : null)">@a</option>
+        }
+      </select>
+
+      <select name="entity" class="sg-input" style="width:auto;font-size:12px;padding:4px 10px"
+              onchange="this.form.submit()">
+        <option value="">Toutes les entités</option>
+        @foreach (var e in entities)
+        {
+          <option value="@e" selected="@(currentEntity == e ? "selected" : null)">@e</option>
+        }
+      </select>
+
+      @if (!string.IsNullOrWhiteSpace(currentAction) || !string.IsNullOrWhiteSpace(currentEntity))
+      {
+        <a href="/Audit" class="btn-ghost-sg" style="font-size:12px;padding:4px 12px">✕ Réinitialiser</a>
+      }
+
+      <span class="ms-auto" style="font-size:11px;color:var(--text-muted)">@Model.Count() entrée(s)</span>
+    </form>
+  </div>
+
+  <div class="sg-card p-0" style="overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="sg-table" style="font-size:12.5px">
+        <thead>
+          <tr>
+            <th style="padding-left:20px">Date / Heure</th>
+            <th>Utilisateur</th>
+            <th>Action</th>
+            <th>Entité</th>
+            <th>Projet</th>
+            <th>Description</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!Model.Any())
+          {
+            <tr>
+              <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">
+                <i class="bi bi-journal-text" style="font-size:2rem;display:block;margin-bottom:8px"></i>
+                Aucun log d'audit trouvé
+              </td>
+            </tr>
+          }
+          @foreach (var log in Model)
+          {
+            <tr>
+              <td style="padding-left:20px;font-family:monospace;color:var(--text-muted);white-space:nowrap">
+                @log.OccurredAt.ToString("dd/MM/yyyy HH:mm:ss")
+              </td>
+              <td>
+                <span style="font-weight:500">@log.UserEmail</span>
+              </td>
+              <td>
+                <span class="badge @BadgeClass(log.ActionType)">@log.ActionType</span>
+              </td>
+              <td>
+                <span style="font-weight:600">@log.EntityType</span>
+                @if (log.EntityId.HasValue){ <span style="color:var(--text-muted);font-size:11px"> #@log.EntityId</span> }
+              </td>
+              <td>
+                @if (string.IsNullOrWhiteSpace(log.ProjetNom))
+                {
+                  <span class="badge bg-secondary bg-opacity-50" style="font-size:10px">Global</span>
+                }
+                else
+                {
+                  <span>@log.ProjetNom</span>
+                }
+              </td>
+              <td style="max-width:320px;white-space:normal;color:var(--text-secondary)">@log.Description</td>
+              <td style="font-family:monospace;font-size:11px;color:var(--text-muted)">@(log.IpAddress ?? "—")</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

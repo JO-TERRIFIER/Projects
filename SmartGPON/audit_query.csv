@@ -1,0 +1,9 @@
+Id,ActionType,EntityType,ProjetId,UserId,OccurredAt
+--,----------,----------,--------,------,----------
+5,Delete,Client,NULL,62d94566-2051-456b-933e-e1411971b00b,2026-03-10 16:38:48
+4,Create,Client,NULL,62d94566-2051-456b-933e-e1411971b00b,2026-03-10 16:38:31
+3,Delete,Client,NULL,62d94566-2051-456b-933e-e1411971b00b,2026-03-10 16:26:54
+2,Create,Client,NULL,62d94566-2051-456b-933e-e1411971b00b,2026-03-10 16:25:26
+1,Create,Client,NULL,62d94566-2051-456b-933e-e1411971b00b,2026-03-10 12:48:34
+
+(5 rows affected)

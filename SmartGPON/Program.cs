@@ -1,56 +1,54 @@
-﻿// SmartGPON v3 â€“ Program.cs
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using SmartGPON.Core.Enums;
 using SmartGPON.Core.Interfaces;
 using SmartGPON.Infrastructure.Data;
 using SmartGPON.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => {
+        sql =>
+        {
             sql.EnableRetryOnFailure(3);
             sql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         }));
 
-// â”€â”€ Identity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opt =>
 {
-    opt.Password.RequireDigit           = true;
-    opt.Password.RequiredLength         = 8;
+    opt.Password.RequireDigit = true;
+    opt.Password.RequiredLength = 8;
     opt.Password.RequireNonAlphanumeric = false;
-    opt.Password.RequireUppercase       = true;
-    opt.Password.RequireLowercase       = true;
+    opt.Password.RequireUppercase = true;
+    opt.Password.RequireLowercase = true;
     opt.Lockout.MaxFailedAccessAttempts = 10;
-    opt.SignIn.RequireConfirmedEmail    = false;
-    opt.SignIn.RequireConfirmedAccount  = false;
+    opt.SignIn.RequireConfirmedEmail = false;
+    opt.SignIn.RequireConfirmedAccount = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// â”€â”€ Auth cookie â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 builder.Services.ConfigureApplicationCookie(opt =>
 {
-    opt.LoginPath        = "/Account/Login";
+    opt.LoginPath = "/Account/Login";
     opt.AccessDeniedPath = "/Account/AccessDenied";
     opt.SlidingExpiration = true;
-    opt.ExpireTimeSpan   = TimeSpan.FromHours(8);
-    opt.Cookie.HttpOnly  = true;
-    opt.Cookie.SameSite  = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    opt.ExpireTimeSpan = TimeSpan.FromHours(8);
+    opt.Cookie.HttpOnly = true;
+    opt.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
 });
 
-// â”€â”€ Application services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ISecurityService, SecurityService>();
 builder.Services.AddScoped<ITreeService, TreeService>();
+builder.Services.AddScoped<IAuthorizationScopeService, AuthorizationScopeService>();
+builder.Services.AddScoped<IApprovalService, ApprovalService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddControllersWithViews(options =>
 {
-    // FIX: EmpÃªche ASP.NET Core de traiter les navigation properties null! comme [Required]
-    // Sans Ã§a, ModelState.IsValid = false sur tous les POST car Zone, Client, etc. sont null
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
 });
 
@@ -58,7 +56,6 @@ builder.Services.AddSingleton<SmartGPON.Web.Controllers.KioskProcessContext>();
 
 var app = builder.Build();
 
-// â”€â”€ Pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -78,20 +75,20 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// â”€â”€ Seed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        // Create the database only if it does not already exist (preserves existing data on restart).
-        db.Database.EnsureCreated();
+        // db.Database.EnsureDeleted(); // Uncomment ONLY for intentional full reset
+        db.Database.EnsureCreated(); // Recreate schema from EF model
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        foreach (var role in new[] { "Admin", "Technicien", "Lecteur" })
+        // Seed all roles
+        foreach (var role in new[] { UserRoles.Superviseur, UserRoles.ChefProjet, UserRoles.TechTerrain, UserRoles.TechDessin, UserRoles.Visiteur })
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
@@ -101,49 +98,51 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        if (await userManager.FindByEmailAsync("admin@smartgpon.local") == null)
+        // Seed admin@smartgpon.local as Superviseur
+        var adminEmail = "admin@smartgpon.local";
+        if (await userManager.FindByEmailAsync(adminEmail) == null)
         {
             var admin = new ApplicationUser
             {
-                UserName       = "admin@smartgpon.local",
-                Email          = "admin@smartgpon.local",
+                UserName = adminEmail,
+                Email = adminEmail,
                 EmailConfirmed = true,
-                SecurityStamp  = Guid.NewGuid().ToString()
+                FirstName = "Administrateur",
+                LastName = "Système",
+                SecurityStamp = Guid.NewGuid().ToString()
             };
             var cr = await userManager.CreateAsync(admin, "Admin@12345");
             if (cr.Succeeded)
             {
-                await userManager.AddToRoleAsync(admin, "Admin");
-                logger.LogInformation("Admin created: admin@smartgpon.local");
+                await userManager.AddToRoleAsync(admin, UserRoles.Superviseur);
+                logger.LogInformation("Admin seeded: {Email}", adminEmail);
             }
-            else
-                logger.LogError("Admin creation failed: {E}", string.Join(";", cr.Errors.Select(e => e.Description)));
+            else logger.LogError("Admin seed failed: {E}", string.Join(";", cr.Errors.Select(e => e.Description)));
         }
-        else
-            logger.LogInformation("Admin already exists.");
     }
     catch (Exception ex)
     {
-        scope.ServiceProvider.GetRequiredService<ILogger<Program>>()
-            .LogError(ex, "Seed error");
+        scope.ServiceProvider.GetRequiredService<ILogger<Program>>().LogError(ex, "Seed error");
     }
 }
 
-// â”€â”€ Lancement Desktop (Edge Kiosk) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
 lifetime.ApplicationStarted.Register(() =>
 {
-    // Retrieve the URL the application is listening on
     var url = app.Urls.FirstOrDefault() ?? "http://localhost:5000";
-
-    // Pour éviter que Edge ne délègue l'onglet à une instance déjà ouverte (ce qui ferait quitter le processus
-    // et arrêterait l'application ASP.NET Core prématurément), on force l'utilisation d'un profil Kiosk dédié.
     var profilePath = Path.Combine(Path.GetTempPath(), "SmartGPON_Kiosk");
 
     try
     {
-        // Setup the browser process to run Edge in full kiosk mode
+        // Forcer la fermeture des instances fantômes de ce profil pour éviter la délégation de processus (proxy exit immédiat)
+        var searcher = new System.Diagnostics.ProcessStartInfo("powershell", "-NoProfile -Command \"Get-WmiObject Win32_Process -Filter \\\"Name='msedge.exe'\\\" | Where-Object { $_.CommandLine -match 'SmartGPON_Kiosk' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }\"")
+        {
+            CreateNoWindow = true,
+            UseShellExecute = false
+        };
+        System.Diagnostics.Process.Start(searcher)?.WaitForExit();
+
         var processStartInfo = new System.Diagnostics.ProcessStartInfo
         {
             FileName = "msedge",
@@ -154,17 +153,10 @@ lifetime.ApplicationStarted.Register(() =>
         var browserProcess = new System.Diagnostics.Process
         {
             StartInfo = processStartInfo,
-            EnableRaisingEvents = true // Important: Required to fire the Exited event
+            EnableRaisingEvents = true
         };
 
         app.Services.GetRequiredService<SmartGPON.Web.Controllers.KioskProcessContext>().BrowserProcess = browserProcess;
-
-        // When the browser is closed, trigger the ASP.NET Core shutdown
-        browserProcess.Exited += (sender, e) =>
-        {
-            app.Logger.LogInformation("Browser closed. Stopping ASP.NET server...");
-            lifetime.StopApplication();
-        };
 
         browserProcess.Start();
     }

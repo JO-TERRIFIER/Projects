@@ -1,4 +1,5 @@
-﻿// SmartGPON v3 - Infrastructure/Data/ApplicationDbContext.cs
+// SmartGPON v3 - Infrastructure/Data/ApplicationDbContext.cs
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,8 @@ namespace SmartGPON.Infrastructure.Data
 {
     public class ApplicationUser : IdentityUser
     {
+        [Required, MaxLength(100)] public string FirstName { get; set; } = string.Empty;
+        [Required, MaxLength(100)] public string LastName { get; set; } = string.Empty;
         public int? ClientId { get; set; }
         public Client? Client { get; set; }
     }
@@ -35,6 +38,10 @@ namespace SmartGPON.Infrastructure.Data
         public DbSet<NetworkAlert> NetworkAlerts => Set<NetworkAlert>();
         public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
 
+        public DbSet<UserProjectAssignment> UserProjectAssignments => Set<UserProjectAssignment>();
+        public DbSet<ApprovalRequest> ApprovalRequests => Set<ApprovalRequest>();
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -52,6 +59,11 @@ namespace SmartGPON.Infrastructure.Data
             builder.Entity<AttackSimulation>().HasIndex(e => e.DateLancement);
             builder.Entity<TrafficCapture>().HasIndex(e => e.DateCapture);
             builder.Entity<SecurityEvent>().HasIndex(e => e.DateEvenement);
+
+            builder.Entity<UserProjectAssignment>().HasIndex(e => new { e.UserId, e.ProjetId, e.AssignmentType }).IsUnique();
+            builder.Entity<UserProjectAssignment>().HasIndex(e => e.ProjetId);
+            builder.Entity<ApprovalRequest>().HasIndex(e => new { e.ProjetId, e.Status, e.CreatedAt });
+            builder.Entity<AuditLog>().HasIndex(e => new { e.ProjetId, e.OccurredAt });
 
             builder.Entity<Projet>().HasOne(e => e.Client).WithMany(e => e.Projets)
                 .HasForeignKey(e => e.ClientId).OnDelete(DeleteBehavior.Cascade);
@@ -71,6 +83,10 @@ namespace SmartGPON.Infrastructure.Data
                 .HasForeignKey(e => e.ProjetId).OnDelete(DeleteBehavior.ClientSetNull);
             builder.Entity<Technicien>().HasOne(e => e.Projet).WithMany(e => e.Techniciens)
                 .HasForeignKey(e => e.ProjetId).OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<UserProjectAssignment>().HasOne(e => e.Projet).WithMany()
+                .HasForeignKey(e => e.ProjetId).OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<ApprovalRequest>().HasOne(e => e.Projet).WithMany()
+                .HasForeignKey(e => e.ProjetId).OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Zone>().Property(e => e.Latitude).HasPrecision(10, 7);
             builder.Entity<Zone>().Property(e => e.Longitude).HasPrecision(10, 7);

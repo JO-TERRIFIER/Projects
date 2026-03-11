@@ -1,0 +1,14 @@
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(11,10): error CS0246: Le nom de type ou d'espace de noms 'RequiredAttribute' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(11,10): error CS0246: Le nom de type ou d'espace de noms 'Required' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(11,20): error CS0246: Le nom de type ou d'espace de noms 'MaxLengthAttribute' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(11,20): error CS0246: Le nom de type ou d'espace de noms 'MaxLength' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(12,10): error CS0246: Le nom de type ou d'espace de noms 'RequiredAttribute' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(12,10): error CS0246: Le nom de type ou d'espace de noms 'Required' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(12,20): error CS0246: Le nom de type ou d'espace de noms 'MaxLengthAttribute' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+C:\Projets\SmartGPON\Infrastructure\Data\ApplicationDbContext.cs(12,20): error CS0246: Le nom de type ou d'espace de noms 'MaxLength' est introuvable (vous manque-t-il une directive using ou une référence d'assembly ?) [C:\Projets\SmartGPON\SmartGPON.csproj]
+
+ÉCHEC de la build.
+    2 Avertissement(s)
+    8 Erreur(s)
+
+Temps écoulé 00:00:01.40

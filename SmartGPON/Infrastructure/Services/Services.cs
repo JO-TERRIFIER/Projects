@@ -1,4 +1,4 @@
-﻿// SmartGPON v3 - Infrastructure/Services.cs
+// SmartGPON v3 - Infrastructure/Services.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,7 +61,6 @@ namespace SmartGPON.Infrastructure.Services
                 RogueOltsActifs = await _db.MaliciousOlts.CountAsync(m => m.Statut == StatutMaliciousOlt.Actif),
                 SimulationsEnCours = await _db.AttackSimulations.CountAsync(s => s.Statut == SimulationStatut.EnCours),
                 EvenementsAujourdhui = await _db.SecurityEvents.CountAsync(e => e.DateEvenement >= today),
-                DernieresAlertes = await _db.NetworkAlerts.AsNoTracking().OrderByDescending(a => a.DateAlerte).Take(10).ToListAsync(),
                 RogueOlts = await _db.MaliciousOlts.AsNoTracking().Include(m => m.Olt).Where(m => m.Statut == StatutMaliciousOlt.Actif).OrderByDescending(m => m.DateDetection).Take(10).ToListAsync(),
                 SimulationsRecentes = await _db.AttackSimulations.AsNoTracking().Include(s => s.Olt).OrderByDescending(s => s.DateLancement).Take(10).ToListAsync(),
                 EvenementsRecents = await _db.SecurityEvents.AsNoTracking().OrderByDescending(e => e.DateEvenement).Take(20).ToListAsync()

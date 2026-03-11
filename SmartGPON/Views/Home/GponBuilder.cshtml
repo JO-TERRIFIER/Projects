@@ -1,14 +1,14 @@
-@* Views/Home/GponBuilder.cshtml — Architecture GPON Builder *@
+@* Views/Home/GponBuilder.cshtml â€” Architecture GPON Builder *@
 @{
   ViewData["Title"] = "Config. Architecture GPON";
-  var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
+  var canWrite = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet") || User.IsInRole("TechTerrain");
 }
 <div class="page-header">
-  <div><h1 class="page-title">Architecture GPON Builder</h1><div class="page-subtitle">Construire ou sélectionner une architecture réseau GPON</div></div>
+  <div><h1 class="page-title">Architecture GPON Builder</h1><div class="page-subtitle">Construire ou sÃ©lectionner une architecture rÃ©seau GPON</div></div>
 </div>
 <div class="page-body">
 
-@* ── Progress bar ── *@
+@* â”€â”€ Progress bar â”€â”€ *@
 <div class="sg-card mb-4" style="padding:16px 20px">
   <div class="d-flex align-items-center gap-2" id="stepProgress">
     <span class="step-pill active" id="sp1"><i class="bi bi-geo-alt me-1"></i>Zone</span>
@@ -24,63 +24,63 @@
 <div class="row g-4">
 <div class="col-lg-7">
 
-  @* ── STEP 1: Zone ── *@
+  @* â”€â”€ STEP 1: Zone â”€â”€ *@
   <div class="sg-card mb-3" id="step1">
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="bi bi-geo-alt me-2" style="color:var(--accent-green)"></i>Étape 1 — Zone</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="bi bi-geo-alt me-2" style="color:var(--accent-green)"></i>Ã‰tape 1 â€” Zone</div>
     <div class="row g-3 align-items-end">
       <div class="col">
-        <label class="sg-label">Sélectionner une zone</label>
+        <label class="sg-label">SÃ©lectionner une zone</label>
         <select id="selZone" class="sg-input form-select"><option value="">-- Choisir --</option></select>
       </div>
       @if(canWrite){
-      <div class="col-auto"><button class="btn-primary-sg" data-bs-toggle="modal" data-bs-target="#modalZone"><i class="bi bi-plus-lg"></i> Créer zone</button></div>
+      <div class="col-auto"><button class="btn-primary-sg" data-bs-toggle="modal" data-bs-target="#modalZone"><i class="bi bi-plus-lg"></i> CrÃ©er zone</button></div>
       }
     </div>
     <div id="zoneInfo" class="mt-2" style="font-size:11px;color:var(--text-muted)"></div>
   </div>
 
-  @* ── STEP 2: OLT ── *@
+  @* â”€â”€ STEP 2: OLT â”€â”€ *@
   <div class="sg-card mb-3" id="step2" style="opacity:.4;pointer-events:none">
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="bi bi-server me-2" style="color:var(--accent-amber)"></i>Étape 2 — OLT</div>
-    <div class="text-center"><button class="btn-primary-sg" data-bs-toggle="modal" data-bs-target="#modalOlt"><i class="bi bi-plus-lg"></i> Ajouter / Sélectionner OLT</button></div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="bi bi-server me-2" style="color:var(--accent-amber)"></i>Ã‰tape 2 â€” OLT</div>
+    <div class="text-center"><button class="btn-primary-sg" data-bs-toggle="modal" data-bs-target="#modalOlt"><i class="bi bi-plus-lg"></i> Ajouter / SÃ©lectionner OLT</button></div>
     <div id="oltInfo" class="mt-2" style="font-size:11px;color:var(--accent-amber);font-weight:500;text-align:center"></div>
   </div>
 
-  @* ── STEP 3: FDT ── *@
+  @* â”€â”€ STEP 3: FDT â”€â”€ *@
   <div class="sg-card mb-3" id="step3" style="opacity:.4;pointer-events:none">
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="bi bi-box me-2" style="color:var(--text-secondary)"></i>Étape 3 — FDT</div>
-    <div class="text-center"><button class="btn-primary-sg" data-bs-toggle="modal" data-bs-target="#modalFdt"><i class="bi bi-plus-lg"></i> Ajouter / Sélectionner FDT</button></div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="bi bi-box me-2" style="color:var(--text-secondary)"></i>Ã‰tape 3 â€” FDT</div>
+    <div class="text-center"><button class="btn-primary-sg" data-bs-toggle="modal" data-bs-target="#modalFdt"><i class="bi bi-plus-lg"></i> Ajouter / SÃ©lectionner FDT</button></div>
     <div id="fdtInfo" class="mt-2" style="font-size:11px;color:var(--text-secondary);font-weight:500;text-align:center"></div>
   </div>
 
-  @* ── STEP 4: FAT / BPI ── *@
+  @* â”€â”€ STEP 4: FAT / BPI â”€â”€ *@
   <div class="sg-card mb-3" id="step4" style="opacity:.4;pointer-events:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:13px;font-weight:600"><i class="bi bi-hdd-network me-2" style="color:var(--accent-red)"></i>Étape 4 — FAT / BPI</div>
+      <div style="font-size:13px;font-weight:600"><i class="bi bi-hdd-network me-2" style="color:var(--accent-red)"></i>Ã‰tape 4 â€” FAT / BPI</div>
       @if(canWrite){
       <button class="btn-primary-sg" data-bs-toggle="modal" data-bs-target="#modalFatBpi" style="font-size:11px;padding:5px 12px"><i class="bi bi-plus-lg"></i> Ajouter</button>
       }
     </div>
     <div id="fbExistingList" style="margin-bottom:8px">
-      <div style="color:var(--text-muted);font-size:11px;text-align:center;padding:12px 0">Chargement des éléments…</div>
+      <div style="color:var(--text-muted);font-size:11px;text-align:center;padding:12px 0">Chargement des Ã©lÃ©mentsâ€¦</div>
     </div>
     <div id="fatBpiInfo" style="font-size:11px;color:var(--accent-green);font-weight:500;text-align:center"></div>
   </div>
 </div>
 
-@* ── Right: Live summary ── *@
+@* â”€â”€ Right: Live summary â”€â”€ *@
 <div class="col-lg-5">
   <div class="sg-card" style="position:sticky;top:72px">
-    <div style="font-size:13px;font-weight:600;margin-bottom:16px"><i class="bi bi-diagram-3 me-2"></i>Résumé architecture</div>
-    <div id="builderSummary" style="font-size:12px;color:var(--text-muted)">Sélectionnez une zone pour commencer.</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:16px"><i class="bi bi-diagram-3 me-2"></i>RÃ©sumÃ© architecture</div>
+    <div id="builderSummary" style="font-size:12px;color:var(--text-muted)">SÃ©lectionnez une zone pour commencer.</div>
   </div>
 </div>
 </div>
 </div>
 
-@* ════════════════════════════════════════════ *@
-@* MODAL: Créer Zone                            *@
-@* ════════════════════════════════════════════ *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
+@* MODAL: CrÃ©er Zone                            *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
 <div class="modal fade" id="modalZone" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="background:#1a2035;border:1px solid rgba(255,255,255,.1)">
   <div class="modal-header" style="border-color:var(--border-subtle)"><h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-geo-alt me-2" style="color:var(--accent-green)"></i>Nouvelle zone</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
@@ -92,19 +92,19 @@
       <div class="col-12"><label class="sg-label">Description</label><textarea id="czDesc" class="sg-input form-control" rows="2"></textarea></div>
     </div>
   </div>
-  <div class="modal-footer" style="border-color:var(--border-subtle)"><button class="btn-ghost-sg" data-bs-dismiss="modal">Annuler</button><button class="btn-primary-sg" id="btnCreateZone"><i class="bi bi-check-lg"></i> Créer</button></div>
+  <div class="modal-footer" style="border-color:var(--border-subtle)"><button class="btn-ghost-sg" data-bs-dismiss="modal">Annuler</button><button class="btn-primary-sg" id="btnCreateZone"><i class="bi bi-check-lg"></i> CrÃ©er</button></div>
 </div></div></div>
 
-@* ════════════════════════════════════════════ *@
-@* MODAL: OLT (Sélection / Création)           *@
-@* ════════════════════════════════════════════ *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
+@* MODAL: OLT (SÃ©lection / CrÃ©ation)           *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
 <div class="modal fade" id="modalOlt" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content" style="background:#1a2035;border:1px solid rgba(255,255,255,.1)">
-  <div class="modal-header" style="border-color:var(--border-subtle)"><h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-server me-2" style="color:var(--accent-amber)"></i>OLT — Sélectionner ou Créer</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-header" style="border-color:var(--border-subtle)"><h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-server me-2" style="color:var(--accent-amber)"></i>OLT â€” SÃ©lectionner ou CrÃ©er</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
     <div class="d-flex gap-2 mb-3">
-      <button class="btn-ghost-sg mode-btn active" onclick="setOltMode('select')" id="oltModeSelect"><i class="bi bi-search me-1"></i>Sélectionner existant</button>
+      <button class="btn-ghost-sg mode-btn active" onclick="setOltMode('select')" id="oltModeSelect"><i class="bi bi-search me-1"></i>SÃ©lectionner existant</button>
       @if(canWrite){
-      <button class="btn-ghost-sg mode-btn" onclick="setOltMode('create')" id="oltModeCreate"><i class="bi bi-plus-lg me-1"></i>Créer nouveau</button>
+      <button class="btn-ghost-sg mode-btn" onclick="setOltMode('create')" id="oltModeCreate"><i class="bi bi-plus-lg me-1"></i>CrÃ©er nouveau</button>
       }
     </div>
     <div id="oltSelectPane">
@@ -116,8 +116,8 @@
       <div class="row g-3">
         <div class="col-md-8"><label class="sg-label">Nom *</label><input id="coNom" class="sg-input form-control" required/></div>
         <div class="col-md-4"><label class="sg-label">Nb ports</label><input id="coPorts" type="number" class="sg-input form-control" value="16" min="1" max="128"/></div>
-        <div class="col-md-6"><label class="sg-label">Marque</label><input id="coMarque" class="sg-input form-control" placeholder="Huawei, ZTE…"/></div>
-        <div class="col-md-6"><label class="sg-label">Modèle</label><input id="coModele" class="sg-input form-control"/></div>
+        <div class="col-md-6"><label class="sg-label">Marque</label><input id="coMarque" class="sg-input form-control" placeholder="Huawei, ZTEâ€¦"/></div>
+        <div class="col-md-6"><label class="sg-label">ModÃ¨le</label><input id="coModele" class="sg-input form-control"/></div>
         <div class="col-md-6"><label class="sg-label">Adresse IP</label><input id="coIp" class="sg-input form-control" placeholder="192.168.x.x"/></div>
         <div class="col-md-6"><label class="sg-label">Statut</label><select id="coStatut" class="sg-input form-select"><option value="1">Actif</option><option value="0">Inactif</option><option value="2">En panne</option><option value="3">En maintenance</option></select></div>
       </div>
@@ -127,16 +127,16 @@
   <div class="modal-footer" style="border-color:var(--border-subtle)"><button class="btn-ghost-sg" data-bs-dismiss="modal">Annuler</button><button class="btn-primary-sg" id="btnConfirmOlt"><i class="bi bi-check-lg"></i> Confirmer</button></div>
 </div></div></div>
 
-@* ════════════════════════════════════════════ *@
-@* MODAL: FDT (Sélection / Création)           *@
-@* ════════════════════════════════════════════ *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
+@* MODAL: FDT (SÃ©lection / CrÃ©ation)           *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
 <div class="modal fade" id="modalFdt" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="background:#1a2035;border:1px solid rgba(255,255,255,.1)">
-  <div class="modal-header" style="border-color:var(--border-subtle)"><h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-box me-2" style="color:var(--text-secondary)"></i>FDT — Sélectionner ou Créer</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-header" style="border-color:var(--border-subtle)"><h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-box me-2" style="color:var(--text-secondary)"></i>FDT â€” SÃ©lectionner ou CrÃ©er</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
     <div class="d-flex gap-2 mb-3">
-      <button class="btn-ghost-sg mode-btn active" onclick="setFdtMode('select')" id="fdtModeSelect"><i class="bi bi-search me-1"></i>Sélectionner existant</button>
+      <button class="btn-ghost-sg mode-btn active" onclick="setFdtMode('select')" id="fdtModeSelect"><i class="bi bi-search me-1"></i>SÃ©lectionner existant</button>
       @if(canWrite){
-      <button class="btn-ghost-sg mode-btn" onclick="setFdtMode('create')" id="fdtModeCreate"><i class="bi bi-plus-lg me-1"></i>Créer nouveau</button>
+      <button class="btn-ghost-sg mode-btn" onclick="setFdtMode('create')" id="fdtModeCreate"><i class="bi bi-plus-lg me-1"></i>CrÃ©er nouveau</button>
       }
     </div>
     <div id="fdtSelectPane">
@@ -147,7 +147,7 @@
     <div id="fdtCreatePane" style="display:none">
       <div class="row g-3">
         <div class="col-12"><label class="sg-label">Nom *</label><input id="cfNom" class="sg-input form-control" required/></div>
-        <div class="col-md-4"><label class="sg-label">Capacité</label><select id="cfCap" class="sg-input form-select"><option value="8">8</option><option value="12">12</option></select></div>
+        <div class="col-md-4"><label class="sg-label">CapacitÃ©</label><select id="cfCap" class="sg-input form-select"><option value="8">8</option><option value="12">12</option></select></div>
         <div class="col-md-4"><label class="sg-label">Splitters 1:8</label><input id="cfSp8" type="number" class="sg-input form-control" value="0" min="0"/></div>
         <div class="col-md-4"><label class="sg-label">Splitters 1:64</label><input id="cfSp64" type="number" class="sg-input form-control" value="0" min="0"/></div>
         <div class="col-md-6"><label class="sg-label">Latitude</label><input id="cfLat" type="number" step="0.0000001" class="sg-input form-control"/></div>
@@ -160,19 +160,19 @@
   <div class="modal-footer" style="border-color:var(--border-subtle)"><button class="btn-ghost-sg" data-bs-dismiss="modal">Annuler</button><button class="btn-primary-sg" id="btnConfirmFdt"><i class="bi bi-check-lg"></i> Confirmer</button></div>
 </div></div></div>
 
-@* ════════════════════════════════════════════ *@
-@* MODAL: FAT / BPI (Création uniquement)      *@
-@* ════════════════════════════════════════════ *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
+@* MODAL: FAT / BPI (CrÃ©ation uniquement)      *@
+@* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• *@
 <div class="modal fade" id="modalFatBpi" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="background:#1a2035;border:1px solid rgba(255,255,255,.1)">
-  <div class="modal-header" style="border-color:var(--border-subtle)"><h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-hdd-network me-2" style="color:var(--accent-red)"></i>Créer FAT / BPI</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-header" style="border-color:var(--border-subtle)"><h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-hdd-network me-2" style="color:var(--accent-red)"></i>CrÃ©er FAT / BPI</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
-    <div class="mb-3"><label class="sg-label">Type d'élément *</label>
+    <div class="mb-3"><label class="sg-label">Type d'Ã©lÃ©ment *</label>
       <div class="d-flex gap-2"><button class="btn-ghost-sg mode-btn active" id="fbTypeFat" onclick="setFbType('FAT')"><i class="bi bi-hdd-network me-1"></i>FAT</button><button class="btn-ghost-sg mode-btn" id="fbTypeBpi" onclick="setFbType('BPI')"><i class="bi bi-building me-1"></i>BPI</button></div>
     </div>
     <div id="fatFields">
       <div class="row g-3">
         <div class="col-md-8"><label class="sg-label">Nom FAT *</label><input id="cfaNom" class="sg-input form-control" required/></div>
-        <div class="col-md-4"><label class="sg-label">Capacité</label><select id="cfaCap" class="sg-input form-select"><option value="8">8</option><option value="12">12</option></select></div>
+        <div class="col-md-4"><label class="sg-label">CapacitÃ©</label><select id="cfaCap" class="sg-input form-select"><option value="8">8</option><option value="12">12</option></select></div>
         <div class="col-md-6"><label class="sg-label">Latitude</label><input id="cfaLat" type="number" step="0.0001" class="sg-input form-control"/></div>
         <div class="col-md-6"><label class="sg-label">Longitude</label><input id="cfaLng" type="number" step="0.0001" class="sg-input form-control"/></div>
         <div class="col-md-6"><label class="sg-label">Statut</label><select id="cfaStatut" class="sg-input form-select"><option value="1">Actif</option><option value="0">Inactif</option><option value="2">En panne</option><option value="3">En maintenance</option></select></div>
@@ -181,7 +181,7 @@
     <div id="bpiFields" style="display:none">
       <div class="row g-3">
         <div class="col-12"><label class="sg-label">Nom BPI *</label><input id="cbNom" class="sg-input form-control" required/></div>
-        <div class="col-md-6"><label class="sg-label">Capacité</label><select id="cbCap" class="sg-input form-select"><option value="24">24</option><option value="48">48</option></select></div>
+        <div class="col-md-6"><label class="sg-label">CapacitÃ©</label><select id="cbCap" class="sg-input form-select"><option value="24">24</option><option value="48">48</option></select></div>
         <div class="col-md-6"><label class="sg-label">Splitters 1:8</label><select id="cbSp8" class="sg-input form-select"><option value="1">1</option><option value="2">2</option></select></div>
         <div class="col-md-6"><label class="sg-label">Latitude</label><input id="cbLat" type="number" step="0.0000001" class="sg-input form-control"/></div>
         <div class="col-md-6"><label class="sg-label">Longitude</label><input id="cbLng" type="number" step="0.0000001" class="sg-input form-control"/></div>
@@ -189,7 +189,7 @@
       </div>
     </div>
   </div>
-  <div class="modal-footer" style="border-color:var(--border-subtle)"><button class="btn-ghost-sg" data-bs-dismiss="modal">Annuler</button><button class="btn-primary-sg" id="btnConfirmFb"><i class="bi bi-check-lg"></i> Créer</button></div>
+  <div class="modal-footer" style="border-color:var(--border-subtle)"><button class="btn-ghost-sg" data-bs-dismiss="modal">Annuler</button><button class="btn-primary-sg" id="btnConfirmFb"><i class="bi bi-check-lg"></i> CrÃ©er</button></div>
 </div></div></div>
 
 <style>
@@ -206,7 +206,7 @@
 
 @section Scripts {
 <script>
-// ── State ──
+// â”€â”€ State â”€â”€
 let state={zoneId:null,zoneNom:'',oltId:null,oltNom:'',fdtId:null,fdtNom:'',fbItems:[]};
 const $=id=>document.getElementById(id);
 const api=(url,opt)=>fetch(url,opt).then(r=>{if(!r.ok)return r.json().then(e=>{throw e});return r.json()});
@@ -225,7 +225,7 @@ function updateSummary(){
     const cls=i.type==='FAT'?'lvl-fat':'lvl-projet';
     h+='<div class="mb-1" style="padding-left:48px"><span class="lbadge '+cls+'">'+i.type+'</span> '+esc(i.nom)+'</div>';
   });
-  $('builderSummary').innerHTML=h||'Sélectionnez une zone pour commencer.';
+  $('builderSummary').innerHTML=h||'SÃ©lectionnez une zone pour commencer.';
 }
 
 function activateStep(n){
@@ -238,12 +238,12 @@ function activateStep(n){
 // Load & render existing FAT/BPI list for selected FDT
 function loadFbList(){
   const container=$('fbExistingList');
-  if(!state.fdtId){container.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:12px 0">Sélectionnez un FDT d\'abord</div>';return;}
-  container.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:8px 0"><i class="bi bi-arrow-repeat"></i> Chargement…</div>';
+  if(!state.fdtId){container.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:12px 0">SÃ©lectionnez un FDT d\'abord</div>';return;}
+  container.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:8px 0"><i class="bi bi-arrow-repeat"></i> Chargementâ€¦</div>';
   api('/Home/GetItemsByFdt?fdtId='+state.fdtId).then(list=>{
     state.fbItems=list.map(i=>({id:i.id,type:i.type,nom:i.nom}));
-    if(!list.length){container.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:12px 0"><i class="bi bi-inbox d-block mb-1 fs-5"></i>Aucun FAT/BPI — cliquez Ajouter</div>';updateSummary();return;}
-    let h='<div style="font-size:10px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Éléments existants ('+list.length+')</div>';
+    if(!list.length){container.innerHTML='<div style="color:var(--text-muted);font-size:11px;text-align:center;padding:12px 0"><i class="bi bi-inbox d-block mb-1 fs-5"></i>Aucun FAT/BPI â€” cliquez Ajouter</div>';updateSummary();return;}
+    let h='<div style="font-size:10px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Ã‰lÃ©ments existants ('+list.length+')</div>';
     list.forEach(i=>{
       const cls=i.type==='FAT'?'fb-type-fat':'fb-type-bpi';
       const icon=i.type==='FAT'?'bi-hdd-network':'bi-building';
@@ -254,7 +254,7 @@ function loadFbList(){
   }).catch(()=>{container.innerHTML='<div style="color:var(--accent-red);font-size:11px;text-align:center;padding:8px 0">Erreur de chargement</div>';});
 }
 
-// ── Step 1: Zone ──
+// â”€â”€ Step 1: Zone â”€â”€
 // Load all zones
 api('/Home/GetAllZones').then(list=>{
   const sel=$('selZone');
@@ -289,11 +289,11 @@ $('btnCreateZone').addEventListener('click',async()=>{
     const sel=$('selZone');const o=document.createElement('option');o.value=res.id;o.textContent=res.nom;sel.appendChild(o);sel.value=res.id;
     sel.dispatchEvent(new Event('change'));
     bootstrap.Modal.getInstance($('modalZone')).hide();
-    toast('Zone "'+res.nom+'" créée');
-  }catch(e){alert(e.error||'Erreur création zone');}
+    toast('Zone "'+res.nom+'" crÃ©Ã©e');
+  }catch(e){alert(e.error||'Erreur crÃ©ation zone');}
 });
 
-// ── Step 2: OLT ──
+// â”€â”€ Step 2: OLT â”€â”€
 let oltMode='select';
 function setOltMode(m){
   oltMode=m;
@@ -314,24 +314,24 @@ $('modalOlt').addEventListener('show.bs.modal',()=>{
 
 $('btnConfirmOlt').addEventListener('click',async()=>{
   if(oltMode==='select'){
-    const v=$('selOlt').value;if(!v){alert('Sélectionnez un OLT');return;}
+    const v=$('selOlt').value;if(!v){alert('SÃ©lectionnez un OLT');return;}
     state.oltId=parseInt(v);state.oltNom=$('selOlt').options[$('selOlt').selectedIndex].text;
   }else{
     const nom=$('coNom').value.trim();if(!nom){alert('Nom requis');return;}
     try{
       const res=await postApi('/Home/CreateOltApi',{nom,zoneId:state.zoneId,nbrePorts:parseInt($('coPorts').value)||16,marque:$('coMarque').value,modele:$('coModele').value,ipAddress:$('coIp').value,statut:parseInt($('coStatut').value)});
       state.oltId=res.id;state.oltNom=res.nom;
-      toast('OLT "'+res.nom+'" créé');
-    }catch(e){alert(e.error||'Erreur création OLT');return;}
+      toast('OLT "'+res.nom+'" crÃ©Ã©');
+    }catch(e){alert(e.error||'Erreur crÃ©ation OLT');return;}
   }
-  $('oltInfo').textContent='✓ OLT: '+state.oltNom;
+  $('oltInfo').textContent='âœ“ OLT: '+state.oltNom;
   state.fdtId=null;state.fdtNom='';state.fbItems=[];$('fdtInfo').textContent='';$('fatBpiInfo').textContent='';$('fbExistingList').innerHTML='';
   enable('step3');disable('step4');activateStep(3);
   bootstrap.Modal.getInstance($('modalOlt')).hide();
   updateSummary();
 });
 
-// ── Step 3: FDT ──
+// â”€â”€ Step 3: FDT â”€â”€
 let fdtMode='select';
 function setFdtMode(m){
   fdtMode=m;
@@ -351,17 +351,17 @@ $('modalFdt').addEventListener('show.bs.modal',()=>{
 
 $('btnConfirmFdt').addEventListener('click',async()=>{
   if(fdtMode==='select'){
-    const v=$('selFdt').value;if(!v){alert('Sélectionnez un FDT');return;}
+    const v=$('selFdt').value;if(!v){alert('SÃ©lectionnez un FDT');return;}
     state.fdtId=parseInt(v);state.fdtNom=$('selFdt').options[$('selFdt').selectedIndex].text;
   }else{
     const nom=$('cfNom').value.trim();if(!nom){alert('Nom requis');return;}
     try{
       const res=await postApi('/Home/CreateFdtApi',{nom,oltId:state.oltId,capacite:parseInt($('cfCap').value),nbSplitters1x8:parseInt($('cfSp8').value)||0,nbSplitters1x64:parseInt($('cfSp64').value)||0,latitude:parseFloat($('cfLat').value)||null,longitude:parseFloat($('cfLng').value)||null,statut:parseInt($('cfStatut').value)});
       state.fdtId=res.id;state.fdtNom=res.nom;
-      toast('FDT "'+res.nom+'" créé');
-    }catch(e){alert(e.error||'Erreur création FDT');return;}
+      toast('FDT "'+res.nom+'" crÃ©Ã©');
+    }catch(e){alert(e.error||'Erreur crÃ©ation FDT');return;}
   }
-  $('fdtInfo').textContent='✓ FDT: '+state.fdtNom;
+  $('fdtInfo').textContent='âœ“ FDT: '+state.fdtNom;
   state.fbItems=[];$('fatBpiInfo').textContent='';
   enable('step4');activateStep(4);
   bootstrap.Modal.getInstance($('modalFdt')).hide();
@@ -370,7 +370,7 @@ $('btnConfirmFdt').addEventListener('click',async()=>{
   loadFbList();
 });
 
-// ── Step 4: FAT / BPI ──
+// â”€â”€ Step 4: FAT / BPI â”€â”€
 let fbType='FAT';
 function setFbType(t){
   fbType=t;
@@ -383,16 +383,16 @@ $('btnConfirmFb').addEventListener('click',async()=>{
     const nom=$('cfaNom').value.trim();if(!nom){alert('Nom requis');return;}
     try{
       const res=await postApi('/Home/CreateFatApi',{nom,fdtId:state.fdtId,capacite:parseInt($('cfaCap').value),latitude:parseFloat($('cfaLat').value)||null,longitude:parseFloat($('cfaLng').value)||null,statut:parseInt($('cfaStatut').value)});
-      toast('FAT "'+res.nom+'" créée');
+      toast('FAT "'+res.nom+'" crÃ©Ã©e');
       $('cfaNom').value='';
-    }catch(e){alert(e.error||'Erreur création FAT');return;}
+    }catch(e){alert(e.error||'Erreur crÃ©ation FAT');return;}
   }else{
     const nom=$('cbNom').value.trim();if(!nom){alert('Nom requis');return;}
     try{
       const res=await postApi('/Home/CreateBpiApi',{nom,fdtId:state.fdtId,capacite:parseInt($('cbCap').value),nbSplitters1x8:parseInt($('cbSp8').value),latitude:parseFloat($('cbLat').value)||null,longitude:parseFloat($('cbLng').value)||null,statut:parseInt($('cbStatut').value)});
-      toast('BPI "'+res.nom+'" créé');
+      toast('BPI "'+res.nom+'" crÃ©Ã©');
       $('cbNom').value='';
-    }catch(e){alert(e.error||'Erreur création BPI');return;}
+    }catch(e){alert(e.error||'Erreur crÃ©ation BPI');return;}
   }
   bootstrap.Modal.getInstance($('modalFatBpi')).hide();
   // Reload the list to show the new item
@@ -400,3 +400,4 @@ $('btnConfirmFb').addEventListener('click',async()=>{
 });
 </script>
 }
+

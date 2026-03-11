@@ -1,4 +1,4 @@
-// SmartGPON v3 – Web/ViewModels/LoginViewModel.cs
+// SmartGPON v3 â€“ Web/ViewModels/LoginViewModel.cs
 using System.ComponentModel.DataAnnotations;
 namespace SmartGPON.Web.ViewModels
 {

@@ -1,9 +1,9 @@
-﻿@* Views/Clients/Index.cshtml *@
+@* Views/Clients/Index.cshtml *@
 @model IEnumerable<SmartGPON.Core.Entities.Client>
 @{
     ViewData["Title"] = "Clients";
-    var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
-    var canDelete = User.IsInRole("Admin");
+    var canWrite = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
+    var canDelete = User.IsInRole("Superviseur");
 }
 
 <div class="page-header">
@@ -49,3 +49,5 @@
         </table>
     </div>
 </div>
+
+

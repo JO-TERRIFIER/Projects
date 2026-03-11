@@ -1,8 +1,9 @@
-﻿@model IEnumerable<SmartGPON.Core.Entities.Fdt>
+@model IEnumerable<SmartGPON.Core.Entities.Fdt>
 @{
   ViewData["Title"] = "FDTs";
-  var canWrite = User.IsInRole("Admin") || User.IsInRole("Technicien");
-  var canDelete = User.IsInRole("Admin");
+  var isSuperviseurOrChef = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
+  var isTechTerrain = User.IsInRole("TechTerrain") && !isSuperviseurOrChef;
+  var canWrite = isSuperviseurOrChef || isTechTerrain;
 }
 <div class="page-header"><div><h1 class="page-title">FDTs</h1><div class="page-subtitle">Fibre Distribution Terminals — configuration splitters 1:8 (immeubles) et 1:64 (villas)</div></div>
   @if (canWrite)
@@ -23,15 +24,19 @@
     <td class="mono" style="font-size:11px;color:var(--text-muted)">@(f.Latitude.HasValue ? $"{f.Latitude:F4}, {f.Longitude:F4}" : "—")</td>
     <td><span class="pill @pill">@f.Statut</span></td>
     <td style="padding-right:20px;text-align:right"><div class="d-flex justify-content-end gap-1">
-      @if (canWrite)
+      @if (isSuperviseurOrChef)
       {
-        <a asp-action="Edit" asp-route-id="@f.Id" class="icon-btn edit"><i class="bi bi-pencil"></i></a>
+        <a asp-action="Edit" asp-route-id="@f.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
+        <form asp-action="Delete" asp-route-id="@f.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash3"></i></button></form>
       }
-      @if (canDelete)
+      else if (isTechTerrain)
       {
-        <form asp-action="Delete" asp-route-id="@f.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn danger"><i class="bi bi-trash3"></i></button></form>
+        <a asp-action="Edit" asp-route-id="@f.Id" class="icon-btn edit" title="Demander modification"><i class="bi bi-pencil-square"></i></a>
+        <form asp-action="Delete" asp-route-id="@f.Id" method="post" class="d-inline" onsubmit="return confirm('Demander la suppression de ce FDT ?')">@Html.AntiForgeryToken()<button type="submit" class="icon-btn warning" title="Demander suppression" style="color:var(--color-status-warning)"><i class="bi bi-trash3"></i></button></form>
       }
     </div></td></tr>
   }
   </tbody>
 </table></div></div></div>
+
+

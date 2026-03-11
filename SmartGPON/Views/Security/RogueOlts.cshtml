@@ -1,7 +1,7 @@
-﻿@model IEnumerable<SmartGPON.Core.Entities.MaliciousOlt>
+@model IEnumerable<SmartGPON.Core.Entities.MaliciousOlt>
 @{
   ViewData["Title"] = "Rogue OLTs";
-  var canDelete = User.IsInRole("Admin");
+  var canDelete = User.IsInRole("Superviseur");
 }
 <div class="page-header"><div><h1 class="page-title"><i class="bi bi-exclamation-diamond me-2 text-a"></i>Rogue OLTs détectés</h1><div class="page-subtitle">Équipements suspects sur le réseau GPON</div></div>
   <a asp-controller="Security" asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Sécurité</a>

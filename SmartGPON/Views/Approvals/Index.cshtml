@@ -1,0 +1,38 @@
+@model IEnumerable<SmartGPON.Core.Entities.ApprovalRequest>
+@{ ViewData["Title"] = "Demandes d'approbation"; }
+<div class="page-header"><div><h1 class="page-title">Demandes d'approbation</h1><div class="page-subtitle">Flux de validation des actions sensibles</div></div></div>
+<div class="page-body"><div class="sg-card p-0" style="overflow:hidden"><div style="overflow-x:auto"><table class="sg-table"><thead><tr><th style="padding-left:20px">Projet</th><th>Action</th><th>Cible</th><th>Raison</th><th>Statut</th><th style="padding-right:20px;text-align:right">Actions</th></tr></thead><tbody>
+@foreach (var r in Model)
+{
+<tr>
+<td style="padding-left:20px">@r.Projet?.Nom</td>
+<td>@r.ActionType</td><td>@r.TargetType #@r.TargetId</td><td>@r.Reason</td><td><span class="pill pill-cyan">@r.Status</span></td>
+<td style="padding-right:20px;text-align:right">
+@if (r.Status == SmartGPON.Core.Enums.ApprovalStatus.Pending)
+{
+<form asp-action="Approve" asp-route-id="@r.Id" method="post" class="d-inline" onsubmit="return approvalComment(this, 'Approuver la demande')">
+@Html.AntiForgeryToken()
+<input type="hidden" name="comment" />
+<button class="icon-btn edit" type="submit" title="Approuver"><i class="bi bi-check-lg"></i></button>
+</form>
+<form asp-action="Reject" asp-route-id="@r.Id" method="post" class="d-inline" onsubmit="return approvalComment(this, 'Rejeter la demande')">
+@Html.AntiForgeryToken()
+<input type="hidden" name="comment" />
+<button class="icon-btn danger" type="submit" title="Rejeter"><i class="bi bi-x-lg"></i></button>
+</form>
+}
+</td>
+</tr>
+}
+</tbody></table></div></div></div>
+
+@section Scripts {
+<script>
+function approvalComment(form, title){
+  const v = prompt(title + ' - commentaire obligatoire:');
+  if(!v || !v.trim()) return false;
+  form.querySelector('input[name="comment"]').value = v.trim();
+  return true;
+}
+</script>
+}

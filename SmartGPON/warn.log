@@ -1,0 +1,14 @@
+﻿  Identification des projets ├á restaurer...
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+  Tous les projets sont ├á jour pour la restauration.
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+  SmartGPON -> C:\Projets\SmartGPON\bin\Debug\net8.0\SmartGPON.dll
+
+La g├®n├®ration a r├®ussi.
+
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+C:\Projets\SmartGPON\SmartGPON.csproj : warning NU1903: Le package 'Microsoft.Extensions.Caching.Memory' 8.0.0 pr├®sente une vuln├®rabilit├® de gravit├® ├®lev├®(e) connue, https://github.com/advisories/GHSA-qj66-m88j-hmgj.
+    2 Avertissement(s)
+    0 Erreur(s)
+
+Temps ├®coul├® 00:00:00.98

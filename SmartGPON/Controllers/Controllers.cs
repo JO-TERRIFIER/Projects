@@ -1,4 +1,4 @@
-﻿// SmartGPON v3 â€“ Controllers.cs
+// SmartGPON v3 â€“ Controllers.cs
 using System;
 using System.IO;
 using System.Linq;
@@ -61,7 +61,7 @@ namespace SmartGPON.Web.Controllers
             return Json(list);
         }
 
-        [HttpPost, Authorize(Roles = "Admin,Technicien")]
+        [HttpPost, Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> CreateZoneApi([FromBody] Zone m)
         {
             if (string.IsNullOrWhiteSpace(m.Nom)) return BadRequest(new { error = "Nom requis." });
@@ -71,7 +71,7 @@ namespace SmartGPON.Web.Controllers
             return Json(new { m.Id, m.Nom });
         }
 
-        // ── JSON APIs for Dashboard architecture tree ──
+        // -- JSON APIs for Dashboard architecture tree --
         [HttpGet]
         public async Task<IActionResult> GetProjectArchitecture(int projectId)
         {
@@ -103,7 +103,7 @@ namespace SmartGPON.Web.Controllers
             return Json(tree);
         }
 
-        // ── JSON APIs for GPON Builder ──
+        // -- JSON APIs for GPON Builder --
         [HttpGet]
         public async Task<IActionResult> GetProjects()
         {
@@ -151,18 +151,27 @@ namespace SmartGPON.Web.Controllers
             return Json(items);
         }
 
-        // ── Create APIs ──
-        [HttpPost, Authorize(Roles = "Admin,Technicien")]
+        // -- Create APIs --
+        [HttpPost, Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> CreateProjectApi([FromBody] Projet m)
         {
             if (string.IsNullOrWhiteSpace(m.Nom)) return BadRequest(new { error = "Nom requis." });
             var client = await _db.Clients.FindAsync(m.ClientId);
             if (client == null) return BadRequest(new { error = "Client invalide." });
             _db.Projets.Add(m); await _db.SaveChangesAsync();
+            if (User.IsInRole(UserRoles.ChefProjet))
+            {
+                var uid = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrWhiteSpace(uid) && !await _db.UserProjectAssignments.AnyAsync(a => a.UserId == uid && a.ProjetId == m.Id && a.AssignmentType == AssignmentType.ChefProjet))
+                {
+                    _m.ProjectManagerId = CurrentUserId;
+                    await _db.SaveChangesAsync();
+                }
+            }
             return Json(new { m.Id, m.Nom });
         }
 
-        [HttpPost, Authorize(Roles = "Admin,Technicien")]
+        [HttpPost, Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> CreateOltApi([FromBody] Olt m)
         {
             if (string.IsNullOrWhiteSpace(m.Nom)) return BadRequest(new { error = "Nom requis." });
@@ -172,7 +181,7 @@ namespace SmartGPON.Web.Controllers
             return Json(new { m.Id, m.Nom });
         }
 
-        [HttpPost, Authorize(Roles = "Admin,Technicien")]
+        [HttpPost, Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> CreateFdtApi([FromBody] Fdt m)
         {
             if (string.IsNullOrWhiteSpace(m.Nom)) return BadRequest(new { error = "Nom requis." });
@@ -182,7 +191,7 @@ namespace SmartGPON.Web.Controllers
             return Json(new { m.Id, m.Nom });
         }
 
-        [HttpPost, Authorize(Roles = "Admin,Technicien")]
+        [HttpPost, Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> CreateFatApi([FromBody] Fat m)
         {
             if (string.IsNullOrWhiteSpace(m.Nom)) return BadRequest(new { error = "Nom requis." });
@@ -192,7 +201,7 @@ namespace SmartGPON.Web.Controllers
             return Json(new { m.Id, m.Nom });
         }
 
-        [HttpPost, Authorize(Roles = "Admin,Technicien")]
+        [HttpPost, Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> CreateBpiApi([FromBody] Bpi m)
         {
             if (string.IsNullOrWhiteSpace(m.Nom)) return BadRequest(new { error = "Nom requis." });
@@ -273,11 +282,11 @@ namespace SmartGPON.Web.Controllers
         public async Task<IActionResult> Index() =>
             View(await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public IActionResult Create() => View(new Client());
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Client m)
         {
             if (!ModelState.IsValid) return View(m);
@@ -286,7 +295,7 @@ namespace SmartGPON.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Clients.FindAsync(id);
@@ -294,7 +303,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Client m)
         {
             if (!ModelState.IsValid) return View(m);
@@ -304,13 +313,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Clients.FindAsync(id);
-            if (m != null) { _db.Clients.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "Client supprimÃ©.";
-            return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -326,7 +396,7 @@ namespace SmartGPON.Web.Controllers
         public async Task<IActionResult> Index() =>
             View(await _db.Projets.AsNoTracking().Include(p => p.Client).OrderBy(p => p.Nom).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
@@ -334,15 +404,24 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Projet m)
         {
             if (!ModelState.IsValid) { ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync(); return View(m); }
             _db.Projets.Add(m); await _db.SaveChangesAsync();
+            if (User.IsInRole(UserRoles.ChefProjet))
+            {
+                var uid = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrWhiteSpace(uid) && !await _db.UserProjectAssignments.AnyAsync(a => a.UserId == uid && a.ProjetId == m.Id && a.AssignmentType == AssignmentType.ChefProjet))
+                {
+                    _m.ProjectManagerId = CurrentUserId;
+                    await _db.SaveChangesAsync();
+                }
+            }
             TempData["Success"] = "Projet crÃ©Ã©."; return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Projets.FindAsync(id);
@@ -353,7 +432,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Projet m)
         {
             if (!ModelState.IsValid) { ViewBag.Clients = await _db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync(); return View(m); }
@@ -362,12 +441,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Projets.FindAsync(id);
-            if (m != null) { _db.Projets.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "Projet supprimÃ©."; return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -383,7 +524,7 @@ namespace SmartGPON.Web.Controllers
         public async Task<IActionResult> Index() =>
             View(await _db.Zones.AsNoTracking().Include(z => z.Projet).OrderBy(z => z.Nom).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Projets = await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync();
@@ -391,7 +532,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Zone m)
         {
             if (!ModelState.IsValid) { ViewBag.Projets = await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync(); return View(m); }
@@ -399,7 +540,7 @@ namespace SmartGPON.Web.Controllers
             TempData["Success"] = "Zone crÃ©Ã©e."; return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Zones.FindAsync(id);
@@ -410,7 +551,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Zone m)
         {
             if (!ModelState.IsValid) { ViewBag.Projets = await _db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync(); return View(m); }
@@ -419,12 +560,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Zones.FindAsync(id);
-            if (m != null) { _db.Zones.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "Zone supprimÃ©e."; return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -442,7 +645,7 @@ namespace SmartGPON.Web.Controllers
                 .Include(o => o.Zone).ThenInclude(z => z.Projet)
                 .OrderBy(o => o.Nom).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Zones = await _db.Zones.AsNoTracking().OrderBy(z => z.Nom).ToListAsync();
@@ -450,7 +653,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Olt m)
         {
             if (!ModelState.IsValid) { ViewBag.Zones = await _db.Zones.AsNoTracking().OrderBy(z => z.Nom).ToListAsync(); return View(m); }
@@ -458,7 +661,7 @@ namespace SmartGPON.Web.Controllers
             TempData["Success"] = "OLT crÃ©Ã©."; return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Olts.FindAsync(id);
@@ -468,7 +671,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Olt m)
         {
             if (!ModelState.IsValid) { ViewBag.Zones = await _db.Zones.AsNoTracking().OrderBy(z => z.Nom).ToListAsync(); return View(m); }
@@ -477,12 +680,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Olts.FindAsync(id);
-            if (m != null) { _db.Olts.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "OLT supprimÃ©."; return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -498,7 +763,7 @@ namespace SmartGPON.Web.Controllers
         public async Task<IActionResult> Index() =>
             View(await _db.Fdts.AsNoTracking().Include(f => f.Olt).OrderBy(f => f.Nom).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Olts = await _db.Olts.AsNoTracking().OrderBy(o => o.Nom).ToListAsync();
@@ -506,7 +771,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Fdt m)
         {
             if (!ModelState.IsValid) { ViewBag.Olts = await _db.Olts.AsNoTracking().OrderBy(o => o.Nom).ToListAsync(); return View(m); }
@@ -514,7 +779,7 @@ namespace SmartGPON.Web.Controllers
             TempData["Success"] = "FDT crÃ©Ã©."; return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Fdts.FindAsync(id);
@@ -524,7 +789,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Fdt m)
         {
             if (!ModelState.IsValid) { ViewBag.Olts = await _db.Olts.AsNoTracking().OrderBy(o => o.Nom).ToListAsync(); return View(m); }
@@ -533,12 +798,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Fdts.FindAsync(id);
-            if (m != null) { _db.Fdts.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "FDT supprimÃ©."; return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -557,7 +884,7 @@ namespace SmartGPON.Web.Controllers
                 .OrderBy(f => f.Nom)
                 .ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync();
@@ -565,7 +892,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Fat m)
         {
             if (!ModelState.IsValid) { ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
@@ -573,7 +900,7 @@ namespace SmartGPON.Web.Controllers
             TempData["Success"] = "FAT crÃ©Ã©."; return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Fats.FindAsync(id);
@@ -583,7 +910,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Fat m)
         {
             if (!ModelState.IsValid) { ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
@@ -592,12 +919,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Fats.FindAsync(id);
-            if (m != null) { _db.Fats.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "FAT supprimÃ©."; return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -615,7 +1004,7 @@ namespace SmartGPON.Web.Controllers
                 .Include(b => b.Fdt)
                 .OrderBy(b => b.Nom).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync();
@@ -623,7 +1012,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Bpi m)
         {
             if (!ModelState.IsValid) { ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
@@ -631,7 +1020,7 @@ namespace SmartGPON.Web.Controllers
             TempData["Success"] = "BPI crÃ©Ã©."; return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Bpis.FindAsync(id);
@@ -641,7 +1030,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Bpi m)
         {
             if (!ModelState.IsValid) { ViewBag.Fdts = await _db.Fdts.AsNoTracking().OrderBy(f => f.Nom).ToListAsync(); return View(m); }
@@ -650,12 +1039,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Bpis.FindAsync(id);
-            if (m != null) { _db.Bpis.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "BPI supprimÃ©."; return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -673,7 +1124,7 @@ namespace SmartGPON.Web.Controllers
         public ResourcesController(ApplicationDbContext db, IWebHostEnvironment env) { _db = db; _env = env; }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Upload(int? zoneId, int? projetId, IFormFile file)
         {
             if (file == null || file.Length == 0) { TempData["Error"] = "Fichier vide."; return Back(zoneId, projetId); }
@@ -722,17 +1173,67 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
             var r = await _db.Resources.FindAsync(id);
-            if (r != null)
+            if (r == null)
             {
-                if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
-                _db.Resources.Remove(r); await _db.SaveChangesAsync();
+                return NotFound();
             }
-            TempData["Success"] = "Fichier supprimÃ©.";
-            return Back(r?.ZoneId, r?.ProjetId);
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
         }
 
         private IActionResult Back(int? zoneId, int? projetId)
@@ -755,7 +1256,7 @@ namespace SmartGPON.Web.Controllers
         public async Task<IActionResult> Index() =>
             View(await _db.Techniciens.AsNoTracking().Include(t => t.Projet).Include(t => t.Zone).OrderBy(t => t.Nom).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Projets = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
@@ -766,7 +1267,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Create(Technicien m)
         {
             if (!ModelState.IsValid)
@@ -781,7 +1282,7 @@ namespace SmartGPON.Web.Controllers
             TempData["Success"] = "Technicien crÃ©Ã©."; return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Techniciens.FindAsync(id);
@@ -794,7 +1295,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> Edit(Technicien m)
         {
             if (!ModelState.IsValid)
@@ -810,12 +1311,74 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Superviseur,ChefProjet,TechDessin")]
+        public async Task<IActionResult> Delete(int id, string? reason)
         {
-            var m = await _db.Techniciens.FindAsync(id);
-            if (m != null) { _db.Techniciens.Remove(m); await _db.SaveChangesAsync(); }
-            TempData["Success"] = "Technicien supprimÃ©."; return RedirectToAction(nameof(Index));
+            var r = await _db.Resources.FindAsync(id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["Error"] = "Raison obligatoire pour supprimer.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var projetId = r.ProjetId ?? await _db.Zones.Where(z => z.Id == r.ZoneId).Select(z => z.ProjetId).FirstOrDefaultAsync();
+
+            if (User.IsInRole(UserRoles.TechDessin) && !User.IsInRole(UserRoles.Superviseur) && !User.IsInRole(UserRoles.ChefProjet))
+            {
+                _db.ApprovalRequests.Add(new ApprovalRequest
+                {
+                    ProjetId = projetId,
+                    RequestedByUserId = userId,
+                    TargetType = nameof(Resource),
+                    TargetId = r.Id,
+                    ActionType = ApprovalActionType.DeleteResource,
+                    Reason = reason.Trim(),
+                    Status = ApprovalStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = "RequestDelete",
+                    EntityType = nameof(Resource),
+                    EntityId = r.Id,
+                    Description = reason.Trim(),
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Demande de suppression envoyée au ChefProjet.";
+                return Back(r.ZoneId, r.ProjetId);
+            }
+
+            if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
+            _db.Resources.Remove(r);
+            _db.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                ProjetId = projetId,
+                ActionType = "Delete",
+                EntityType = nameof(Resource),
+                EntityId = r.Id,
+                Description = reason.Trim(),
+                OccurredAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Fichier supprimé.";
+            return Back(r.ZoneId, r.ProjetId);
+        }
+
+        private IActionResult Back(int? zoneId, int? projetId)
+        {
+            if (zoneId.HasValue) return RedirectToAction("Edit", "Zones", new { id = zoneId });
+            if (projetId.HasValue) return RedirectToAction("Edit", "Projets", new { id = projetId });
+            return RedirectToAction("Index", "Home");
         }
     }
 }
@@ -863,12 +1426,12 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> MarkRead(int id)
         { await _sec.MarkAlertReadAsync(id); return Ok(); }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> MarkAllRead()
         {
             var unread = await _db.NetworkAlerts.Where(a => !a.IsRead).ToListAsync();
@@ -878,7 +1441,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Superviseur")]
         public async Task<IActionResult> ResolveRogue(int id)
         {
             var rogue = await _db.MaliciousOlts.FindAsync(id);
@@ -902,7 +1465,7 @@ namespace SmartGPON.Web.Controllers
             View(await _db.AttackSimulations.AsNoTracking().Include(s => s.Olt)
                 .OrderByDescending(s => s.DateLancement).Take(50).ToListAsync());
 
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> LancerSimulation()
         {
             ViewBag.Olts = await _db.Olts.AsNoTracking().OrderBy(o => o.Nom).ToListAsync();
@@ -910,7 +1473,7 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Technicien")]
+        [Authorize(Roles = "Superviseur,ChefProjet,TechTerrain")]
         public async Task<IActionResult> LancerSimulation(SimulationFormViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -979,7 +1542,7 @@ namespace SmartGPON.Web.Controllers
 
 namespace SmartGPON.Web.Controllers
 {
-    [Authorize(Roles = UserRoles.Admin)]
+    [Authorize(Roles = UserRoles.Superviseur)]
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _users;
@@ -989,7 +1552,7 @@ namespace SmartGPON.Web.Controllers
             _users = users;
         }
 
-        private static readonly string[] AllowedRoles = { UserRoles.Admin, UserRoles.Technicien, UserRoles.Lecteur };
+        private static readonly string[] AllowedRoles = { UserRoles.Superviseur, UserRoles.ChefProjet, UserRoles.TechTerrain, UserRoles.TechDessin, UserRoles.Visiteur };
 
         private static bool IsUserActive(ApplicationUser user)
             => user.LockoutEnd == null || user.LockoutEnd <= DateTimeOffset.UtcNow;
@@ -1079,7 +1642,7 @@ namespace SmartGPON.Web.Controllers
             {
                 Id = user.Id,
                 Email = user.Email ?? user.UserName ?? string.Empty,
-                Role = roles.FirstOrDefault() ?? UserRoles.Lecteur,
+                Role = roles.FirstOrDefault() ?? UserRoles.Visiteur,
                 IsActive = IsUserActive(user),
                 AvailableRoles = GetAllowedRoles()
             });
@@ -1143,16 +1706,16 @@ namespace SmartGPON.Web.Controllers
             if (user == null) return NotFound();
 
             var roles = await _users.GetRolesAsync(user);
-            if (roles.Contains(UserRoles.Admin))
+            if (roles.Contains(UserRoles.Superviseur))
             {
-                var adminCount = 0;
+                var superviseurCount = 0;
                 foreach (var u in _users.Users)
                 {
-                    if ((await _users.GetRolesAsync(u)).Contains(UserRoles.Admin)) adminCount++;
+                    if ((await _users.GetRolesAsync(u)).Contains(UserRoles.Superviseur)) superviseurCount++;
                 }
-                if (adminCount <= 1)
+                if (superviseurCount <= 1)
                 {
-                    TempData["Error"] = "Impossible de supprimer le dernier compte Admin.";
+                    TempData["Error"] = "Impossible de supprimer le dernier compte Superviseur.";
                     return RedirectToAction(nameof(Index));
                 }
             }
@@ -1185,6 +1748,11 @@ namespace SmartGPON.Web.Controllers
                 .ToListAsync());
     }
 }
+
+
+
+
+
 
 
 
