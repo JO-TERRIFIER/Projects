@@ -1,0 +1,31 @@
+@model List<AuditLogDisplayVM>
+@{ ViewData["Title"] = "Journal d'audit"; }
+<div class="page-header"><h1 class="page-title"><i class="bi bi-journal-text me-2"></i>Journal d'audit</h1></div>
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    @if (!Model.Any()) {
+      <div class="p-4 text-muted">Aucune entrée d'audit.</div>
+    } else {
+      <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0">
+          <thead class="table-light"><tr>
+            <th>Date/Heure</th><th>Action</th><th>Entité</th><th>Entité ID</th>
+            <th>Tech</th><th>Description</th>
+          </tr></thead>
+          <tbody>
+            @foreach (var a in Model) {
+            <tr>
+              <td class="text-nowrap" style="font-size:12px">@a.OccurredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+              <td><span class="badge bg-secondary">@a.ActionType</span></td>
+              <td><span class="badge bg-light text-dark border">@a.EntityType</span></td>
+              <td class="text-muted" style="font-size:12px">@a.EntityId</td>
+              <td style="font-size:12px">@(a.NomTech != null ? $"{a.PrenomTech} {a.NomTech}" : "—")</td>
+              <td style="font-size:12px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@a.Description</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

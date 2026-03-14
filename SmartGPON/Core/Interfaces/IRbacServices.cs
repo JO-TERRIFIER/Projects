@@ -1,25 +1,54 @@
+// ============================================================
+// SmartGPON — Core/Interfaces/IRbacServices.cs — FRESH START
+// ============================================================
 using SmartGPON.Core.Entities;
 using SmartGPON.Core.Enums;
+using System.Security.Claims;
 
 namespace SmartGPON.Core.Interfaces
 {
-    public interface IAuthorizationScopeService
+    // ── UserProjectAssignment ───────────────────────────────
+    public interface IUserProjectAssignmentService
     {
-        Task<bool> IsAssignedToProjectAsync(string userId, int projetId, AssignmentType assignmentType);
+        /// <summary>Get all assignments for a project.</summary>
+        Task<List<UserProjectAssignment>> GetByProjetAsync(int projetId);
+
+        /// <summary>Get all assignments for a user.</summary>
+        Task<List<UserProjectAssignment>> GetByUserAsync(string userId);
+
+        /// <summary>Check if user is assigned to project with any role.</summary>
         Task<bool> IsAssignedToProjectAsync(string userId, int projetId);
-        Task<bool> CanWriteProjectScopeAsync(System.Security.Claims.ClaimsPrincipal user, int projetId, bool allowTechTerrainCreate = false);
+
+        /// <summary>Check if user is assigned to project with a specific AssignmentType.</summary>
+        Task<bool> IsAssignedToProjectAsync(string userId, int projetId, AssignmentType assignmentType);
+
+        /// <summary>Determine if ClaimsPrincipal can write to project scope.</summary>
+        Task<bool> CanWriteProjectScopeAsync(ClaimsPrincipal user, int projetId);
+
+        /// <summary>Get all projetIds accessible to user based on role.</summary>
+        Task<List<int>> GetAccessibleProjetIdsAsync(ClaimsPrincipal user);
+
+        Task<UserProjectAssignment> CreateAsync(UserProjectAssignment assignment);
+        Task DeleteAsync(int id);
     }
 
+    // ── AuditLog ────────────────────────────────────────────
+    public interface IAuditLogService
+    {
+        Task LogAsync(string? userId, int? projetId, string actionType,
+                      string entityType, int? entityId, string description,
+                      string? nomTech = null, string? prenomTech = null);
+
+        Task<List<AuditLog>> GetLogsAsync(int? projetId = null, int page = 1, int pageSize = 50);
+    }
+
+    // ── Approval ────────────────────────────────────────────
     public interface IApprovalService
     {
-        Task<ApprovalRequest> CreateAsync(int projetId, string requestedByUserId, string targetType, int? targetId, ApprovalActionType actionType, string reason);
-        Task<bool> ApproveAsync(int requestId, string decidedByUserId, string? comment);
-        Task<bool> RejectAsync(int requestId, string decidedByUserId, string? comment);
-        Task<bool> ExecuteApprovedAsync(int requestId, string executorUserId);
-    }
-
-    public interface IAuditService
-    {
-        Task LogAsync(string userId, string userEmail, string? ipAddress, int? projetId, string actionType, string entityType, int? entityId, string description);
+        Task<List<ApprovalRequest>> GetByProjetAsync(int projetId);
+        Task<List<ApprovalRequest>> GetPendingAsync();
+        Task<ApprovalRequest> CreateAsync(ApprovalRequest request);
+        Task ApproveAsync(int id);
+        Task RejectAsync(int id);
     }
 }

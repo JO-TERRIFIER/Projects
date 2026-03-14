@@ -1,153 +1,112 @@
+// ============================================================
+// SmartGPON — Controllers/ProjetsController.cs — FRESH START
+// ============================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SmartGPON.Core.Entities;
-using SmartGPON.Core.Enums;
 using SmartGPON.Core.Interfaces;
 using SmartGPON.Infrastructure.Data;
+using SmartGPON.Web.ViewModels;
 
 namespace SmartGPON.Web.Controllers
 {
     [Authorize]
     public class ProjetsController : RbacControllerBase
     {
-        public ProjetsController(ApplicationDbContext db, IAuthorizationScopeService scope, IApprovalService approvals, IAuditService audit)
-            : base(db, scope, approvals, audit) { }
+        public ProjetsController(ApplicationDbContext db, IUserProjectAssignmentService a, IAuditLogService au)
+            : base(db, a, au) { }
 
         public async Task<IActionResult> Index()
         {
-            var query = Db.Projets.AsNoTracking().Include(p => p.Client).Include(p => p.Resources).AsQueryable();
-            if (IsChefProjet && !IsSuperviseur)
-            {
-                var userId = CurrentUserId;
-                query = query.Where(p => p.ProjectManagerId == userId);
-            }
-            return View(await query.OrderBy(p => p.Nom).ToListAsync());
+            var ids = await AccessibleProjetIdsAsync();
+            var projets = await Db.Projets.Where(p => ids.Contains(p.Id))
+                .Include(p => p.Client)
+                .OrderBy(p => p.Nom)
+                .Select(p => new ProjetDisplayVM
+                {
+                    Id = p.Id, Nom = p.Nom, Statut = p.Statut,
+                    ClientNom = p.Client.Nom, ClientId = p.ClientId,
+                    ZoneCount = p.Zones.Count
+                }).ToListAsync();
+            return View(projets);
         }
 
-        [Authorize(Roles = "Superviseur,ChefProjet")]
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
-            ViewBag.Clients = await Db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
-            return View(new Projet());
+            var d = DenyVisiteur(); if (d != null) return d;
+            ViewBag.Clients = await Db.Clients.Where(c => c.IsActive).OrderBy(c => c.Nom).ToListAsync();
+            return View(new ProjetCreateVM());
         }
 
-        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Superviseur,ChefProjet")]
-        public async Task<IActionResult> Create(Projet m, string createDescription, IFormFileCollection uploadedFiles, [FromServices] IWebHostEnvironment env)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ProjetCreateVM vm)
         {
-            if (string.IsNullOrWhiteSpace(createDescription)) createDescription = "Création projet";
+            var d = DenyVisiteur(); if (d != null) return d;
             if (!ModelState.IsValid)
             {
-                ViewBag.Clients = await Db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
-                return View(m);
+                ViewBag.Clients = await Db.Clients.Where(c => c.IsActive).OrderBy(c => c.Nom).ToListAsync();
+                return View(vm);
             }
-
-            Db.Projets.Add(m);
-            await Db.SaveChangesAsync();
-            
-            // Gestion de l'upload conditionnel
-            var isTechDessin = IsTechDessin && !IsSuperviseur && !IsChefProjet;
-            var canUpload = IsSuperviseur || IsChefProjet || isTechDessin;
-            if (uploadedFiles != null && uploadedFiles.Any() && canUpload)
+            var entity = new SmartGPON.Core.Entities.Projet
             {
-                var folder = Path.Combine(env.WebRootPath, "resources", "projets", m.Id.ToString());
-                Directory.CreateDirectory(folder);
-                var allowed = isTechDessin ? new[] { ".dwg" } : new[] { ".dwg", ".pdf", ".png", ".jpg", ".jpeg", ".xlsx" };
-
-                foreach (var file in uploadedFiles)
-                {
-                    if (file.Length > 0)
-                    {
-                        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                        if (allowed.Contains(ext))
-                        {
-                            var fileName = $"{Guid.NewGuid():N}{ext}";
-                            var filePath = Path.Combine(folder, fileName);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
-                            {
-                                await file.CopyToAsync(stream);
-                            }
-                            Db.Resources.Add(new Resource
-                            {
-                                ProjetId = m.Id,
-                                NomFichier = file.FileName,
-                                CheminFichier = filePath,
-                                TypeFichier = ext,
-                                TailleFichier = file.Length
-                            });
-                        }
-                    }
-                }
-                await Db.SaveChangesAsync();
-            }
-
-            if (IsChefProjet && !IsSuperviseur)
-            {
-                m.ProjectManagerId = CurrentUserId;
-                await Db.SaveChangesAsync();
-            }
-
-            await LogAsync(m.Id, "Create", nameof(Projet), m.Id, createDescription);
+                ClientId = vm.ClientId, Nom = vm.Nom, Statut = vm.Statut
+            };
+            Db.Projets.Add(entity); await Db.SaveChangesAsync();
+            await LogAsync(entity.Id, "Create", "Projet", entity.Id, $"Projet créé: {entity.Nom}");
             TempData["Success"] = "Projet créé.";
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Superviseur,ChefProjet")]
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var m = await Db.Projets.FindAsync(id);
-            if (m == null) return NotFound();
-
-            if (!IsSuperviseur && !await CanChefProjectAsync(m.Id)) return Forbid();
-
-            ViewBag.Clients = await Db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
-            ViewBag.Resources = await Db.Resources.AsNoTracking().Where(r => r.ProjetId == id).OrderByDescending(r => r.DateUpload).ToListAsync();
-            return View(m);
+            var d = DenyVisiteur(); if (d != null) return d;
+            var p = await Db.Projets.FindAsync(id);
+            if (p == null) return NotFound();
+            if (!await CanWriteAsync(id)) return Forbid();
+            ViewBag.Clients = await Db.Clients.Where(c => c.IsActive).OrderBy(c => c.Nom).ToListAsync();
+            return View(new ProjetUpdateVM { Id = p.Id, ClientId = p.ClientId, Nom = p.Nom, Statut = p.Statut });
         }
 
-        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Superviseur,ChefProjet")]
-        public async Task<IActionResult> Edit(Projet m, string editDescription)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(ProjetUpdateVM vm)
         {
-            if (string.IsNullOrWhiteSpace(editDescription)) editDescription = "Modification projet";
+            var d = DenyVisiteur(); if (d != null) return d;
+            if (!await CanWriteAsync(vm.Id)) return Forbid();
             if (!ModelState.IsValid)
             {
-                ViewBag.Clients = await Db.Clients.AsNoTracking().OrderBy(c => c.Nom).ToListAsync();
-                return View(m);
+                ViewBag.Clients = await Db.Clients.Where(c => c.IsActive).OrderBy(c => c.Nom).ToListAsync();
+                return View(vm);
             }
-
-            if (!IsSuperviseur && !await CanChefProjectAsync(m.Id)) return Forbid();
-
-            Db.Projets.Update(m);
+            var p = await Db.Projets.FindAsync(vm.Id);
+            if (p == null) return NotFound();
+            p.ClientId = vm.ClientId; p.Nom = vm.Nom; p.Statut = vm.Statut;
             await Db.SaveChangesAsync();
-            await LogAsync(m.Id, "Edit", nameof(Projet), m.Id, editDescription);
-            TempData["Success"] = "Projet mis à jour.";
+            await LogAsync(p.Id, "Update", "Projet", p.Id, $"Projet modifié: {p.Nom}");
+            TempData["Success"] = "Projet modifié.";
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Superviseur,ChefProjet")]
-        public async Task<IActionResult> Delete(int id, string reason)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (string.IsNullOrWhiteSpace(reason)) { TempData["Error"] = "Raison obligatoire."; return RedirectToAction(nameof(Index)); }
-
-            var m = await Db.Projets.FindAsync(id);
-            if (m == null) return NotFound();
-
-            if (IsSuperviseur)
-            {
-                Db.Projets.Remove(m);
-                await Db.SaveChangesAsync();
-                await LogAsync(m.Id, "Delete", nameof(Projet), m.Id, reason);
-                TempData["Success"] = "Projet supprimé.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (!await CanChefProjectAsync(m.Id)) return Forbid();
-
-            await Approvals.CreateAsync(m.Id, CurrentUserId, nameof(Projet), m.Id, ApprovalActionType.DeleteProjet, reason);
-            await LogAsync(m.Id, "RequestDelete", nameof(Projet), m.Id, reason);
-            TempData["Success"] = "Demande de suppression envoyée aux Superviseurs.";
+            var d = DenyVisiteur(); if (d != null) return d;
+            if (!await CanWriteAsync(id)) return Forbid();
+            var p = await Db.Projets.FindAsync(id);
+            if (p == null) return NotFound();
+            Db.Projets.Remove(p); await Db.SaveChangesAsync();
+            await LogAsync(id, "Delete", "Projet", id, $"Projet supprimé: {p.Nom}");
+            TempData["Success"] = "Projet supprimé.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var p = await Db.Projets.Include(p => p.Client).Include(p => p.Zones).FirstOrDefaultAsync(p => p.Id == id);
+            if (p == null) return NotFound();
+            return View(p);
         }
     }
 }
-

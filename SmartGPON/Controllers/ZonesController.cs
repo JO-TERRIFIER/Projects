@@ -1,164 +1,111 @@
+// ============================================================
+// SmartGPON — Controllers/ZonesController.cs — FRESH START
+// ============================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SmartGPON.Core.Entities;
-using SmartGPON.Core.Enums;
 using SmartGPON.Core.Interfaces;
 using SmartGPON.Infrastructure.Data;
+using SmartGPON.Web.ViewModels;
 
 namespace SmartGPON.Web.Controllers
 {
     [Authorize]
     public class ZonesController : RbacControllerBase
     {
-        public ZonesController(ApplicationDbContext db, IAuthorizationScopeService scope, IApprovalService approvals, IAuditService audit)
-            : base(db, scope, approvals, audit) { }
+        public ZonesController(ApplicationDbContext db, IUserProjectAssignmentService a, IAuditLogService au)
+            : base(db, a, au) { }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? projetId)
         {
-            var query = Db.Zones.AsNoTracking().Include(z => z.Projet).Include(z => z.Resources).AsQueryable();
-            if (IsChefProjet && !IsSuperviseur)
+            var ids = await AccessibleProjetIdsAsync();
+            var q = Db.Zones.Where(z => ids.Contains(z.ProjetId)).Include(z => z.Projet).AsQueryable();
+            if (projetId.HasValue) q = q.Where(z => z.ProjetId == projetId.Value);
+            var zones = await q.OrderBy(z => z.Nom).Select(z => new ZoneDisplayVM
             {
-                var userId = CurrentUserId;
-                query = query.Where(z => z.Projet.ProjectManagerId == userId);
-            }
-            return View(await query.OrderBy(z => z.Nom).ToListAsync());
+                Id = z.Id, Nom = z.Nom, Latitude = z.Latitude, Longitude = z.Longitude,
+                ProjetNom = z.Projet.Nom, ProjetId = z.ProjetId,
+                OltCount = z.Olts.Count
+            }).ToListAsync();
+            ViewBag.ProjetId = projetId;
+            return View(zones);
         }
 
-        [Authorize(Roles = "Superviseur,ChefProjet")]
-        public async Task<IActionResult> Create()
+        [HttpGet]
+        public async Task<IActionResult> Create(int? projetId)
         {
-            var pQuery = Db.Projets.AsNoTracking().AsQueryable();
-            if (IsChefProjet && !IsSuperviseur)
-            {
-                var userId = CurrentUserId;
-                pQuery = pQuery.Where(p => p.ProjectManagerId == userId);
-            }
-            ViewBag.Projets = await pQuery.OrderBy(p => p.Nom).ToListAsync();
-            return View(new Zone());
+            var d = DenyVisiteur(); if (d != null) return d;
+            var ids = await AccessibleProjetIdsAsync();
+            ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+            return View(new ZoneCreateVM { ProjetId = projetId ?? 0 });
         }
 
-        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Superviseur,ChefProjet")]
-        public async Task<IActionResult> Create(Zone m, string createDescription, IFormFileCollection uploadedFiles, [FromServices] IWebHostEnvironment env)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ZoneCreateVM vm)
         {
-            if (string.IsNullOrWhiteSpace(createDescription)) createDescription = "Création zone";
+            var d = DenyVisiteur(); if (d != null) return d;
+            if (!await CanWriteAsync(vm.ProjetId)) return Forbid();
             if (!ModelState.IsValid)
             {
-                var pQuery = Db.Projets.AsNoTracking().AsQueryable();
-                if (IsChefProjet && !IsSuperviseur)
-                {
-                    var userId = CurrentUserId;
-                    pQuery = pQuery.Where(p => p.ProjectManagerId == userId);
-                }
-                ViewBag.Projets = await pQuery.OrderBy(p => p.Nom).ToListAsync();
-                return View(m);
+                var ids = await AccessibleProjetIdsAsync();
+                ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+                return View(vm);
             }
-
-            if (!IsSuperviseur && !await CanChefProjectAsync(m.ProjetId)) return Forbid();
-
-            Db.Zones.Add(m);
-            await Db.SaveChangesAsync();
-            
-            // Gestion de l'upload conditionnel
-            var isTechDessin = IsTechDessin && !IsSuperviseur && !IsChefProjet;
-            var canUpload = IsSuperviseur || IsChefProjet || isTechDessin;
-            if (uploadedFiles != null && uploadedFiles.Any() && canUpload)
+            var entity = new SmartGPON.Core.Entities.Zone
             {
-                var folder = Path.Combine(env.WebRootPath, "resources", "zones", m.Id.ToString());
-                Directory.CreateDirectory(folder);
-                var allowed = isTechDessin ? new[] { ".dwg" } : new[] { ".dwg", ".pdf", ".png", ".jpg", ".jpeg", ".xlsx" };
-
-                foreach (var file in uploadedFiles)
-                {
-                    if (file.Length > 0)
-                    {
-                        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                        if (allowed.Contains(ext))
-                        {
-                            var fileName = $"{Guid.NewGuid():N}{ext}";
-                            var filePath = Path.Combine(folder, fileName);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
-                            {
-                                await file.CopyToAsync(stream);
-                            }
-                            Db.Resources.Add(new Resource
-                            {
-                                ZoneId = m.Id,
-                                NomFichier = file.FileName,
-                                CheminFichier = filePath,
-                                TypeFichier = ext,
-                                TailleFichier = file.Length
-                            });
-                        }
-                    }
-                }
-                await Db.SaveChangesAsync();
-            }
-            await LogAsync(m.ProjetId, "Create", nameof(Zone), m.Id, createDescription);
+                ProjetId = vm.ProjetId, Nom = vm.Nom, Latitude = vm.Latitude, Longitude = vm.Longitude
+            };
+            Db.Zones.Add(entity); await Db.SaveChangesAsync();
+            await LogAsync(vm.ProjetId, "Create", "Zone", entity.Id, $"Zone créée: {entity.Nom}");
             TempData["Success"] = "Zone créée.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { projetId = vm.ProjetId });
         }
 
-        [Authorize(Roles = "Superviseur,ChefProjet")]
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var m = await Db.Zones.FindAsync(id);
-            if (m == null) return NotFound();
-            if (!IsSuperviseur && !await CanChefProjectAsync(m.ProjetId)) return Forbid();
-
-            var pQuery = Db.Projets.AsNoTracking().AsQueryable();
-            if (IsChefProjet && !IsSuperviseur)
-            {
-                var userId = CurrentUserId;
-                pQuery = pQuery.Where(p => p.ProjectManagerId == userId);
-            }
-            ViewBag.Projets = await pQuery.OrderBy(p => p.Nom).ToListAsync();
-            ViewBag.Resources = await Db.Resources.AsNoTracking().Where(r => r.ZoneId == id).OrderByDescending(r => r.DateUpload).ToListAsync();
-            return View(m);
+            var d = DenyVisiteur(); if (d != null) return d;
+            var z = await Db.Zones.FindAsync(id);
+            if (z == null) return NotFound();
+            if (!await CanWriteAsync(z.ProjetId)) return Forbid();
+            return View(new ZoneUpdateVM { Id = z.Id, ProjetId = z.ProjetId, Nom = z.Nom, Latitude = z.Latitude, Longitude = z.Longitude });
         }
 
-        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Superviseur,ChefProjet")]
-        public async Task<IActionResult> Edit(Zone m, string editDescription)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(ZoneUpdateVM vm)
         {
-            if (string.IsNullOrWhiteSpace(editDescription)) editDescription = "Modification zone";
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Projets = await Db.Projets.AsNoTracking().OrderBy(p => p.Nom).ToListAsync();
-                return View(m);
-            }
-
-            if (!IsSuperviseur && !await CanChefProjectAsync(m.ProjetId)) return Forbid();
-
-            Db.Zones.Update(m);
+            var d = DenyVisiteur(); if (d != null) return d;
+            if (!await CanWriteAsync(vm.ProjetId)) return Forbid();
+            if (!ModelState.IsValid) return View(vm);
+            var z = await Db.Zones.FindAsync(vm.Id);
+            if (z == null) return NotFound();
+            z.Nom = vm.Nom; z.Latitude = vm.Latitude; z.Longitude = vm.Longitude;
             await Db.SaveChangesAsync();
-            await LogAsync(m.ProjetId, "Edit", nameof(Zone), m.Id, editDescription);
-            TempData["Success"] = "Zone mise à jour.";
-            return RedirectToAction(nameof(Index));
+            await LogAsync(vm.ProjetId, "Update", "Zone", z.Id, $"Zone modifiée: {z.Nom}");
+            TempData["Success"] = "Zone modifiée.";
+            return RedirectToAction(nameof(Index), new { projetId = vm.ProjetId });
         }
 
-        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Superviseur,ChefProjet")]
-        public async Task<IActionResult> Delete(int id, string reason)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (string.IsNullOrWhiteSpace(reason)) { TempData["Error"] = "Raison obligatoire."; return RedirectToAction(nameof(Index)); }
-            var m = await Db.Zones.FindAsync(id);
-            if (m == null) return NotFound();
+            var d = DenyVisiteur(); if (d != null) return d;
+            var z = await Db.Zones.FindAsync(id);
+            if (z == null) return NotFound();
+            if (!await CanWriteAsync(z.ProjetId)) return Forbid();
+            var pId = z.ProjetId;
+            Db.Zones.Remove(z); await Db.SaveChangesAsync();
+            await LogAsync(pId, "Delete", "Zone", id, $"Zone supprimée: {z.Nom}");
+            TempData["Success"] = "Zone supprimée.";
+            return RedirectToAction(nameof(Index), new { projetId = pId });
+        }
 
-            if (IsSuperviseur)
-            {
-                Db.Zones.Remove(m);
-                await Db.SaveChangesAsync();
-                await LogAsync(m.ProjetId, "Delete", nameof(Zone), m.Id, reason);
-                TempData["Success"] = "Zone supprimée.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (!await CanChefProjectAsync(m.ProjetId)) return Forbid();
-
-            await Approvals.CreateAsync(m.ProjetId, CurrentUserId, nameof(Zone), m.Id, ApprovalActionType.DeleteZone, reason);
-            await LogAsync(m.ProjetId, "RequestDelete", nameof(Zone), m.Id, reason);
-            TempData["Success"] = "Demande de suppression envoyée aux Superviseurs.";
-            return RedirectToAction(nameof(Index));
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var z = await Db.Zones.Include(z => z.Projet).Include(z => z.Olts).FirstOrDefaultAsync(z => z.Id == id);
+            if (z == null) return NotFound();
+            return View(z);
         }
     }
 }
-

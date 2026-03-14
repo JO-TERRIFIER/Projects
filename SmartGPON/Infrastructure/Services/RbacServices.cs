@@ -1,147 +1,202 @@
+// ============================================================
+// SmartGPON — Infrastructure/Services/RbacServices.cs — FRESH START
+// ============================================================
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SmartGPON.Core.Entities;
 using SmartGPON.Core.Enums;
 using SmartGPON.Core.Interfaces;
 using SmartGPON.Infrastructure.Data;
+using System.Security.Claims;
 
 namespace SmartGPON.Infrastructure.Services
 {
-    public class AuthorizationScopeService : IAuthorizationScopeService
+    // ── UserProjectAssignmentService ────────────────────────
+    public class UserProjectAssignmentService : IUserProjectAssignmentService
     {
         private readonly ApplicationDbContext _db;
-        public AuthorizationScopeService(ApplicationDbContext db) { _db = db; }
+        private readonly ILogger<UserProjectAssignmentService> _log;
 
-        public Task<bool> IsAssignedToProjectAsync(string userId, int projetId, AssignmentType assignmentType) =>
-            _db.UserProjectAssignments.AsNoTracking().AnyAsync(a => a.UserId == userId && a.ProjetId == projetId && a.AssignmentType == assignmentType && a.IsActive);
+        public UserProjectAssignmentService(ApplicationDbContext db, ILogger<UserProjectAssignmentService> log)
+        { _db = db; _log = log; }
 
-        public Task<bool> IsAssignedToProjectAsync(string userId, int projetId) =>
-            _db.UserProjectAssignments.AsNoTracking().AnyAsync(a => a.UserId == userId && a.ProjetId == projetId && a.IsActive);
-
-        public async Task<bool> CanWriteProjectScopeAsync(System.Security.Claims.ClaimsPrincipal user, int projetId, bool allowTechTerrainCreate = false)
+        public async Task<List<UserProjectAssignment>> GetByProjetAsync(int projetId)
         {
-            if (user.IsInRole(UserRoles.Superviseur)) return true;
-            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrWhiteSpace(userId)) return false;
+            try { return await _db.UserProjectAssignments.Where(a => a.ProjetId == projetId && a.IsActive).ToListAsync(); }
+            catch (Exception ex) { _log.LogError(ex, "GetByProjetAsync error"); throw; }
+        }
 
-            if (user.IsInRole(UserRoles.ChefProjet))
+        public async Task<List<UserProjectAssignment>> GetByUserAsync(string userId)
+        {
+            try { return await _db.UserProjectAssignments.Where(a => a.UserId == userId && a.IsActive).Include(a => a.Projet).ToListAsync(); }
+            catch (Exception ex) { _log.LogError(ex, "GetByUserAsync error"); throw; }
+        }
+
+        public async Task<bool> IsAssignedToProjectAsync(string userId, int projetId)
+        {
+            try { return await _db.UserProjectAssignments.AnyAsync(a => a.UserId == userId && a.ProjetId == projetId && a.IsActive); }
+            catch (Exception ex) { _log.LogError(ex, "IsAssignedToProjectAsync error"); throw; }
+        }
+
+        public async Task<bool> IsAssignedToProjectAsync(string userId, int projetId, AssignmentType assignmentType)
+        {
+            try { return await _db.UserProjectAssignments.AnyAsync(a => a.UserId == userId && a.ProjetId == projetId && a.AssignmentType == assignmentType && a.IsActive); }
+            catch (Exception ex) { _log.LogError(ex, "IsAssignedToProjectAsync error"); throw; }
+        }
+
+        public async Task<bool> CanWriteProjectScopeAsync(ClaimsPrincipal user, int projetId)
+        {
+            try
             {
-                return await IsAssignedToProjectAsync(userId, projetId, AssignmentType.ChefProjet);
+                // Superviseur → ALL projects
+                if (user.IsInRole(UserRoles.Superviseur)) return true;
+                // Visiteur → READ ONLY
+                if (user.IsInRole(UserRoles.Visiteur)) return false;
+                // Membre → via UserProjectAssignments
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId)) return false;
+                return await IsAssignedToProjectAsync(userId, projetId);
             }
+            catch (Exception ex) { _log.LogError(ex, "CanWriteProjectScopeAsync error"); throw; }
+        }
 
-            if (allowTechTerrainCreate && user.IsInRole(UserRoles.TechTerrain))
+        public async Task<List<int>> GetAccessibleProjetIdsAsync(ClaimsPrincipal user)
+        {
+            try
             {
-                return await IsAssignedToProjectAsync(userId, projetId, AssignmentType.TechTerrain);
-            }
+                // Superviseur → ALL
+                if (user.IsInRole(UserRoles.Superviseur))
+                    return await _db.Projets.Select(p => p.Id).ToListAsync();
 
-            return false;
+                // Visiteur → filter by ClientId
+                if (user.IsInRole(UserRoles.Visiteur))
+                {
+                    var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (string.IsNullOrEmpty(userId)) return new List<int>();
+                    var appUser = await _db.Users.FindAsync(userId);
+                    if (appUser?.ClientId == null) return new List<int>();
+                    return await _db.Projets.Where(p => p.ClientId == appUser.ClientId).Select(p => p.Id).ToListAsync();
+                }
+
+                // Membre → via assignments
+                {
+                    var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (string.IsNullOrEmpty(userId)) return new List<int>();
+                    return await _db.UserProjectAssignments
+                        .Where(a => a.UserId == userId && a.IsActive)
+                        .Select(a => a.ProjetId).Distinct().ToListAsync();
+                }
+            }
+            catch (Exception ex) { _log.LogError(ex, "GetAccessibleProjetIdsAsync error"); throw; }
+        }
+
+        public async Task<UserProjectAssignment> CreateAsync(UserProjectAssignment assignment)
+        {
+            try { _db.UserProjectAssignments.Add(assignment); await _db.SaveChangesAsync(); return assignment; }
+            catch (Exception ex) { _log.LogError(ex, "CreateAsync error"); throw; }
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            try
+            {
+                var e = await _db.UserProjectAssignments.FindAsync(id);
+                if (e != null) { _db.UserProjectAssignments.Remove(e); await _db.SaveChangesAsync(); }
+            }
+            catch (Exception ex) { _log.LogError(ex, "DeleteAsync error"); throw; }
         }
     }
 
+    // ── AuditLogService ─────────────────────────────────────
+    public class AuditLogService : IAuditLogService
+    {
+        private readonly ApplicationDbContext _db;
+        private readonly ILogger<AuditLogService> _log;
+
+        public AuditLogService(ApplicationDbContext db, ILogger<AuditLogService> log)
+        { _db = db; _log = log; }
+
+        public async Task LogAsync(string? userId, int? projetId, string actionType,
+            string entityType, int? entityId, string description,
+            string? nomTech = null, string? prenomTech = null)
+        {
+            try
+            {
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    ProjetId = projetId,
+                    ActionType = actionType,
+                    EntityType = entityType,
+                    EntityId = entityId,
+                    Description = description,
+                    NomTech = nomTech,
+                    PrenomTech = prenomTech,
+                    OccurredAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex) { _log.LogError(ex, "LogAsync error"); throw; }
+        }
+
+        public async Task<List<AuditLog>> GetLogsAsync(int? projetId = null, int page = 1, int pageSize = 50)
+        {
+            try
+            {
+                var q = _db.AuditLogs.AsQueryable();
+                if (projetId.HasValue) q = q.Where(a => a.ProjetId == projetId.Value);
+                return await q.OrderByDescending(a => a.OccurredAt)
+                    .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            }
+            catch (Exception ex) { _log.LogError(ex, "GetLogsAsync error"); throw; }
+        }
+    }
+
+    // ── ApprovalService ─────────────────────────────────────
     public class ApprovalService : IApprovalService
     {
         private readonly ApplicationDbContext _db;
-        public ApprovalService(ApplicationDbContext db) { _db = db; }
+        private readonly ILogger<ApprovalService> _log;
 
-        public async Task<ApprovalRequest> CreateAsync(int projetId, string requestedByUserId, string targetType, int? targetId, ApprovalActionType actionType, string reason)
+        public ApprovalService(ApplicationDbContext db, ILogger<ApprovalService> log)
+        { _db = db; _log = log; }
+
+        public async Task<List<ApprovalRequest>> GetByProjetAsync(int projetId)
         {
-            var req = new ApprovalRequest
+            try { return await _db.ApprovalRequests.Where(a => a.ProjetId == projetId).OrderByDescending(a => a.Id).ToListAsync(); }
+            catch (Exception ex) { _log.LogError(ex, "GetByProjetAsync error"); throw; }
+        }
+
+        public async Task<List<ApprovalRequest>> GetPendingAsync()
+        {
+            try { return await _db.ApprovalRequests.Where(a => a.Status == 0).Include(a => a.Projet).OrderByDescending(a => a.Id).ToListAsync(); }
+            catch (Exception ex) { _log.LogError(ex, "GetPendingAsync error"); throw; }
+        }
+
+        public async Task<ApprovalRequest> CreateAsync(ApprovalRequest request)
+        {
+            try { _db.ApprovalRequests.Add(request); await _db.SaveChangesAsync(); return request; }
+            catch (Exception ex) { _log.LogError(ex, "CreateAsync error"); throw; }
+        }
+
+        public async Task ApproveAsync(int id)
+        {
+            try
             {
-                ProjetId = projetId,
-                RequestedByUserId = requestedByUserId,
-                TargetType = targetType,
-                TargetId = targetId,
-                ActionType = actionType,
-                Reason = reason.Trim(),
-                Status = ApprovalStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
-            _db.ApprovalRequests.Add(req);
-            await _db.SaveChangesAsync();
-            return req;
-        }
-
-        public async Task<bool> ApproveAsync(int requestId, string decidedByUserId, string? comment)
-        {
-            var req = await _db.ApprovalRequests.FirstOrDefaultAsync(r => r.Id == requestId);
-            if (req == null || req.Status != ApprovalStatus.Pending) return false;
-            req.Status = ApprovalStatus.Approved;
-            req.DecidedByUserId = decidedByUserId;
-            req.DecisionAt = DateTime.UtcNow;
-            req.DecisionComment = comment;
-            await _db.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> RejectAsync(int requestId, string decidedByUserId, string? comment)
-        {
-            var req = await _db.ApprovalRequests.FirstOrDefaultAsync(r => r.Id == requestId);
-            if (req == null || req.Status != ApprovalStatus.Pending) return false;
-            req.Status = ApprovalStatus.Rejected;
-            req.DecidedByUserId = decidedByUserId;
-            req.DecisionAt = DateTime.UtcNow;
-            req.DecisionComment = comment;
-            await _db.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> ExecuteApprovedAsync(int requestId, string executorUserId)
-        {
-            var req = await _db.ApprovalRequests.FirstOrDefaultAsync(r => r.Id == requestId);
-            if (req == null || req.Status != ApprovalStatus.Approved) return false;
-
-            switch (req.ActionType)
-            {
-                case ApprovalActionType.DeleteProjet:
-                    var p = await _db.Projets.FindAsync(req.TargetId);
-                    if (p != null) _db.Projets.Remove(p);
-                    break;
-                case ApprovalActionType.DeleteZone:
-                    var z = await _db.Zones.FindAsync(req.TargetId);
-                    if (z != null) _db.Zones.Remove(z);
-                    break;
-                case ApprovalActionType.DeleteResource:
-                    var r = await _db.Resources.FindAsync(req.TargetId);
-                    if (r != null)
-                    {
-                        if (System.IO.File.Exists(r.CheminFichier)) System.IO.File.Delete(r.CheminFichier);
-                        _db.Resources.Remove(r);
-                    }
-                    break;
-                case ApprovalActionType.DeleteEquipment:
-                    // Equipment execution can be module-specific; marked executed only by controller workflows.
-                    break;
-                case ApprovalActionType.EditEquipment:
-                    break;
+                var r = await _db.ApprovalRequests.FindAsync(id);
+                if (r != null) { r.Status = 1; await _db.SaveChangesAsync(); }
             }
-
-            req.Status = ApprovalStatus.Executed;
-            req.DecidedByUserId = executorUserId;
-            req.DecisionAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
-            return true;
+            catch (Exception ex) { _log.LogError(ex, "ApproveAsync error"); throw; }
         }
-    }
 
-    public class AuditService : IAuditService
-    {
-        private readonly ApplicationDbContext _db;
-        public AuditService(ApplicationDbContext db) { _db = db; }
-
-        public async Task LogAsync(string userId, string userEmail, string? ipAddress, int? projetId, string actionType, string entityType, int? entityId, string description)
+        public async Task RejectAsync(int id)
         {
-            _db.AuditLogs.Add(new AuditLog
+            try
             {
-                UserId = userId,
-                UserEmail = userEmail,
-                IpAddress = ipAddress,
-                ProjetId = projetId,
-                ActionType = actionType,
-                EntityType = entityType,
-                EntityId = entityId,
-                Description = description.Trim(),
-                OccurredAt = DateTime.UtcNow
-            });
-            await _db.SaveChangesAsync();
+                var r = await _db.ApprovalRequests.FindAsync(id);
+                if (r != null) { r.Status = 2; await _db.SaveChangesAsync(); }
+            }
+            catch (Exception ex) { _log.LogError(ex, "RejectAsync error"); throw; }
         }
     }
 }

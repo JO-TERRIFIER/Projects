@@ -1,123 +1,41 @@
-@* =========================================================
-   Views/Projets/Index.cshtml
-   ========================================================= *@
-@model IEnumerable<SmartGPON.Core.Entities.Projet>
-@{
-  ViewData["Title"] = "Projets";
-  var isSuperviseur = User.IsInRole("Superviseur");
-  var isChefProjet = User.IsInRole("ChefProjet") && !isSuperviseur;
-  var canWrite = isSuperviseur || isChefProjet;
-}
-<div class="page-header">
-  <div><h1 class="page-title">Gestion des projets</h1><div class="page-subtitle">Portefeuille opérationnel GPON</div></div>
-  @if (canWrite)
-  {
-    <a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Nouveau projet</a>
+@model List<ProjetDisplayVM>
+@{ ViewData["Title"] = "Projets"; }
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h1 class="page-title"><i class="bi bi-folder2-open me-2"></i>Projets</h1>
+  @if (!User.IsInRole("Visiteur")) {
+    <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nouveau projet</a>
   }
 </div>
-<div class="page-body">
-  <div class="sg-card p-0" style="overflow:hidden">
-    <div style="overflow-x:auto">
-      <table class="sg-table">
-        <thead><tr>
-          <th style="padding-left:20px">Nom</th><th>Client</th><th>Statut</th>
-          <th>Date début</th><th>Date fin</th><th>Documents</th><th style="padding-right:20px;text-align:right">Actions</th>
+@if (!Model.Any()) {
+  <div class="alert alert-info">Aucun projet accessible.</div>
+} else {
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light"><tr>
+          <th>Nom</th><th>Client</th><th>Statut</th><th class="text-end">Actions</th>
         </tr></thead>
         <tbody>
-        @foreach (var p in Model)
-        {
-          var pill = p.Statut == SmartGPON.Core.Enums.ProjetStatut.Termine ? "pill-green"
-                   : p.Statut == SmartGPON.Core.Enums.ProjetStatut.Suspendu ? "pill-amber" : "pill-cyan";
-          var label = p.Statut == SmartGPON.Core.Enums.ProjetStatut.Termine ? "Terminé"
-                    : p.Statut == SmartGPON.Core.Enums.ProjetStatut.Suspendu ? "Suspendu" : "Actif";
-          var resCount = p.Resources?.Count ?? 0;
-          var isTechDessin = User.IsInRole("TechDessin") && !isSuperviseur && !isChefProjet;
-          var canUpload = canWrite || isTechDessin;
-          
+          @foreach (var p in Model) {
+          var badge = p.Statut == ProjetStatut.EnCours ? "success" : (p.Statut == ProjetStatut.Suspendu ? "warning" : "secondary");
           <tr>
-            <td style="padding-left:20px;font-weight:500;color:var(--text-primary)">@p.Nom</td>
-            <td>@p.Client?.Nom</td>
-            <td><span class="pill @pill">@label</span></td>
-            <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@p.DateDebut?.ToString("dd/MM/yyyy")</td>
-            <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@p.DateFin?.ToString("dd/MM/yyyy")</td>
-            <td>
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#docsModal-@p.Id" style="font-size:11px;padding:3px 8px;border-radius:12px;display:flex;align-items:center;gap:4px">
-                    <i class="bi bi-folder2-open"></i> @resCount doc@(resCount > 1 ? "s" : "")
-                </button>
-                <div class="modal fade" id="docsModal-@p.Id" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content" style="border:none;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12)">
-                      <div class="modal-header" style="border-bottom:1px solid var(--border-subtle);background:#fbfbfb;border-top-left-radius:12px;border-top-right-radius:12px">
-                        <h5 class="modal-title" style="font-size:14px;font-weight:600"><i class="bi bi-folder2-open me-2" style="color:var(--accent-amber)"></i>Documents du projet : @p.Nom</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body p-4 text-start">
-                        @if (canUpload) {
-                          <form asp-controller="Resources" asp-action="Upload" method="post" enctype="multipart/form-data" class="mb-4 p-3" style="background:var(--bg-subtle);border-radius:8px">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="projetId" value="@p.Id"/>
-                            <div style="font-size:12px;font-weight:600;margin-bottom:8px">Nouveau fichier <span class="pill pill-violet ms-2" style="font-size:9px">@(isTechDessin?".dwg":".dwg .pdf .png .jpg .xlsx")</span></div>
-                            <div class="d-flex gap-2">
-                              <input type="file" name="file" class="sg-input form-control form-control-sm" accept="@(isTechDessin?".dwg":".dwg,.pdf,.png,.jpg,.jpeg,.xlsx")" required style="flex:1" />
-                              <input type="text" name="uploadDescription" class="sg-input form-control form-control-sm" placeholder="Description" required style="width:200px" />
-                              <button type="submit" class="btn-primary-sg px-3 py-1 m-0" style="height:auto"><i class="bi bi-upload"></i> Ajouter</button>
-                            </div>
-                          </form>
-                        }
-                        @if(resCount == 0) {
-                          <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:16px"><i class="bi bi-inbox d-block mb-2 fs-4"></i>Aucun fichier</div>
-                        } else {
-                          <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border-subtle);border-radius:8px">
-                            @foreach(var r in (p.Resources ?? new List<SmartGPON.Core.Entities.Resource>()).OrderByDescending(x => x.DateUpload)) {
-                              var icon = r.TypeFichier switch { ".pdf"=>"bi-filetype-pdf", ".dwg"=>"bi-vector-pen", ".xlsx"=>"bi-file-earmark-spreadsheet", ".png" or ".jpg" or ".jpeg"=>"bi-image", _=>"bi-file-earmark" };
-                              var color = r.TypeFichier switch { ".pdf"=>"var(--accent-red)", ".dwg"=>"var(--accent-green)", ".xlsx"=>"var(--accent-green)", _=>"var(--accent-cyan)" };
-                              <div class="d-flex align-items-center gap-3 p-3" style="border-bottom:1px solid var(--border-subtle)">
-                                <i class="bi @icon" style="color:@color;font-size:20px"></i>
-                                <div style="flex:1;min-width:0">
-                                  <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@r.NomFichier</div>
-                                  <div style="font-size:11px;color:var(--text-muted)">@(r.TailleFichier/1024) Ko — @r.DateUpload.ToString("dd/MM/yyyy HH:mm")</div>
-                                </div>
-                                <a asp-controller="Resources" asp-action="Download" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size:11px"><i class="bi bi-download"></i> Tél.</a>
-                                @if (isSuperviseur) {
-                                  <form asp-controller="Resources" asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline" onsubmit="return confirm('Confirmer la suppression automatique ?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" style="font-size:11px" title="Supprimer"><i class="bi bi-trash3"></i></button></form>
-                                } else if (isChefProjet || isTechDessin) {
-                                  <form asp-controller="Resources" asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline" onsubmit="return confirm('Demander la suppression de ce fichier ?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-warning py-1 px-2" style="font-size:11px" title="Demander suppression"><i class="bi bi-trash3"></i></button></form>
-                                }
-                              </div>
-                            }
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                </div>
-            </td>
-            <td style="padding-right:20px;text-align:right">
-              <div class="d-flex justify-content-end gap-1">
-                @if (isSuperviseur)
-                {
-                  <a asp-action="Edit" asp-route-id="@p.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
-                  <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ce projet ?')">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash3"></i></button>
-                  </form>
-                }
-                else if (isChefProjet)
-                {
-                  <a asp-action="Edit" asp-route-id="@p.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
-                  <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline" onsubmit="return confirm('Demander la suppression de ce projet ?')">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="icon-btn warning" title="Demander suppression" style="color:var(--color-status-warning)"><i class="bi bi-trash3"></i></button>
-                  </form>
-                }
-              </div>
+            <td class="fw-semibold">@p.Nom</td>
+            <td>@p.ClientNom</td>
+            <td><span class="badge bg-@badge">@(p.Statut == ProjetStatut.EnCours ? "En cours" : (p.Statut == ProjetStatut.Suspendu ? "Suspendu" : "Terminé"))</span></td>
+            <td class="text-end">
+              <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-eye"></i></a>
+              @if (!User.IsInRole("Visiteur")) {
+                <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+                <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              }
             </td>
           </tr>
-        }
+          }
         </tbody>
       </table>
     </div>
   </div>
-</div>
-
-
+}

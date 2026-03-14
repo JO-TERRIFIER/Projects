@@ -1,0 +1,28 @@
+@model List<NetworkAlert>
+@{ ViewData["Title"] = "Alertes réseau"; }
+<div class="page-header"><h1 class="page-title"><i class="bi bi-bell-fill text-danger me-2"></i>Alertes réseau</h1></div>
+@if (!Model.Any()) {
+  <div class="alert alert-success"><i class="bi bi-shield-check me-2"></i>Aucune alerte active.</div>
+} else {
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light"><tr>
+          <th>Sévérité</th><th>Message</th><th>OLT</th><th>Date</th>
+        </tr></thead>
+        <tbody>
+          @foreach (var a in Model) {
+          var badge = a.Severite == AlertSeverite.Critical ? "danger" :
+                      a.Severite == AlertSeverite.Warning ? "warning" : "info";
+          <tr>
+            <td><span class="badge bg-@badge">@a.Severite</span></td>
+            <td style="font-size:13px">@a.Message</td>
+            <td>@(a.Olt?.Nom ?? "—")</td>
+            <td class="text-nowrap text-muted" style="font-size:12px">@a.OccurredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

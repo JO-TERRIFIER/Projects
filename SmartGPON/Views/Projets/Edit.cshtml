@@ -1,43 +1,35 @@
-@model SmartGPON.Core.Entities.Projet
-@{ ViewData["Title"] = (Model.Id == 0 ? "Nouveau" : "Modifier") + " projet"; var isSuperviseur = User.IsInRole("Superviseur"); var isChefProjet = User.IsInRole("ChefProjet") && !isSuperviseur; var isTechDessin = User.IsInRole("TechDessin") && !isSuperviseur && !isChefProjet; var canWrite = isSuperviseur || isChefProjet; var canUpload = canWrite || isTechDessin; var canDeleteDirect = isSuperviseur; }
-<div class="page-header">
-  <div><h1 class="page-title">@ViewData["Title"]</h1></div>
-  <a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a>
-</div>
-<div class="page-body">
-  <form asp-action="@(Model.Id==0?"Create":"Edit")" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
-    @if(Model.Id!=0){<input type="hidden" asp-for="Id"/>}
-    <div class="row g-4">
-      <div class="col-lg-6">
-        <div class="form-section">
-          <div class="form-section-header">
-            <div class="sec-icon" style="background:rgba(0,200,224,.12)"><i class="bi bi-folder2-open" style="color:var(--accent-cyan)"></i></div>
-            <span style="font-size:13px;font-weight:600">Informations projet</span>
-          </div>
-          <div class="form-section-body">
-            <div class="row g-3">
-              <div class="col-12"><label class="sg-label">Nom du projet *</label><input asp-for="Nom" class="sg-input form-control" required/><span asp-validation-for="Nom" class="text-danger fs-11"></span></div>
-              <div class="col-md-6"><label class="sg-label">Client *</label>
-                <select asp-for="ClientId" class="sg-input form-select" required>
-                  <option value="">-- SÃ©lectionner --</option>
-                  @foreach(var c in ViewBag.Clients as List<SmartGPON.Core.Entities.Client> ?? new()){<option value="@c.Id">@c.Nom</option>}
-                </select></div>
-              <div class="col-md-6"><label class="sg-label">Statut</label><select asp-for="Statut" asp-items="Html.GetEnumSelectList<SmartGPON.Core.Enums.ProjetStatut>()" class="sg-input form-select"></select></div>
-              <div class="col-md-6"><label class="sg-label">Date dÃ©but</label><input asp-for="DateDebut" type="date" class="sg-input form-control"/></div>
-              <div class="col-md-6"><label class="sg-label">Date fin prÃ©vue</label><input asp-for="DateFin" type="date" class="sg-input form-control"/></div>
-              <div class="col-12"><label class="sg-label">Description</label><textarea asp-for="Description" class="sg-input form-control" rows="3"></textarea></div>
-            </div>
-          </div>
-        </div>
+@model ProjetUpdateVM
+@{ ViewData["Title"] = "Modifier projet"; }
+<div class="page-header"><h1 class="page-title"><i class="bi bi-pencil-square me-2"></i>Modifier projet</h1></div>
+<div class="card shadow-sm" style="max-width:600px">
+  <div class="card-body">
+    <form asp-action="Edit" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id" />
+      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+      <div class="mb-3">
+        <label asp-for="Nom" class="form-label fw-semibold">Nom</label>
+        <input asp-for="Nom" class="form-control" />
+        <span asp-validation-for="Nom" class="text-danger small"></span>
       </div>
-      <div class="col-12 mt-2">
-        <div class="d-flex gap-2"><button type="submit" class="btn-primary-sg"><i class="bi bi-check-lg"></i> Enregistrer</button><a asp-action="Index" class="btn-ghost-sg">Annuler</a></div>
+      <div class="mb-3">
+        <label asp-for="ClientId" class="form-label fw-semibold">Client</label>
+        <select asp-for="ClientId" class="form-select" asp-items="ViewBag.ClientsSelectList">
+          <option value="">— Choisir un client —</option>
+        </select>
       </div>
-    </div>
-  </form>
+      <div class="mb-4">
+        <label asp-for="Statut" class="form-label fw-semibold">Statut</label>
+        <select asp-for="Statut" class="form-select">
+          <option value="0">En cours</option>
+          <option value="1">Terminé</option>
+          <option value="2">Suspendu</option>
+        </select>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-floppy me-1"></i>Enregistrer</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+      </div>
+    </form>
+  </div>
 </div>
-
-
-
-

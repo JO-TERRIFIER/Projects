@@ -32,7 +32,7 @@
   string Nav(string c, string? a = null) =>
       (ctrl == c.ToLower() && (a == null || action == a.ToLower())) ? "nav-link-sg active" : "nav-link-sg";
   var unread = ViewBag.UnreadAlerts as int?;
-  var currentRole = User.IsInRole("Superviseur") ? "Superviseur" : (User.IsInRole("ChefProjet") ? "ChefProjet" : (User.IsInRole("TechTerrain") ? "TechTerrain" : (User.IsInRole("TechDessin") ? "TechDessin" : (User.IsInRole("Visiteur") ? "Visiteur" : "Utilisateur"))));
+  var currentRole = User.IsInRole("Superviseur") ? "Superviseur" : (User.IsInRole("Visiteur") ? "Visiteur" : (User.IsInRole("Membre") ? "Membre" : "Utilisateur"));
 }
 
 <!-- -- TOPBAR -- -->
@@ -44,7 +44,7 @@
   </a>
   <span class="topbar-env ms-3">NOC v3</span>
   <div class="topbar-right">
-    <button class="topbar-icon-btn me-2" style="color:var(--color-status-offline)" onclick="if(confirm('Voulez-vous vraiment fermer l\'application ?')) { fetch('/Home/Shutdown',{method:'POST'}).then(()=>{window.close();}).catch(()=>{window.close();}); }" title="Quitter l'application">
+    <button class="topbar-icon-btn me-2" style="color:var(--color-status-offline)" onclick="shutdownApp()" title="Quitter l'application">
       <i class="bi bi-power"></i>
     </button>
     <button class="topbar-icon-btn me-2" onclick="toggleTheme()" title="Basculer le thème (Clair/Sombre)">
@@ -118,13 +118,25 @@
       <span class="nav-icon"><i class="bi bi-geo-alt"></i></span>
       <span class="nav-text">Zones</span>
     </a>
-    <a asp-controller="Home" asp-action="GponBuilder" class="@Nav("home","gponbuilder")">
-      <span class="nav-icon"><i class="bi bi-sliders"></i></span>
-      <span class="nav-text">Config. Architecture GPON</span>
+    <a asp-controller="Olts" asp-action="Index" class="@Nav("olts")">
+      <span class="nav-icon"><i class="bi bi-hdd-network"></i></span>
+      <span class="nav-text">OLTs</span>
     </a>
-    <a asp-controller="Techniciens" asp-action="Index" class="@Nav("techniciens")">
-      <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
-      <span class="nav-text">Techniciens</span>
+    <a asp-controller="Fdts" asp-action="Index" class="@Nav("fdts")">
+      <span class="nav-icon"><i class="bi bi-diagram-2"></i></span>
+      <span class="nav-text">FDTs</span>
+    </a>
+    <a asp-controller="Fats" asp-action="Index" class="@Nav("fats")">
+      <span class="nav-icon"><i class="bi bi-box"></i></span>
+      <span class="nav-text">FATs</span>
+    </a>
+    <a asp-controller="Bpis" asp-action="Index" class="@Nav("bpis")">
+      <span class="nav-icon"><i class="bi bi-boxes"></i></span>
+      <span class="nav-text">BPIs</span>
+    </a>
+    <a asp-controller="BoitiersEtage" asp-action="Index" class="@Nav("boitiersEtage")">
+      <span class="nav-icon"><i class="bi bi-layers"></i></span>
+      <span class="nav-text">Boîtiers d'étage</span>
     </a>
   </div>
 
@@ -146,7 +158,9 @@
   </div>
 
   <div class="sidebar-footer">
-    @if (User.IsInRole("Superviseur")) { <a asp-controller="Users" asp-action="Index" class="nav-link-sg" style="display:flex;align-items:center;gap:8px"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Gestion des utilisateurs</span></a> } @if (User.IsInRole("Superviseur") || User.IsInRole("ChefProjet")) { <a asp-controller="Approvals" asp-action="Index" class="nav-link-sg" style="display:flex;align-items:center;gap:8px"><span class="nav-icon"><i class="bi bi-check2-square"></i></span><span class="nav-text">Demandes</span></a><a asp-controller="Audit" asp-action="Index" class="nav-link-sg" style="display:flex;align-items:center;gap:8px"><span class="nav-icon"><i class="bi bi-journal-text"></i></span><span class="nav-text">Audit</span></a> }
+    @if (User.IsInRole("Superviseur")) { <a asp-controller="Users" asp-action="Index" class="nav-link-sg" style="display:flex;align-items:center;gap:8px"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Utilisateurs</span></a> }
+    @if (!User.IsInRole("Visiteur")) { <a asp-controller="Approvals" asp-action="Index" class="nav-link-sg" style="display:flex;align-items:center;gap:8px"><span class="nav-icon"><i class="bi bi-check2-square"></i></span><span class="nav-text">Demandes</span></a> }
+    @if (User.IsInRole("Superviseur")) { <a asp-controller="AuditLogs" asp-action="Index" class="nav-link-sg" style="display:flex;align-items:center;gap:8px"><span class="nav-icon"><i class="bi bi-journal-text"></i></span><span class="nav-text">Audit</span></a> }
   </div>
 </nav>
 
@@ -183,6 +197,15 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function toggleSidebar() { document.body.classList.toggle('collapsed'); }
+
+async function shutdownApp() {
+  if (!confirm('Voulez-vous vraiment fermer l\'application ?')) return;
+  const shutdownToken = '@SmartGPON.Web.Controllers.ShutdownController.Token';
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;font-family:Inter,sans-serif;color:#fff;background:#111;"><i class="bi bi-power" style="font-size:64px;color:#ef4444;"></i><p style="font-size:20px;font-weight:600;">Fermeture en cours…</p></div>';
+  try {
+    await fetch('/Shutdown?token=' + encodeURIComponent(shutdownToken), { method: 'POST' });
+  } catch (_) { /* normal — le serveur coupe la connexion en s'arrêtant */ }
+}
 
 // Auto-dismiss toast
 document.querySelectorAll('.toast-auto-dismiss').forEach(t => setTimeout(() => t.style.opacity = '0', 3500));

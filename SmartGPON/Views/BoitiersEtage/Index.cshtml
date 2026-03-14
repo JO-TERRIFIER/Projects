@@ -1,0 +1,46 @@
+@model List<BoitierEtageDisplayVM>
+@{ ViewData["Title"] = "Boîtiers d'étage"; }
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h1 class="page-title"><i class="bi bi-layers me-2"></i>Boîtiers d'étage</h1>
+  @if (!User.IsInRole("Visiteur")) {
+    <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nouveau boîtier d'étage</a>
+  }
+</div>
+@if (!Model.Any()) {
+  <div class="alert alert-info">Aucun boîtier d'étage accessible.</div>
+} else {
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light"><tr>
+          <th>Nom</th><th>BPI</th><th>Étage</th><th>Capacité</th><th>Statut</th><th>Lat/Lon</th><th class="text-end">Actions</th>
+        </tr></thead>
+        <tbody>
+          @foreach (var e in Model) {
+          <tr>
+            <td class="fw-semibold">@e.Nom</td>
+            <td>@e.BpiNom</td>
+            <td>Étage @e.Etage</td>
+            <td>@e.Capacite</td>
+            <td>
+              @if (e.IsActive) { <span class="badge bg-success">Actif</span> }
+              else { <span class="badge bg-danger">Inactif</span> }
+            </td>
+            <td class="text-muted" style="font-size:12px">@(e.Latitude?.ToString("F4") ?? "—") / @(e.Longitude?.ToString("F4") ?? "—")</td>
+            <td class="text-end">
+              <a asp-action="Details" asp-route-id="@e.Id" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-eye"></i></a>
+              @if (!User.IsInRole("Visiteur")) {
+                <a asp-action="Edit" asp-route-id="@e.Id" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+                <form asp-action="Delete" asp-route-id="@e.Id" method="post" class="d-inline">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

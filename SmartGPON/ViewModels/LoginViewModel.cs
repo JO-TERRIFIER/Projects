@@ -9,3 +9,4 @@ namespace SmartGPON.Web.ViewModels
         public bool RememberMe { get; set; }
     }
 }
+

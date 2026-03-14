@@ -1,165 +1,112 @@
-@* Views/Security/Index.cshtml *@
-@model SmartGPON.Web.ViewModels.SecurityDashboardViewModel
-@{
-    ViewData["Title"] = "Centre Sécurité";
-    var canWrite = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
-}
+@model SecurityDashboardData
+@{ ViewData["Title"] = "Centre Sécurité"; }
 
-<div class="page-header">
-    <div>
-        <h1 class="page-title"><i class="bi bi-shield-check me-2"></i>Centre Sécurité</h1>
-        <div class="page-subtitle">Supervision sécurité réseau GPON</div>
-    </div>
-    @if (canWrite)
-    {
-      <a asp-action="LancerSimulation" class="btn-primary-sg"><i class="bi bi-activity me-1"></i>Nouvelle simulation</a>
-    }
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h1 class="page-title"><i class="bi bi-shield-check me-2"></i>Centre Sécurité</h1>
 </div>
 
-<div class="page-body">
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="sg-card text-center" style="padding:20px">
-                <div style="font-size:28px;font-weight:700;color:var(--accent-red)">@Model.AlertesCritiques</div>
-                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">ALERTES CRITIQUES</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="sg-card text-center" style="padding:20px">
-                <div style="font-size:28px;font-weight:700;color:var(--accent-amber)">@Model.AlertesWarning</div>
-                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">WARNINGS</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="sg-card text-center" style="padding:20px">
-                <div style="font-size:28px;font-weight:700;color:var(--accent-red)">@Model.RogueOltsActifs</div>
-                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">ROGUE OLTs</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="sg-card text-center" style="padding:20px">
-                <div style="font-size:28px;font-weight:700;color:var(--accent-cyan)">@Model.EvenementsAujourdhui</div>
-                <div class="fs-11 mono" style="color:var(--text-muted);margin-top:4px">ÉVÉNEMENTS AUJOURD'HUI</div>
-            </div>
-        </div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card border-danger">
+      <div class="stat-icon text-danger"><i class="bi bi-bell"></i></div>
+      <div class="stat-value">@Model.AlertCount</div>
+      <div class="stat-label">Alertes réseau</div>
     </div>
-
-    <div class="row g-3">
-        <div class="col-md-8">
-            <div class="sg-card">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="text-accent m-0" style="font-size:13px;font-weight:600"><i class="bi bi-bell me-2"></i>Alertes récentes</h6>
-                    @if (canWrite)
-                    {
-                      <button id="btn-mark-all" class="btn-ghost-sg py-1 px-2" style="font-size:11.5px" onclick="markAllRead()"><i class="bi bi-check-all"></i> Tout marquer lu</button>
-                    }
-                </div>
-                
-                <div class="d-flex gap-2 mb-3 flex-wrap">
-                  @foreach(var sev in new[]{"All","Critical","Warning","Info"}){
-                    var active = (ViewBag.Filter as string ?? "All") == sev;
-                    <a asp-action="Index" asp-route-filter="@sev" class="@(active?"btn-primary-sg":"btn-ghost-sg")" style="font-size:11.5px;padding:4px 10px">@sev</a>
-                  }
-                </div>
-                
-                <table class="sg-table">
-                    <thead><tr><th>Titre</th><th>Sévérité</th><th>Type</th><th>OLT</th><th>Date</th><th style="padding-right:20px;text-align:right">Action</th></tr></thead>
-                    <tbody>
-                    @if(!Model.AlertesPaginees.Items.Any()){
-                      <tr><td colspan="6" class="text-center py-4" style="color:var(--text-muted)"><i class="bi bi-check-circle me-2 text-success"></i>Aucune alerte</td></tr>
-                    }
-                    @foreach (var a in Model.AlertesPaginees.Items)
-                    {
-                        var cls = a.Severite == SmartGPON.Core.Enums.AlertSeverite.Critical ? "pill-red"
-                                : a.Severite == SmartGPON.Core.Enums.AlertSeverite.Warning ? "pill-amber" : "pill-cyan";
-                        var rowBg = !a.IsRead && a.Severite==SmartGPON.Core.Enums.AlertSeverite.Critical?"background:rgba(255,61,87,.04)":"";
-                        <tr id="alert-@a.Id" style="@(a.IsRead ? "opacity:.5" : rowBg)">
-                            <td style="font-weight:@(a.IsRead?"400":"600");color:@(a.IsRead?"var(--text-secondary)":"var(--text-primary)")">
-                              @if(!a.IsRead){<span style="width:6px;height:6px;border-radius:50%;background:var(--accent-red);display:inline-block;margin-right:8px"></span>}
-                              @a.Titre
-                            </td>
-                            <td><span class="pill @cls">@a.Severite</span></td>
-                            <td><small style="color:var(--text-muted)">@a.Type</small></td>
-                            <td><small class="mono" style="color:var(--text-muted)">@(a.Olt?.Nom??"-")</small></td>
-                            <td><small class="mono" style="color:var(--text-muted)">@a.DateAlerte.ToString("dd/MM HH:mm")</small></td>
-                            <td style="padding-right:20px;text-align:right">
-                                @if (canWrite && !a.IsRead)
-                                {
-                                    <button class="icon-btn view mark-read" data-id="@a.Id" title="Marquer lu">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                }
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-                @if(Model.AlertesPaginees.TotalPages > 1){
-                  <nav class="mt-3 d-flex justify-content-center gap-2">
-                    @for(int i=1; i<=Math.Min(5, Model.AlertesPaginees.TotalPages); i++){
-                      <a asp-action="Index" asp-route-page="@i" asp-route-filter="@ViewBag.Filter"
-                         class="@(i==Model.AlertesPaginees.Page?"btn-primary-sg":"btn-ghost-sg")" style="padding:4px 10px;font-size:11.5px;min-width:30px;justify-content:center">@i</a>
-                    }
-                  </nav>
-                }
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="sg-card mb-3">
-                <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i class="bi bi-activity me-2"></i>Simulations récentes</h6>
-                @foreach (var s in Model.SimulationsRecentes.Take(5))
-                {
-                    var simCls = s.Statut == SmartGPON.Core.Enums.SimulationStatut.EnCours ? "pill-amber"
-                               : s.Statut == SmartGPON.Core.Enums.SimulationStatut.Termine ? "pill-green" : "pill-muted";
-                    <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--border-subtle)">
-                        <div>
-                            <div style="font-size:12.5px;font-weight:500">@s.TypeAttaque</div>
-                            <small class="mono" style="color:var(--text-muted)">@s.DateLancement.ToString("dd/MM HH:mm")</small>
-                        </div>
-                        <span class="pill @simCls">@s.Statut</span>
-                    </div>
-                }
-            </div>
-            <div class="sg-card">
-                <h6 class="text-accent mb-3" style="font-size:13px;font-weight:600"><i class="bi bi-exclamation-diamond me-2"></i>Rogue OLTs</h6>
-                @foreach (var r in Model.RogueOlts.Take(5))
-                {
-                    <div class="py-2" style="border-bottom:1px solid var(--border-subtle)">
-                        <div style="font-size:12.5px;font-weight:500;color:var(--accent-red)">@(r.IpSuspecte ?? "IP inconnue")</div>
-                        <small class="mono" style="color:var(--text-muted)">Confiance: @r.NiveauConfiance% — @r.DateDetection.ToString("dd/MM")</small>
-                    </div>
-                }
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card border-warning">
+      <div class="stat-icon text-warning"><i class="bi bi-exclamation-diamond"></i></div>
+      <div class="stat-value">@Model.RogueOltCount</div>
+      <div class="stat-label">Rogue OLTs</div>
     </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card border-info">
+      <div class="stat-icon text-info"><i class="bi bi-activity"></i></div>
+      <div class="stat-value">@Model.SimulationCount</div>
+      <div class="stat-label">Simulations</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card border-secondary">
+      <div class="stat-icon text-secondary"><i class="bi bi-shield-exclamation"></i></div>
+      <div class="stat-value">@Model.SecurityEventCount</div>
+      <div class="stat-label">Événements sécu.</div>
+    </div>
+  </div>
 </div>
 
-@section Scripts {
-<script>
-document.querySelectorAll('.mark-read').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const id = btn.dataset.id;
-        await fetch(`/Security/MarkRead/${id}`, { method:'POST', headers:{'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value||''} });
-        const tr = document.getElementById('alert-'+id);
-        if(tr) {
-            tr.style.setProperty('opacity','0.5');
-            tr.style.setProperty('background','transparent');
-            const dot = tr.querySelector('span[style*="border-radius:50%"]');
-            if(dot) dot.remove();
-            tr.querySelector('td').style.fontWeight = '400';
-            tr.querySelector('td').style.color = 'var(--text-secondary)';
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-bell-fill text-danger me-2"></i>Alertes récentes</span>
+        <a asp-action="Alerts" class="btn btn-sm btn-outline-danger">Voir tout</a>
+      </div>
+      <div class="card-body p-0">
+        @if (!Model.RecentAlerts.Any())
+        {
+          <div class="p-3 text-muted" style="font-size:13px">Aucune alerte.</div>
         }
-        btn.remove();
-    });
-});
-async function markAllRead() {
-  const token = document.querySelector('[name=__RequestVerificationToken]')?.value??'';
-  const d = prompt('Description obligatoire:'); if(!d||!d.trim()) return; 
-  const res = await fetch('/Security/MarkAllRead', {method:'POST', headers:{'RequestVerificationToken': token, 'Content-Type':'application/x-www-form-urlencoded'}, body:'actionDescription='+encodeURIComponent(d.trim())});
-  if(res.ok) location.reload();
-}
-</script>
-@Html.AntiForgeryToken()
-}
+        else
+        {
+          <ul class="list-group list-group-flush">
+            @foreach (var a in Model.RecentAlerts)
+            {
+              var badge = a.Severite == AlertSeverite.Critical ? "danger" : (a.Severite == AlertSeverite.Warning ? "warning" : "info");
+              <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                <div>
+                  <span class="badge bg-@badge me-2">@a.Severite</span>
+                  <span style="font-size:12px">@a.Message</span>
+                  @if (a.Olt != null) { <span class="text-muted ms-1" style="font-size:11px">(@a.Olt.Nom)</span> }
+                </div>
+                <small class="text-muted">@a.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</small>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-exclamation-diamond-fill text-warning me-2"></i>Rogue OLTs récents</span>
+        <a asp-action="RogueOlts" class="btn btn-sm btn-outline-warning">Voir tout</a>
+      </div>
+      <div class="card-body p-0">
+        @if (!Model.RecentRogueOlts.Any())
+        {
+          <div class="p-3 text-muted" style="font-size:13px">Aucun OLT malveillant.</div>
+        }
+        else
+        {
+          <ul class="list-group list-group-flush">
+            @foreach (var m in Model.RecentRogueOlts)
+            {
+              <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                <div>
+                  @if (m.Olt != null) { <span class="badge bg-secondary me-1">@m.Olt.Nom</span> }
+                  <span style="font-size:12px">@m.Reason</span>
+                </div>
+                <small class="text-muted">@m.DetectedAt.ToLocalTime().ToString("dd/MM HH:mm")</small>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+</div>
 
-
+<div class="mt-3">
+  @if (!User.IsInRole("Visiteur"))
+  {
+    <a asp-action="LancerSimulation" class="btn btn-danger">
+      <i class="bi bi-play-fill me-1"></i>Lancer une simulation
+    </a>
+  }
+  <a asp-action="Simulations" class="btn btn-outline-secondary ms-2">
+    <i class="bi bi-activity me-1"></i>Toutes les simulations
+  </a>
+</div>

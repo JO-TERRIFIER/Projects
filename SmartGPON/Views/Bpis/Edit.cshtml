@@ -1,29 +1,41 @@
-@model SmartGPON.Core.Entities.Bpi
-@{ ViewData["Title"] = (Model.Id==0?"Nouveau":"Modifier")+" BPI"; }
-<div class="page-header"><div><h1 class="page-title">@ViewData["Title"]</h1></div><a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a></div>
-<div class="page-body"><div style="max-width:500px">
-  <form asp-action="@(Model.Id==0?"Create":"Edit")" method="post">
-    @Html.AntiForgeryToken()
-    @if(Model.Id!=0){<input type="hidden" asp-for="Id"/>}
-    <div class="form-section">
-      <div class="form-section-header"><div class="sec-icon" style="background:rgba(0,200,224,.1)"><i class="bi bi-building" style="color:var(--accent-cyan)"></i></div><span style="font-size:13px;font-weight:600">BPI</span></div>
-      <div class="form-section-body"><div class="row g-3">
-        <div class="col-12"><label class="sg-label">Nom *</label><input asp-for="Nom" class="sg-input form-control" required/></div>
-        <div class="col-12"><label class="sg-label">FDT parent *</label>
-          <select asp-for="FdtId" class="sg-input form-select" required>
-            <option value="">-- SÃ©lectionner FDT --</option>
-            @foreach(var f in ViewBag.Fdts as List<SmartGPON.Core.Entities.Fdt>??new()){<option value="@f.Id">@f.Nom</option>}
-          </select></div>
-        <div class="col-md-6"><label class="sg-label">CapacitÃ©</label>
-          <select asp-for="Capacite" class="sg-input form-select"><option value="24">24</option><option value="48">48</option></select></div>
-        <div class="col-md-6"><label class="sg-label">Splitters 1:8</label>
-          <select asp-for="NbSplitters1x8" class="sg-input form-select"><option value="1">1</option><option value="2">2</option></select></div>
-        <div class="col-md-6"><label class="sg-label">Latitude</label><input asp-for="Latitude" class="sg-input form-control" type="number" step="0.0000001"/></div>
-        <div class="col-md-6"><label class="sg-label">Longitude</label><input asp-for="Longitude" class="sg-input form-control" type="number" step="0.0000001"/></div>
-        <div class="col-md-6"><label class="sg-label">Statut</label>
-          <select asp-for="Statut" asp-items="Html.GetEnumSelectList<SmartGPON.Core.Enums.StatutEquipement>()" class="sg-input form-select"></select></div>
-      </div></div></div>
-    <div class="d-flex gap-2"><button type="submit" class="btn-primary-sg"><i class="bi bi-check-lg"></i> Enregistrer</button><a asp-action="Index" class="btn-ghost-sg">Annuler</a></div>
-  </form>
-</div></div>
-
+@model BpiUpdateVM
+@{ ViewData["Title"] = "Modifier BPI"; }
+<div class="page-header"><h1 class="page-title"><i class="bi bi-pencil-square me-2"></i>Modifier BPI</h1></div>
+<div class="card shadow-sm" style="max-width:600px">
+  <div class="card-body">
+    <form asp-action="Edit" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id" />
+      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+      <div class="mb-3">
+        <label asp-for="Nom" class="form-label fw-semibold">Nom</label>
+        <input asp-for="Nom" class="form-control" />
+        <span asp-validation-for="Nom" class="text-danger small"></span>
+      </div>
+      <div class="mb-3">
+        <label asp-for="FdtId" class="form-label fw-semibold">FDT</label>
+        <select asp-for="FdtId" class="form-select" asp-items="ViewBag.FdtsSelectList">
+          <option value="">— Choisir un FDT —</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label asp-for="Capacite" class="form-label fw-semibold">Capacité</label>
+        <input asp-for="Capacite" type="number" min="1" class="form-control" />
+      </div>
+      <div class="row mb-4">
+        <div class="col">
+          <label asp-for="Latitude" class="form-label fw-semibold">Latitude</label>
+          <input asp-for="Latitude" class="form-control" />
+        </div>
+        <div class="col">
+          <label asp-for="Longitude" class="form-label fw-semibold">Longitude</label>
+          <input asp-for="Longitude" class="form-control" />
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-floppy me-1"></i>Enregistrer</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>

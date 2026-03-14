@@ -1,49 +1,42 @@
-@model IEnumerable<SmartGPON.Web.Controllers.NotificationItem>
-@{
-    ViewData["Title"] = "Notifications";
+@model List<AuditLogDisplayVM>
+@{ ViewData["Title"] = "Notifications"; }
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h1 class="page-title"><i class="bi bi-bell me-2"></i>Notifications</h1>
+</div>
+
+@if (!Model.Any())
+{
+  <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucune notification récente.</div>
 }
-
-<div class="page-header">
-    <div>
-        <h1 class="page-title"><i class="bi bi-bell me-2"></i>Notifications</h1>
-        <div class="page-subtitle">Ã‰vÃ©nements liÃ©s Ã  votre profil</div>
-    </div>
-</div>
-
-<div class="page-body">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="sg-card">
-                @if (!Model.Any())
-                {
-                    <div class="text-center py-5" style="color:var(--text-muted)">
-                        <i class="bi bi-bell-slash d-block mb-3" style="font-size:32px"></i>
-                        Aucune notification rÃ©cente
-                    </div>
-                }
-                else
-                {
-                    <div class="list-group list-group-flush" style="margin:-20px;border-radius:12px;overflow:hidden">
-                        @foreach (var n in Model)
-                        {
-                            <a href="@n.Lien" class="list-group-item list-group-item-action p-4 d-flex gap-3 align-items-start" style="border-bottom:1px solid var(--border-subtle);background:@(n.IsUnread?"rgba(0,123,255,0.03)":"transparent")">
-                                <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:@n.Color">
-                                    <i class="bi @n.Icon fs-5"></i>
-                                </div>
-                                <div style="flex-grow:1;min-width:0">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px">@n.Type</div>
-                                        <div class="mono" style="font-size:11px;color:var(--text-muted)">@n.Date.ToString("dd MMM Ã  HH:mm")</div>
-                                    </div>
-                                    <div style="font-size:14px;font-weight:@(n.IsUnread?"600":"500");color:var(--text-primary);word-break:break-word">
-                                        @n.Titre
-                                    </div>
-                                </div>
-                            </a>
-                        }
-                    </div>
-                }
+else
+{
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="list-group list-group-flush">
+        @foreach (var n in Model)
+        {
+          <div class="list-group-item d-flex align-items-start gap-3 py-3">
+            <div class="mt-1">
+              <i class="bi bi-circle-fill text-primary" style="font-size:8px"></i>
             </div>
-        </div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold" style="font-size:13px">
+                <span class="badge bg-secondary me-1">@n.ActionType</span>
+                <span class="badge bg-light text-dark border me-1">@n.EntityType</span>
+                @if (!string.IsNullOrEmpty(n.NomTech))
+                {
+                  <span class="text-muted">— @n.PrenomTech @n.NomTech</span>
+                }
+              </div>
+              <div class="text-muted" style="font-size:12px">@n.Description</div>
+            </div>
+            <div class="text-muted text-nowrap" style="font-size:11px">
+              @n.OccurredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+            </div>
+          </div>
+        }
+      </div>
     </div>
-</div>
+  </div>
+}

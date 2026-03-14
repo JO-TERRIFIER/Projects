@@ -1,27 +1,36 @@
-@model SmartGPON.Core.Entities.Olt
-@{ ViewData["Title"] = (Model.Id==0?"Nouveau":"Modifier")+" OLT"; }
-<div class="page-header"><div><h1 class="page-title">@ViewData["Title"]</h1></div><a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left"></i> Retour</a></div>
-<div class="page-body"><div style="max-width:580px">
-  <form asp-action="@(Model.Id==0?"Create":"Edit")" method="post">
-    @Html.AntiForgeryToken()
-    @if(Model.Id!=0){<input type="hidden" asp-for="Id"/>}
-    <div class="form-section">
-      <div class="form-section-header"><div class="sec-icon" style="background:rgba(255,179,0,.1)"><i class="bi bi-server" style="color:var(--accent-amber)"></i></div><span style="font-size:13px;font-weight:600">Optical Line Terminal</span></div>
-      <div class="form-section-body"><div class="row g-3">
-        <div class="col-md-8"><label class="sg-label">Nom *</label><input asp-for="Nom" class="sg-input form-control" required/></div>
-        <div class="col-md-4"><label class="sg-label">Nb ports</label><input asp-for="NbrePorts" class="sg-input form-control" type="number" min="1" max="128"/></div>
-        <div class="col-md-6"><label class="sg-label">Marque</label><input asp-for="Marque" class="sg-input form-control" placeholder="Huawei, ZTE, Nokiaâ€¦"/></div>
-        <div class="col-md-6"><label class="sg-label">ModÃ¨le</label><input asp-for="Modele" class="sg-input form-control" placeholder="MA5800, ZXANâ€¦"/></div>
-        <div class="col-md-6"><label class="sg-label">Adresse IP</label><input asp-for="IpAddress" class="sg-input form-control" placeholder="192.168.x.x"/></div>
-        <div class="col-md-6"><label class="sg-label">Zone *</label>
-          <select asp-for="ZoneId" class="sg-input form-select" required>
-            <option value="">-- SÃ©lectionner zone --</option>
-            @foreach(var z in ViewBag.Zones as List<SmartGPON.Core.Entities.Zone>??new()){<option value="@z.Id">@z.Nom</option>}
-          </select></div>
-        <div class="col-md-6"><label class="sg-label">Statut</label>
-          <select asp-for="Statut" asp-items="Html.GetEnumSelectList<SmartGPON.Core.Enums.StatutEquipement>()" class="sg-input form-select"></select></div>
-        <div class="col-md-6"><label class="sg-label">Date installation</label><input asp-for="DateInstall" type="date" class="sg-input form-control"/></div>
-      </div></div></div>
-    <div class="d-flex gap-2"><button type="submit" class="btn-primary-sg"><i class="bi bi-check-lg"></i> Enregistrer</button><a asp-action="Index" class="btn-ghost-sg">Annuler</a></div>
-  </form>
-</div></div>
+@model OltCreateVM
+@{ ViewData["Title"] = "Nouvel OLT"; }
+<div class="page-header"><h1 class="page-title"><i class="bi bi-hdd-network me-2"></i>Nouvel OLT</h1></div>
+<div class="card shadow-sm" style="max-width:600px">
+  <div class="card-body">
+    <form asp-action="Create" method="post">
+      @Html.AntiForgeryToken()
+      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+      <div class="mb-3">
+        <label asp-for="Nom" class="form-label fw-semibold">Nom</label>
+        <input asp-for="Nom" class="form-control" placeholder="Ex: OLT-NORD-01" />
+        <span asp-validation-for="Nom" class="text-danger small"></span>
+      </div>
+      <div class="mb-3">
+        <label asp-for="ZoneId" class="form-label fw-semibold">Zone</label>
+        <select asp-for="ZoneId" class="form-select" asp-items="ViewBag.ZonesSelectList">
+          <option value="">— Choisir une zone —</option>
+        </select>
+        <span asp-validation-for="ZoneId" class="text-danger small"></span>
+      </div>
+      <div class="mb-3">
+        <label asp-for="IpAddress" class="form-label fw-semibold">Adresse IP <small class="text-muted">(optionnel)</small></label>
+        <input asp-for="IpAddress" class="form-control" placeholder="Ex: 192.168.1.10" />
+      </div>
+      <div class="mb-4">
+        <label asp-for="NbrePorts" class="form-label fw-semibold">Nombre de ports</label>
+        <input asp-for="NbrePorts" type="number" min="1" class="form-control" placeholder="Ex: 16" />
+        <span asp-validation-for="NbrePorts" class="text-danger small"></span>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Créer</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>

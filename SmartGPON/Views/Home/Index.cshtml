@@ -1,78 +1,115 @@
-@* Views/Home/Index.cshtml - Dashboard Projets *@
-@model SmartGPON.Web.ViewModels.DashboardViewModel
-@{
-  ViewData["Title"] = "Tableau de bord";
-}
-<style>
-  ::-webkit-scrollbar { display: none !important; }
-  * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
-  .dash-page{display:flex;flex-direction:column;height:calc(100vh - var(--topbar-h, 60px));overflow:hidden;padding-bottom:10px;}
-  .dash-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 24px 0}
-  .dash-charts{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:12px;padding:12px 24px 20px;flex:1;min-height:0}
-  .kpi-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--color-bg-surface);border:1px solid var(--color-border);border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,0.05)}
-  .kpi-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .kpi-val{font-size:22px;font-weight:700;font-family:var(--font-mono)}
-  .kpi-lbl{font-size:10px;color:var(--text-muted)}
-  .chart-card{background:var(--color-bg-surface);border:1px solid var(--color-border);border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,0.05);padding:12px 16px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-  .chart-hdr{font-size:11px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-  .chart-wrap{flex:1;min-height:0;position:relative}
-</style>
+@model DashboardViewModel
+@{ ViewData["Title"] = "Tableau de bord"; }
 
-<div class="dash-page">
-  <div style="padding:20px 24px 0"><h1 class="page-title" style="margin:0">Tableau de bord</h1><div class="page-subtitle" style="margin:0">Vue d'ensemble des projets FTTH GPON</div></div>
+<div class="page-header">
+  <h1 class="page-title"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</h1>
+</div>
 
-  <div class="dash-kpis">
-    <div class="kpi-card"><div class="kpi-icon" style="background:rgba(0,200,224,.12)"><i class="bi bi-folder2-open" style="color:var(--accent-cyan)"></i></div><div><div class="kpi-val">@Model.TotalProjets</div><div class="kpi-lbl">Total projets</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon" style="background:rgba(0,230,118,.1)"><i class="bi bi-check-circle" style="color:var(--accent-green)"></i></div><div><div class="kpi-val" style="color:var(--accent-green)">@Model.ProjetsTermines</div><div class="kpi-lbl">Terminés</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,179,0,.1)"><i class="bi bi-arrow-repeat" style="color:var(--accent-amber)"></i></div><div><div class="kpi-val" style="color:var(--accent-amber)">@Model.ProjetsEnCours</div><div class="kpi-lbl">En cours</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,61,87,.1)"><i class="bi bi-pause-circle" style="color:var(--accent-red)"></i></div><div><div class="kpi-val" style="color:var(--accent-red)">@Model.ProjetsSuspendus</div><div class="kpi-lbl">Suspendus</div></div></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-primary"><i class="bi bi-building"></i></div>
+      <div class="stat-value">@Model.TotalClients</div>
+      <div class="stat-label">Clients</div>
+    </div>
   </div>
-
-  <div class="dash-charts">
-    <div class="chart-card"><div class="chart-hdr" style="color:var(--accent-cyan)"><i class="bi bi-folder2-open"></i>Total Projets</div><div class="chart-wrap"><canvas id="chartTotal"></canvas></div></div>
-    <div class="chart-card"><div class="chart-hdr" style="color:var(--accent-green)"><i class="bi bi-check-circle"></i>Projets terminés</div><div class="chart-wrap"><canvas id="chartTermines"></canvas></div></div>
-    <div class="chart-card"><div class="chart-hdr" style="color:var(--accent-amber)"><i class="bi bi-arrow-repeat"></i>Projets en cours</div><div class="chart-wrap"><canvas id="chartEnCours"></canvas></div></div>
-    <div class="chart-card"><div class="chart-hdr" style="color:var(--accent-red)"><i class="bi bi-pause-circle"></i>Projets suspendus</div><div class="chart-wrap"><canvas id="chartSuspendus"></canvas></div></div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-success"><i class="bi bi-folder2-open"></i></div>
+      <div class="stat-value">@Model.TotalProjets</div>
+      <div class="stat-label">Projets</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-warning"><i class="bi bi-geo-alt"></i></div>
+      <div class="stat-value">@Model.TotalZones</div>
+      <div class="stat-label">Zones</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-info"><i class="bi bi-hdd-network"></i></div>
+      <div class="stat-value">@Model.TotalOlts</div>
+      <div class="stat-label">OLTs</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-danger"><i class="bi bi-diagram-2"></i></div>
+      <div class="stat-value">@Model.TotalFdts</div>
+      <div class="stat-label">FDTs</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-secondary"><i class="bi bi-share"></i></div>
+      <div class="stat-value">@Model.TotalSplitters</div>
+      <div class="stat-label">Splitters</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-primary"><i class="bi bi-box"></i></div>
+      <div class="stat-value">@Model.TotalFats</div>
+      <div class="stat-label">FATs</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-success"><i class="bi bi-boxes"></i></div>
+      <div class="stat-value">@Model.TotalBpis</div>
+      <div class="stat-label">BPIs</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-warning"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="stat-value">@Model.TotalFibres</div>
+      <div class="stat-label">Fibres</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon text-info"><i class="bi bi-circle"></i></div>
+      <div class="stat-value">@Model.TotalChambres</div>
+      <div class="stat-label">Chambres</div>
+    </div>
   </div>
 </div>
 
-@section Scripts {
-<script>
-(function(){
-  const year = new Date().getFullYear();
-  const chartOpts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { display: false },
-      tooltip: { backgroundColor: '#1a2035', titleColor: '#e0e6ed', bodyColor: '#e0e6ed', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1, cornerRadius: 6, padding: 8, titleFont: { size: 11 }, bodyFont: { size: 11 } }
-    },
-    scales: {
-      x: { 
-        type: 'time', 
-        time: { unit: 'month', displayFormats: { month: 'MMM yy' }, tooltipFormat: 'dd MMM yyyy' },
-        min: new Date(year, 0, 1).valueOf(),
-        max: new Date(year, 11, 31, 23, 59, 59).valueOf(),
-        grid: { color: 'rgba(255,255,255,.04)' }, 
-        ticks: { color: '#7a8b9a', font: { size: 9 }, maxRotation: 0 } 
-      },
-      y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#7a8b9a', font: { size: 9 }, precision: 0 } }
-    }
-  };
-  const mk = (id, color) => new Chart(document.getElementById(id), {
-    type: 'line',
-    data: { datasets: [{ data: [], borderColor: color, backgroundColor: color + '18', fill: true, tension: 0.1, pointRadius: 2, pointHoverRadius: 5, borderWidth: 2 }] },
-    options: chartOpts
-  });
-  const cT = mk('chartTotal','#00c8e0'), cD = mk('chartTermines','#00e676'), cE = mk('chartEnCours','#ffb300'), cS = mk('chartSuspendus','#ff3d57');
-
-  fetch('/Home/GetProjectStats').then(r=>r.json()).then(data=>{
-    cT.data.datasets[0].data=data.map(d=>({x: d.date, y: d.total})); cT.update();
-    cD.data.datasets[0].data=data.map(d=>({x: d.date, y: d.termines})); cD.update();
-    cE.data.datasets[0].data=data.map(d=>({x: d.date, y: d.enCours})); cE.update();
-    cS.data.datasets[0].data=data.map(d=>({x: d.date, y: d.suspendus})); cS.update();
-  }).catch(()=>{});
-})();
-</script>
-}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold"><i class="bi bi-folder2 me-2"></i>Accès rapide</div>
+      <div class="card-body d-flex flex-wrap gap-2">
+        <a asp-controller="Projets" asp-action="Index" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-folder2-open me-1"></i>Projets
+        </a>
+        <a asp-controller="Zones" asp-action="Index" class="btn btn-outline-info btn-sm">
+          <i class="bi bi-geo-alt me-1"></i>Zones
+        </a>
+        <a asp-controller="Olts" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-hdd-network me-1"></i>OLTs
+        </a>
+        <a asp-controller="Fdts" asp-action="Index" class="btn btn-outline-warning btn-sm">
+          <i class="bi bi-diagram-2 me-1"></i>FDTs
+        </a>
+        <a asp-controller="Security" asp-action="Index" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-shield-check me-1"></i>Sécurité
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold"><i class="bi bi-diagram-3 me-2"></i>Topologie GPON</div>
+      <div class="card-body">
+        <p class="text-muted mb-2" style="font-size:13px">Zone → OLT → FDT → Splitter (1x8 / 1x64) → FAT / BPI</p>
+        <a asp-controller="Home" asp-action="ArchitectureGpon" class="btn btn-primary btn-sm">
+          <i class="bi bi-diagram-3 me-1"></i>Voir l'architecture
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

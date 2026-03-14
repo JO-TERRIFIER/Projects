@@ -1,3 +1,6 @@
+// ============================================================
+// SmartGPON — Program.cs — FRESH START
+// ============================================================
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SmartGPON.Core.Enums;
@@ -7,6 +10,7 @@ using SmartGPON.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Database ────────────────────────────────────────────────
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         sql =>
@@ -15,6 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             sql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         }));
 
+// ── Identity ────────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opt =>
 {
     opt.Password.RequireDigit = true;
@@ -39,14 +44,19 @@ builder.Services.ConfigureApplicationCookie(opt =>
     opt.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
 });
 
+// ── Services DI ─────────────────────────────────────────────
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ISecurityService, SecurityService>();
 builder.Services.AddScoped<ITreeService, TreeService>();
-builder.Services.AddScoped<IAuthorizationScopeService, AuthorizationScopeService>();
+builder.Services.AddScoped<IUserProjectAssignmentService, UserProjectAssignmentService>();
 builder.Services.AddScoped<IApprovalService, ApprovalService>();
-builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IFibreService, FibreService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<ISplitterService, SplitterService>();
+builder.Services.AddScoped<IAttackSimulationService, AttackSimulationService>();
 builder.Services.AddControllersWithViews(options =>
 {
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
@@ -56,6 +66,7 @@ builder.Services.AddSingleton<SmartGPON.Web.Controllers.KioskProcessContext>();
 
 var app = builder.Build();
 
+// ── Middleware ───────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -75,20 +86,21 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// ── FRESH START — Drop + Recreate DB ────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        // db.Database.EnsureDeleted(); // Uncomment ONLY for intentional full reset
-        db.Database.EnsureCreated(); // Recreate schema from EF model
 
+        // FRESH START — drops entire DB and recreates from EF Core entities
+        db.Database.EnsureDeleted();
+        db.Database.EnsureCreated();
+
+        // Seed roles: Superviseur, Visiteur, Membre
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        // Seed all roles
-        foreach (var role in new[] { UserRoles.Superviseur, UserRoles.ChefProjet, UserRoles.TechTerrain, UserRoles.TechDessin, UserRoles.Visiteur })
+        foreach (var role in new[] { UserRoles.Superviseur, UserRoles.Visiteur, UserRoles.Membre })
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
@@ -98,7 +110,8 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // Seed admin@smartgpon.local as Superviseur
+        // Seed admin user
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var adminEmail = "admin@smartgpon.local";
         if (await userManager.FindByEmailAsync(adminEmail) == null)
         {
@@ -111,7 +124,7 @@ using (var scope = app.Services.CreateScope())
                 LastName = "Système",
                 SecurityStamp = Guid.NewGuid().ToString()
             };
-            var cr = await userManager.CreateAsync(admin, "Admin@12345");
+            var cr = await userManager.CreateAsync(admin, "Admin@123456");
             if (cr.Succeeded)
             {
                 await userManager.AddToRoleAsync(admin, UserRoles.Superviseur);
@@ -126,6 +139,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// ── Kiosk launch logic (preserved as-is) ────────────────────
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
 lifetime.ApplicationStarted.Register(() =>

@@ -1,24 +1,9 @@
-// SmartGPON v3 - Core/Enums/Enums.cs
+// ============================================================
+// SmartGPON — Core/Enums/Enums.cs — FRESH START
+// ============================================================
 namespace SmartGPON.Core.Enums
 {
-    public enum StatutEquipement   : byte { Inactif = 0, Actif = 1, EnPanne = 2, EnMaintenance = 3 }
-    public enum ProjetStatut       : byte { EnCours = 0, Termine = 1, Suspendu = 2 }
-    public enum ResultatTest       : byte { EnCours = 0, Reussi = 1, Echoue = 2 }
-    public enum StatutValidation   : byte { EnAttente = 0, Valide = 1, Rejete = 2 }
-    public enum SimulationStatut   : byte { EnAttente = 0, EnCours = 1, Termine = 2, Echoue = 3 }
-    public enum NiveauRisque       : byte { Faible = 1, Moyen = 2, Eleve = 3, Critique = 4 }
-    public enum AlertSeverite      : byte { Info = 1, Warning = 2, Critical = 3 }
-    public enum StatutMaliciousOlt : byte { Actif = 0, Resolu = 1, FauxPositif = 2 }
-
-    public static class UserRoles
-    {
-        public const string Superviseur = "Superviseur";
-        public const string ChefProjet = "ChefProjet";
-        public const string TechTerrain = "TechTerrain";
-        public const string TechDessin = "TechDessin";
-        public const string Visiteur = "Visiteur";
-    }
-
+    /// <summary>Project-level assignment type (NOT an Identity role).</summary>
     public enum AssignmentType : byte
     {
         ChefProjet = 1,
@@ -26,22 +11,77 @@ namespace SmartGPON.Core.Enums
         TechDessin = 3
     }
 
-    public enum ApprovalActionType : byte
+    public enum EquipementType : byte
     {
-        DeleteProjet = 1,
-        DeleteZone = 2,
-        EditEquipment = 3,
-        DeleteEquipment = 4,
-        DeleteResource = 5
+        OLT = 1,
+        FDT = 2,
+        FAT = 3,
+        BPI = 4,
+        Chambre = 5,
+        Fibre = 6,
+        BoitierEtage = 7
     }
 
-    public enum ApprovalStatus : byte
+    public enum TypeFibre : byte
     {
-        Pending = 0,
-        Approved = 1,
-        Rejected = 2,
-        Executed = 3
+        FO_4 = 1,
+        FO_6 = 2,
+        FO_12 = 3,
+        FO_24 = 4,
+        FO_48 = 5,
+        FO_72 = 6,
+        FO_96 = 7,
+        FO_144 = 8
+    }
+
+    public enum TypeSplitter : byte
+    {
+        x8 = 1,   // immeubles
+        x64 = 2   // villas
+    }
+
+    public enum ValidationStatut : byte
+    {
+        EnAttente = 1,
+        Valide = 2,
+        Rejete = 3
+    }
+
+    public enum ProjetStatut : byte
+    {
+        EnCours = 0,
+        Termine = 1,
+        Suspendu = 2
+    }
+
+    public enum SimulationStatut : byte
+    {
+        EnAttente = 0,
+        EnCours = 1,
+        Termine = 2,
+        Echoue = 3
+    }
+
+    public enum NiveauRisque : byte
+    {
+        Faible = 1,
+        Moyen = 2,
+        Eleve = 3,
+        Critique = 4
+    }
+
+    public enum AlertSeverite : byte
+    {
+        Info = 1,
+        Warning = 2,
+        Critical = 3
+    }
+
+    /// <summary>ASP.NET Identity roles (AspNetRoles table). Distinct from AssignmentType.</summary>
+    public static class UserRoles
+    {
+        public const string Superviseur = "Superviseur";
+        public const string Visiteur = "Visiteur";
+        public const string Membre = "Membre";
     }
 }
-
-

@@ -1,76 +1,40 @@
-@* Views/Olts/Index.cshtml *@
-@model IEnumerable<SmartGPON.Core.Entities.Olt>
-@{
-    ViewData["Title"] = "OLTs";
-    var isSuperviseurOrChef = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
-    var isTechTerrain = User.IsInRole("TechTerrain") && !isSuperviseurOrChef;
-    var canWrite = isSuperviseurOrChef || isTechTerrain;
+@model List<OltDisplayVM>
+@{ ViewData["Title"] = "OLTs"; }
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h1 class="page-title"><i class="bi bi-hdd-network me-2"></i>OLTs</h1>
+  @if (!User.IsInRole("Visiteur")) {
+    <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nouvel OLT</a>
+  }
+</div>
+@if (!Model.Any()) {
+  <div class="alert alert-info">Aucun OLT accessible.</div>
+} else {
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light"><tr>
+          <th>Nom</th><th>Zone</th><th>IP</th><th>Ports</th><th class="text-end">Actions</th>
+        </tr></thead>
+        <tbody>
+          @foreach (var o in Model) {
+          <tr>
+            <td class="fw-semibold">@o.Nom</td>
+            <td>@o.ZoneNom</td>
+            <td><code>@(o.IpAddress ?? "—")</code></td>
+            <td>@o.NbrePorts</td>
+            <td class="text-end">
+              @if (!User.IsInRole("Visiteur")) {
+                <a asp-action="Edit" asp-route-id="@o.Id" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+                <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
 }
-
-<div class="page-header">
-    <div>
-        <h1 class="page-title"><i class="bi bi-server me-2"></i>OLTs</h1>
-        <div class="page-subtitle">Optical Line Terminals — Infrastructure réseau</div>
-    </div>
-    @if (canWrite)
-    {
-      <a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg me-1"></i>Nouvel OLT</a>
-    }
-</div>
-
-<div class="page-body">
-    <div class="sg-card">
-        <table class="sg-table">
-            <thead><tr><th>Nom</th><th>Adresse IP</th><th>Marque / Modèle</th><th>Zone</th><th>Ports</th><th>Statut</th><th>Actions</th></tr></thead>
-            <tbody>
-            @foreach (var o in Model)
-            {
-                <tr>
-                    <td class="fw-semibold">@o.Nom</td>
-                    <td><code class="mono text-accent">@o.IpAddress</code></td>
-                    <td><small style="color:var(--text-secondary)">@o.Marque @o.Modele</small></td>
-                    <td><small style="color:var(--text-muted)">@o.Zone?.Nom</small></td>
-                    <td><span class="text-accent mono">@o.NbrePorts</span></td>
-                    <td>
-                        @switch(o.Statut)
-                        {
-                            case SmartGPON.Core.Enums.StatutEquipement.Actif:
-                                <span class="pill pill-green"><span class="si si-on"></span>Actif</span>
-                                break;
-                            case SmartGPON.Core.Enums.StatutEquipement.EnPanne:
-                                <span class="pill pill-red"><span class="si si-err"></span>En panne</span>
-                                break;
-                            case SmartGPON.Core.Enums.StatutEquipement.EnMaintenance:
-                                <span class="pill pill-amber"><span class="si si-warn"></span>Maintenance</span>
-                                break;
-                            default:
-                                <span class="pill pill-muted">Inactif</span>
-                                break;
-                        }
-                    </td>
-                    <td>
-                        @if (isSuperviseurOrChef)
-                        {
-                          <a asp-action="Edit" asp-route-id="@o.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
-                          <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer cet OLT ?')">
-                              @Html.AntiForgeryToken()
-                              <button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash"></i></button>
-                          </form>
-                        }
-                        else if (isTechTerrain)
-                        {
-                          <a asp-action="Edit" asp-route-id="@o.Id" class="icon-btn edit" title="Demander modification"><i class="bi bi-pencil-square"></i></a>
-                          <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline" onsubmit="return confirm('Demander la suppression de cet OLT ?')">
-                              @Html.AntiForgeryToken()
-                              <button type="submit" class="icon-btn warning" title="Demander suppression" style="color:var(--color-status-warning)"><i class="bi bi-trash"></i></button>
-                          </form>
-                        }
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-</div>
-
-

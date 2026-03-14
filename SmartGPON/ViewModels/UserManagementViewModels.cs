@@ -1,3 +1,6 @@
+// ============================================================
+// SmartGPON — ViewModels/UserManagementViewModels.cs — FRESH START
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartGPON.Web.ViewModels
@@ -10,6 +13,8 @@ namespace SmartGPON.Web.ViewModels
         public string LastName { get; set; } = string.Empty;
         public string FullName => $"{FirstName} {LastName}".Trim();
         public string Role { get; set; } = string.Empty;
+        public string? Specialite { get; set; }
+        public int? ClientId { get; set; }
         public bool IsActive { get; set; }
     }
 
@@ -33,6 +38,11 @@ namespace SmartGPON.Web.ViewModels
         [Required]
         public string Role { get; set; } = string.Empty;
 
+        [MaxLength(100)]
+        public string? Specialite { get; set; }
+
+        public int? ClientId { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public List<string> AvailableRoles { get; set; } = new();
@@ -55,6 +65,11 @@ namespace SmartGPON.Web.ViewModels
         [Required]
         public string Role { get; set; } = string.Empty;
 
+        [MaxLength(100)]
+        public string? Specialite { get; set; }
+
+        public int? ClientId { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         [DataType(DataType.Password), MinLength(8)]
@@ -74,8 +89,9 @@ namespace SmartGPON.Web.ViewModels
         public string LastName { get; set; } = string.Empty;
         public string FullName => $"{FirstName} {LastName}".Trim();
         public string Role { get; set; } = string.Empty;
+        public string? Specialite { get; set; }
+        public int? ClientId { get; set; }
         public bool IsActive { get; set; }
         public bool EmailConfirmed { get; set; }
     }
 }
-

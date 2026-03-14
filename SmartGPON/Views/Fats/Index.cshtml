@@ -1,57 +1,40 @@
-@model IEnumerable<SmartGPON.Core.Entities.Fat>
-@{
-  ViewData["Title"] = "FATs";
-  var isSuperviseurOrChef = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet");
-  var isTechTerrain = User.IsInRole("TechTerrain") && !isSuperviseurOrChef;
-  var canWrite = isSuperviseurOrChef || isTechTerrain;
-}
-<div class="page-header">
-  <div><h1 class="page-title">FATs</h1><div class="page-subtitle">Fibre Access Terminals — Capacité 8 ou 12</div></div>
-  @if (canWrite)
-  {
-    <a asp-action="Create" class="btn-primary-sg"><i class="bi bi-plus-lg"></i> Ajouter FAT</a>
+@model List<FatDisplayVM>
+@{ ViewData["Title"] = "FATs"; }
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h1 class="page-title"><i class="bi bi-box me-2"></i>FATs</h1>
+  @if (!User.IsInRole("Visiteur")) {
+    <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nouveau FAT</a>
   }
 </div>
-<div class="page-body">
-  <div class="sg-card p-0" style="overflow:hidden">
-    <div style="overflow-x:auto">
-      <table class="sg-table">
-        <thead><tr>
-          <th style="padding-left:20px">Code FAT</th><th>FDT parent</th>
-          <th>Capacité</th><th>Statut</th><th style="padding-right:20px;text-align:right">Actions</th>
+@if (!Model.Any()) {
+  <div class="alert alert-info">Aucun FAT accessible.</div>
+} else {
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light"><tr>
+          <th>Nom</th><th>FDT</th><th>Capacité</th><th>Lat/Lon</th><th class="text-end">Actions</th>
         </tr></thead>
         <tbody>
-        @foreach(var f in Model){
-          var pill = f.Statut==SmartGPON.Core.Enums.StatutEquipement.Actif?"pill-green":f.Statut==SmartGPON.Core.Enums.StatutEquipement.EnPanne?"pill-red":"pill-amber";
+          @foreach (var f in Model) {
           <tr>
-            <td style="padding-left:20px">
-              <span class="mono text-accent">@f.Nom</span>
+            <td class="fw-semibold">@f.Nom</td>
+            <td>@f.FdtNom</td>
+            <td>@f.Capacite</td>
+            <td class="text-muted" style="font-size:12px">@(f.Latitude?.ToString("F4") ?? "—") / @(f.Longitude?.ToString("F4") ?? "—")</td>
+            <td class="text-end">
+              @if (!User.IsInRole("Visiteur")) {
+                <a asp-action="Edit" asp-route-id="@f.Id" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+                <form asp-action="Delete" asp-route-id="@f.Id" method="post" class="d-inline">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              }
             </td>
-            <td class="mono" style="font-size:11.5px;color:var(--text-muted)">@f.Fdt?.Nom</td>
-            <td class="mono" style="color:var(--accent-cyan)">@f.Capacite</td>
-            <td><span class="pill @pill">@f.Statut</span></td>
-            <td style="padding-right:20px;text-align:right"><div class="d-flex justify-content-end gap-1">
-              @if (isSuperviseurOrChef)
-              {
-                <a asp-action="Edit" asp-route-id="@f.Id" class="icon-btn edit" title="Modifier"><i class="bi bi-pencil"></i></a>
-                <form asp-action="Delete" asp-route-id="@f.Id" method="post" class="d-inline" onsubmit="return confirm('Supprimer ?')">
-                  @Html.AntiForgeryToken()<button type="submit" class="icon-btn danger" title="Supprimer"><i class="bi bi-trash3"></i></button>
-                </form>
-              }
-              else if (isTechTerrain)
-              {
-                <a asp-action="Edit" asp-route-id="@f.Id" class="icon-btn edit" title="Demander modification"><i class="bi bi-pencil-square"></i></a>
-                <form asp-action="Delete" asp-route-id="@f.Id" method="post" class="d-inline" onsubmit="return confirm('Demander la suppression de ce FAT ?')">
-                  @Html.AntiForgeryToken()<button type="submit" class="icon-btn warning" title="Demander suppression" style="color:var(--color-status-warning)"><i class="bi bi-trash3"></i></button>
-                </form>
-              }
-            </div></td>
           </tr>
-        }
+          }
         </tbody>
       </table>
     </div>
   </div>
-</div>
-
-
+}
