@@ -1,114 +1,159 @@
-@model DashboardViewModel
+@model SmartGPON.Core.Interfaces.DashboardViewModel
 @{ ViewData["Title"] = "Tableau de bord"; }
 
 <div class="page-header">
-  <h1 class="page-title"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</h1>
-</div>
-
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-primary"><i class="bi bi-building"></i></div>
-      <div class="stat-value">@Model.TotalClients</div>
-      <div class="stat-label">Clients</div>
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <nav aria-label="breadcrumb"><ol class="breadcrumb mb-1"><li class="breadcrumb-item active">Accueil</li></ol></nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</h1>
     </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-success"><i class="bi bi-folder2-open"></i></div>
-      <div class="stat-value">@Model.TotalProjets</div>
-      <div class="stat-label">Projets</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-warning"><i class="bi bi-geo-alt"></i></div>
-      <div class="stat-value">@Model.TotalZones</div>
-      <div class="stat-label">Zones</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-info"><i class="bi bi-hdd-network"></i></div>
-      <div class="stat-value">@Model.TotalOlts</div>
-      <div class="stat-label">OLTs</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-danger"><i class="bi bi-diagram-2"></i></div>
-      <div class="stat-value">@Model.TotalFdts</div>
-      <div class="stat-label">FDTs</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-secondary"><i class="bi bi-share"></i></div>
-      <div class="stat-value">@Model.TotalSplitters</div>
-      <div class="stat-label">Splitters</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-primary"><i class="bi bi-box"></i></div>
-      <div class="stat-value">@Model.TotalFats</div>
-      <div class="stat-label">FATs</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-success"><i class="bi bi-boxes"></i></div>
-      <div class="stat-value">@Model.TotalBpis</div>
-      <div class="stat-label">BPIs</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-warning"><i class="bi bi-arrow-left-right"></i></div>
-      <div class="stat-value">@Model.TotalFibres</div>
-      <div class="stat-label">Fibres</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-card">
-      <div class="stat-icon text-info"><i class="bi bi-circle"></i></div>
-      <div class="stat-value">@Model.TotalChambres</div>
-      <div class="stat-label">Chambres</div>
-    </div>
+    <a asp-controller="Home" asp-action="ArchitectureGpon" class="btn sg-btn sg-btn-outline">
+      <i class="bi bi-diagram-3 me-1"></i>Architecture GPON
+    </a>
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header fw-bold"><i class="bi bi-folder2 me-2"></i>Accès rapide</div>
-      <div class="card-body d-flex flex-wrap gap-2">
-        <a asp-controller="Projets" asp-action="Index" class="btn btn-outline-primary btn-sm">
-          <i class="bi bi-folder2-open me-1"></i>Projets
-        </a>
-        <a asp-controller="Zones" asp-action="Index" class="btn btn-outline-info btn-sm">
-          <i class="bi bi-geo-alt me-1"></i>Zones
-        </a>
-        <a asp-controller="Olts" asp-action="Index" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-hdd-network me-1"></i>OLTs
-        </a>
-        <a asp-controller="Fdts" asp-action="Index" class="btn btn-outline-warning btn-sm">
-          <i class="bi bi-diagram-2 me-1"></i>FDTs
-        </a>
-        <a asp-controller="Security" asp-action="Index" class="btn btn-outline-danger btn-sm">
-          <i class="bi bi-shield-check me-1"></i>Sécurité
-        </a>
+<div class="page-body">
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">Projets</span>
+          <i class="bi bi-folder" style="font-size:18px;color:var(--color-telecom-blue)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalProjets</div>
+        <div class="text-muted" style="font-size:11px">projets en cours</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">OLTs</span>
+          <i class="bi bi-hdd-network" style="font-size:18px;color:var(--color-telecom-blue)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalOlts</div>
+        <div class="text-muted" style="font-size:11px">terminaisons optiques</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">FDTs</span>
+          <i class="bi bi-box" style="font-size:18px;color:var(--color-telecom-blue)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalFdts</div>
+        <div class="text-muted" style="font-size:11px">répartiteurs terrain</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">FATs</span>
+          <i class="bi bi-share" style="font-size:18px;color:var(--color-telecom-blue)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalFats</div>
+        <div class="text-muted" style="font-size:11px">boîtiers d'abonné</div>
       </div>
     </div>
   </div>
-  <div class="col-md-6">
-    <div class="card shadow-sm">
-      <div class="card-header fw-bold"><i class="bi bi-diagram-3 me-2"></i>Topologie GPON</div>
-      <div class="card-body">
-        <p class="text-muted mb-2" style="font-size:13px">Zone → OLT → FDT → Splitter (1x8 / 1x64) → FAT / BPI</p>
-        <a asp-controller="Home" asp-action="ArchitectureGpon" class="btn btn-primary btn-sm">
-          <i class="bi bi-diagram-3 me-1"></i>Voir l'architecture
-        </a>
+
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">BPIs</span>
+          <i class="bi bi-diagram-2" style="font-size:18px;color:var(--color-status-warning)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalBpis</div>
+        <div class="text-muted" style="font-size:11px">boîtiers palier immeuble</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">Zones</span>
+          <i class="bi bi-geo-alt" style="font-size:18px;color:var(--color-status-warning)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalZones</div>
+        <div class="text-muted" style="font-size:11px">zones déployées</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">Splitters</span>
+          <i class="bi bi-distribute-vertical" style="font-size:18px;color:var(--color-status-online)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalSplitters</div>
+        <div class="text-muted" style="font-size:11px">splitters optiques</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">Clients</span>
+          <i class="bi bi-people" style="font-size:18px;color:var(--color-status-online)"></i>
+        </div>
+        <div class="h3 mb-0 fw-700">@Model.TotalClients</div>
+        <div class="text-muted" style="font-size:11px">clients actifs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="sg-card">
+        <h2 class="h6 mb-3 fw-600"><i class="bi bi-bar-chart me-2"></i>Équipements déployés</h2>
+        @{
+          var eqItems = new (string Label, int Count, string Icon)[] {
+            ("OLTs", Model.TotalOlts, "bi-hdd-network"),
+            ("FDTs", Model.TotalFdts, "bi-box"),
+            ("Splitters", Model.TotalSplitters, "bi-distribute-vertical"),
+            ("FATs", Model.TotalFats, "bi-share"),
+            ("BPIs", Model.TotalBpis, "bi-diagram-2"),
+            ("Chambres", Model.TotalChambres, "bi-circle-square"),
+            ("Fibres", Model.TotalFibres, "bi-bezier2"),
+            ("Zones", Model.TotalZones, "bi-geo-alt"),
+          };
+          var grandTotal = Math.Max(1, eqItems.Sum(x => x.Count));
+        }
+        <div class="row g-3">
+          @foreach (var (label, count, icon) in eqItems)
+          {
+            var pct = grandTotal > 0 ? (int)Math.Round((double)count / grandTotal * 100) : 0;
+            <div class="col-md-6">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span style="font-size:12px;color:var(--color-text-muted)"><i class="bi @icon me-1"></i>@label</span>
+                <span style="font-size:12px;font-weight:600">@count</span>
+              </div>
+              <div style="height:5px;background:var(--color-border);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:@(pct)%;background:var(--color-telecom-blue);border-radius:3px;"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="sg-card h-100">
+        <h2 class="h6 mb-3 fw-600"><i class="bi bi-lightning me-2"></i>Actions rapides</h2>
+        <div class="d-flex flex-column gap-2">
+          @if (!User.IsInRole("Visiteur"))
+          {
+            <a asp-controller="Projets" asp-action="Create" class="btn sg-btn sg-btn-outline w-100 justify-content-start">
+              <i class="bi bi-plus-circle me-2"></i>Nouveau projet
+            </a>
+            <a asp-controller="Security" asp-action="LancerSimulation" class="btn sg-btn sg-btn-outline w-100 justify-content-start">
+              <i class="bi bi-bug me-2"></i>Lancer une simulation
+            </a>
+          }
+          <a asp-controller="Home" asp-action="ArchitectureGpon" class="btn sg-btn sg-btn-outline w-100 justify-content-start">
+            <i class="bi bi-diagram-3 me-2"></i>Voir l'architecture
+          </a>
+          <a asp-controller="AuditLogs" asp-action="Index" class="btn sg-btn sg-btn-outline w-100 justify-content-start">
+            <i class="bi bi-journal-text me-2"></i>Journal d'audit
+          </a>
+        </div>
       </div>
     </div>
   </div>

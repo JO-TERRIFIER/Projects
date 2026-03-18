@@ -1,9 +1,5 @@
-// ============================================================
-// SmartGPON — Controllers/NotificationsController.cs — FRESH START
-// ============================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SmartGPON.Core.Interfaces;
 using SmartGPON.Infrastructure.Data;
 using SmartGPON.Web.ViewModels;
@@ -18,7 +14,6 @@ namespace SmartGPON.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Show recent audit logs as notifications
             var logs = await Audit.GetLogsAsync(pageSize: 30);
             var list = logs.Select(l => new AuditLogDisplayVM
             {
@@ -28,6 +23,13 @@ namespace SmartGPON.Web.Controllers
                 Description = l.Description, OccurredAt = l.OccurredAt
             }).ToList();
             return View(list);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult MarkAllRead()
+        {
+            TempData["Success"] = "Toutes les notifications ont été marquées comme lues.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

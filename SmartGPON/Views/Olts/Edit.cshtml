@@ -1,35 +1,62 @@
-@model OltUpdateVM
+@model SmartGPON.Web.ViewModels.OltUpdateVM
 @{ ViewData["Title"] = "Modifier OLT"; }
-<div class="page-header"><h1 class="page-title"><i class="bi bi-pencil-square me-2"></i>Modifier OLT</h1></div>
-<div class="card shadow-sm" style="max-width:600px">
-  <div class="card-body">
-    <form asp-action="Edit" method="post">
-      @Html.AntiForgeryToken()
-      <input type="hidden" asp-for="Id" />
-      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-      <div class="mb-3">
-        <label asp-for="Nom" class="form-label fw-semibold">Nom</label>
-        <input asp-for="Nom" class="form-control" />
-        <span asp-validation-for="Nom" class="text-danger small"></span>
-      </div>
-      <div class="mb-3">
-        <label asp-for="ZoneId" class="form-label fw-semibold">Zone</label>
-        <select asp-for="ZoneId" class="form-select" asp-items="ViewBag.ZonesSelectList">
-          <option value="">— Choisir une zone —</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label asp-for="IpAddress" class="form-label fw-semibold">Adresse IP</label>
-        <input asp-for="IpAddress" class="form-control" />
-      </div>
-      <div class="mb-4">
-        <label asp-for="NbrePorts" class="form-label fw-semibold">Nombre de ports</label>
-        <input asp-for="NbrePorts" type="number" min="1" class="form-control" />
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-floppy me-1"></i>Enregistrer</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
-      </div>
-    </form>
+
+<link rel="stylesheet" href="~/css/gpon-modal.css" />
+
+<div class="gpon-overlay">
+  <div class="gpon-modal">
+    <div class="gpon-modal-header">
+      <h5><i class="bi bi-pencil me-2"></i>Modifier OLT</h5>
+      <a href="@Url.Action("Index")" class="btn-close-modal">✕</a>
+    </div>
+    <div class="gpon-modal-body">
+      <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label asp-for="Nom" class="form-label text-muted small mb-1">Nom <span class="text-danger">*</span></label>
+            <input asp-for="Nom" class="form-control">
+            <span asp-validation-for="Nom" class="text-danger small"></span>
+          </div>
+          <div class="col-md-4">
+            <label asp-for="NbrePorts" class="form-label text-muted small mb-1">Ports</label>
+            <input asp-for="NbrePorts" class="form-control" type="number" min="1">
+            <span asp-validation-for="NbrePorts" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="IpAddress" class="form-label text-muted small mb-1">Adresse IP</label>
+            <input asp-for="IpAddress" class="form-control">
+            <span asp-validation-for="IpAddress" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="ZoneId" class="form-label text-muted small mb-1">Zone <span class="text-danger">*</span></label>
+            <select asp-for="ZoneId" class="form-select">
+              <option value="">— Sélectionner une zone —</option>
+              @if (ViewBag.Zones != null)
+              {
+                foreach (var z in (IEnumerable<SmartGPON.Core.Entities.Zone>)ViewBag.Zones)
+                {
+                  <option value="@z.Id">@z.Nom (@(z.Projet?.Nom ?? ""))</option>
+                }
+              }
+            </select>
+            <span asp-validation-for="ZoneId" class="text-danger small"></span>
+          </div>
+        </div>
+        <div class="gpon-modal-footer">
+          <a href="@Url.Action("Index")" class="btn-cancel">Annuler</a>
+          <button type="submit" class="btn sg-btn sg-btn-primary">
+            <i class="bi bi-check2 me-1"></i>Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
+
+@section Scripts {
+  @if (!ViewData.ModelState.IsValid) {
+    <script>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</script>
+  }
+}

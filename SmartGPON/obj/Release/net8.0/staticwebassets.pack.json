@@ -1,0 +1,25 @@
+{
+  "Files": [
+    {
+      "Id": "/home/runner/workspace/SmartGPON/wwwroot/css/site.css",
+      "PackagePath": "staticwebassets/css/site.css"
+    },
+    {
+      "Id": "obj/Release/net8.0/staticwebassets/msbuild.SmartGPON.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Release/net8.0/staticwebassets/msbuild.build.SmartGPON.props",
+      "PackagePath": "build\\SmartGPON.props"
+    },
+    {
+      "Id": "obj/Release/net8.0/staticwebassets/msbuild.buildMultiTargeting.SmartGPON.props",
+      "PackagePath": "buildMultiTargeting\\SmartGPON.props"
+    },
+    {
+      "Id": "obj/Release/net8.0/staticwebassets/msbuild.buildTransitive.SmartGPON.props",
+      "PackagePath": "buildTransitive\\SmartGPON.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

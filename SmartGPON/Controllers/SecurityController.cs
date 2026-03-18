@@ -1,8 +1,10 @@
 // ============================================================
 // SmartGPON — Controllers/SecurityController.cs — FRESH START
 // ============================================================
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SmartGPON.Core.Entities;
 using SmartGPON.Core.Enums;
 using SmartGPON.Core.Interfaces;
@@ -43,9 +45,10 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult LancerSimulation()
+        public async Task<IActionResult> LancerSimulation()
         {
             var d = DenyVisiteur(); if (d != null) return d;
+            ViewBag.Olts = await Db.Olts.OrderBy(o => o.Nom).ToListAsync();
             return View(new AttackSimulationCreateVM());
         }
 
@@ -53,10 +56,21 @@ namespace SmartGPON.Web.Controllers
         public async Task<IActionResult> LancerSimulation(AttackSimulationCreateVM vm)
         {
             var d = DenyVisiteur(); if (d != null) return d;
-            if (!ModelState.IsValid) return View(vm);
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Olts = await Db.Olts.OrderBy(o => o.Nom).ToListAsync();
+                return View(vm);
+            }
+            // A1 — injecter les champs auto (non modifiables par l'utilisateur)
             var entity = new AttackSimulation
             {
-                OltId = vm.OltId, Description = vm.Description, NiveauRisque = vm.NiveauRisque
+                OltId            = vm.OltId,
+                Description      = vm.Description,
+                NiveauRisque     = vm.NiveauRisque,
+                ResultatDetails  = vm.ResultatDetails,
+                LaunchedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                DateLancement    = DateTime.UtcNow,
+                Statut           = SimulationStatut.EnAttente
             };
             await _sim.LaunchAsync(entity);
             TempData["Success"] = "Simulation lancée.";

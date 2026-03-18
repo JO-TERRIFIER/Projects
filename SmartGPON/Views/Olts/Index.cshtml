@@ -1,40 +1,86 @@
-@model List<OltDisplayVM>
+@model List<SmartGPON.Web.ViewModels.OltDisplayVM>
 @{ ViewData["Title"] = "OLTs"; }
-<div class="page-header d-flex justify-content-between align-items-center">
-  <h1 class="page-title"><i class="bi bi-hdd-network me-2"></i>OLTs</h1>
-  @if (!User.IsInRole("Visiteur")) {
-    <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nouvel OLT</a>
-  }
+
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item active">OLTs</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-hdd-network me-2"></i>OLTs</h1>
+    </div>
+    @if (!User.IsInRole("Visiteur"))
+    {
+      <a asp-action="Create" class="btn sg-btn sg-btn-primary">
+        <i class="bi bi-plus me-1"></i>Nouvel OLT
+      </a>
+    }
+  </div>
 </div>
-@if (!Model.Any()) {
-  <div class="alert alert-info">Aucun OLT accessible.</div>
-} else {
-  <div class="card shadow-sm">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light"><tr>
-          <th>Nom</th><th>Zone</th><th>IP</th><th>Ports</th><th class="text-end">Actions</th>
-        </tr></thead>
-        <tbody>
-          @foreach (var o in Model) {
-          <tr>
-            <td class="fw-semibold">@o.Nom</td>
-            <td>@o.ZoneNom</td>
-            <td><code>@(o.IpAddress ?? "—")</code></td>
-            <td>@o.NbrePorts</td>
-            <td class="text-end">
-              @if (!User.IsInRole("Visiteur")) {
-                <a asp-action="Edit" asp-route-id="@o.Id" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
-                <form asp-action="Delete" asp-route-id="@o.Id" method="post" class="d-inline">
-                  @Html.AntiForgeryToken()
-                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                </form>
-              }
+
+<div class="page-body">
+  <div class="sg-card">
+    <div class="d-flex gap-2 mb-3">
+      <input type="search" id="srch" class="form-control form-control-sm" placeholder="Rechercher un OLT…">
+    </div>
+    <table class="sg-table" id="tbl">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Zone</th>
+          <th>Adresse IP</th>
+          <th>Ports</th>
+          <th>FDTs</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var item in Model)
+        {
+          <tr data-search="@item.Nom @item.ZoneNom @item.IpAddress">
+            <td class="fw-500">@item.Nom</td>
+            <td class="text-muted">@item.ZoneNom</td>
+            <td><code class="small">@item.IpAddress</code></td>
+            <td>@item.NbrePorts</td>
+            <td>@item.FdtCount FDT(s)</td>
+            <td>
+              <div class="d-flex gap-1">
+                <a asp-controller="Fdts" asp-action="Index" asp-route-oltId="@item.Id"
+                   class="btn sg-btn sg-btn-outline btn-sm" title="Voir FDTs">
+                  <i class="bi bi-box"></i>
+                </a>
+                @if (!User.IsInRole("Visiteur"))
+                {
+                  <a asp-action="Edit" asp-route-id="@item.Id" class="btn sg-btn sg-btn-outline btn-sm">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn sg-btn sg-btn-danger btn-sm">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                }
+              </div>
             </td>
           </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+        }
+      </tbody>
+    </table>
   </div>
+</div>
+
+@section Scripts {
+<script>
+const srch = document.getElementById('srch');
+srch.addEventListener('input', () => {
+  const s = srch.value.toLowerCase();
+  document.querySelectorAll('#tbl tbody tr').forEach(r => {
+    r.style.display = !s || r.dataset.search?.toLowerCase().includes(s) ? '' : 'none';
+  });
+});
+</script>
 }

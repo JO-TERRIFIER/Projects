@@ -1,35 +1,88 @@
+@using SmartGPON.Web.ViewModels
+@using SmartGPON.Core.Enums
 @model List<AttackSimulationDisplayVM>
 @{ ViewData["Title"] = "Simulations d'attaque"; }
-<div class="page-header d-flex justify-content-between align-items-center">
-  <h1 class="page-title"><i class="bi bi-activity me-2"></i>Simulations d'attaque</h1>
-  @if (!User.IsInRole("Visiteur")) {
-    <a asp-action="LancerSimulation" class="btn btn-danger btn-sm"><i class="bi bi-play-fill me-1"></i>Nouvelle simulation</a>
-  }
-</div>
-@if (!Model.Any()) {
-  <div class="alert alert-info">Aucune simulation enregistrée.</div>
-} else {
-  <div class="card shadow-sm">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light"><tr>
-          <th>Risque</th><th>Description</th><th>OLT cible</th><th>Lancé par</th><th>Date</th>
-        </tr></thead>
-        <tbody>
-          @foreach (var s in Model) {
-          var badge = s.NiveauRisque == NiveauRisque.Critique ? "danger" :
-                      s.NiveauRisque == NiveauRisque.Eleve ? "warning" :
-                      s.NiveauRisque == NiveauRisque.Moyen ? "info" : "secondary";
-          <tr>
-            <td><span class="badge bg-@badge">@s.NiveauRisque</span></td>
-            <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">@s.Description</td>
-            <td>@(s.OltNom ?? "—")</td>
-            <td class="text-muted" style="font-size:12px">@s.LaunchedByUserId</td>
-            <td class="text-nowrap text-muted" style="font-size:12px">@s.DateLancement.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-          </tr>
-          }
-        </tbody>
-      </table>
+
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item"><a asp-controller="Security" asp-action="Index">Centre Sécurité</a></li>
+          <li class="breadcrumb-item active">Simulations</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-bug me-2"></i>Simulations d'attaque</h1>
     </div>
+    @if (!User.IsInRole("Visiteur"))
+    {
+      <a asp-action="LancerSimulation" class="btn sg-btn sg-btn-primary">
+        <i class="bi bi-plus me-1"></i>Nouvelle simulation
+      </a>
+    }
   </div>
+</div>
+
+<div class="page-body">
+  <div class="sg-card">
+    <div class="d-flex gap-2 mb-3">
+      <input type="search" id="srch" class="form-control form-control-sm" placeholder="Rechercher…">
+    </div>
+    <table class="sg-table" id="tbl">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Niveau de risque</th>
+          <th>OLT</th>
+          <th>Date</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var item in Model)
+        {
+          <tr data-search="@item.Description @item.OltNom">
+            <td class="text-muted small">@item.Description</td>
+            <td>
+              @{
+                var lvlCls = item.NiveauRisque is NiveauRisque.Critique or NiveauRisque.Eleve ? "status-offline"
+                           : item.NiveauRisque == NiveauRisque.Moyen ? "status-warning"
+                           : "status-online";
+              }
+              <span class="badge-status @lvlCls">@item.NiveauRisque</span>
+            </td>
+            <td class="text-muted small">@(item.OltNom ?? "—")</td>
+            <td class="text-muted" style="font-size:12px">@item.DateLancement.ToString("dd/MM/yyyy HH:mm")</td>
+            <td>
+              @if (item.Statut == SimulationStatut.Termine)
+              { <span class="badge-status status-online">Terminé</span> }
+              else if (item.Statut == SimulationStatut.EnCours)
+              { <span class="badge-status status-warning">En cours</span> }
+              else if (item.Statut == SimulationStatut.Echoue)
+              { <span class="badge-status status-offline">Échoué</span> }
+              else
+              { <span class="badge-status status-warning">En attente</span> }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+      <p class="text-muted small text-center mt-3 mb-0">Aucune simulation effectuée.</p>
+    }
+  </div>
+</div>
+
+@section Scripts {
+<script>
+const srch = document.getElementById('srch');
+srch.addEventListener('input', () => {
+  const s = srch.value.toLowerCase();
+  document.querySelectorAll('#tbl tbody tr').forEach(r => {
+    r.style.display = !s || r.dataset.search?.toLowerCase().includes(s) ? '' : 'none';
+  });
+});
+</script>
 }

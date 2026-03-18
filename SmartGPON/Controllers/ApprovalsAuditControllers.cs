@@ -57,9 +57,23 @@ namespace SmartGPON.Web.Controllers
         public AuditLogsController(ApplicationDbContext db, IUserProjectAssignmentService a, IAuditLogService au)
             : base(db, a, au) { }
 
-        public async Task<IActionResult> Index(int? projetId)
+        public async Task<IActionResult> Index(int? projetId, string? action, string? entity, string? tech, string? from, string? to)
         {
-            var logs = await Audit.GetLogsAsync(projetId);
+            var q = Db.AuditLogs.AsQueryable();
+
+            if (projetId.HasValue) q = q.Where(l => l.ProjetId == projetId.Value);
+            if (!string.IsNullOrEmpty(action)) q = q.Where(l => l.ActionType != null && l.ActionType.ToLower().Contains(action.ToLower()));
+            if (!string.IsNullOrEmpty(entity)) q = q.Where(l => l.EntityType != null && l.EntityType.ToLower().Contains(entity.ToLower()));
+            if (!string.IsNullOrEmpty(tech)) q = q.Where(l =>
+                (l.NomTech != null && l.NomTech.ToLower().Contains(tech.ToLower())) ||
+                (l.PrenomTech != null && l.PrenomTech.ToLower().Contains(tech.ToLower())));
+            if (DateTime.TryParse(from, out var dateFrom))
+                q = q.Where(l => l.OccurredAt >= dateFrom.ToUniversalTime());
+            if (DateTime.TryParse(to, out var dateTo))
+                q = q.Where(l => l.OccurredAt <= dateTo.AddDays(1).ToUniversalTime());
+
+            var logs = await q.OrderByDescending(l => l.OccurredAt).Take(200).ToListAsync();
+
             var list = logs.Select(l => new AuditLogDisplayVM
             {
                 Id = l.Id, UserId = l.UserId, ProjetId = l.ProjetId,
@@ -67,6 +81,15 @@ namespace SmartGPON.Web.Controllers
                 NomTech = l.NomTech, PrenomTech = l.PrenomTech,
                 Description = l.Description, OccurredAt = l.OccurredAt
             }).ToList();
+
+            // Pass filter values back for form persistence
+            ViewBag.FilterAction = action;
+            ViewBag.FilterEntity = entity;
+            ViewBag.FilterTech = tech;
+            ViewBag.FilterFrom = from;
+            ViewBag.FilterTo = to;
+            ViewBag.TotalCount = await Db.AuditLogs.CountAsync();
+
             return View(list);
         }
     }

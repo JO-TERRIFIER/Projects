@@ -13,6 +13,7 @@ namespace SmartGPON.Web.ViewModels
     {
         [Required, MaxLength(200)] public string Nom { get; set; } = string.Empty;
         [Required, MaxLength(50)]  public string Code { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
     }
     public class ClientUpdateVM
     {
@@ -436,6 +437,11 @@ namespace SmartGPON.Web.ViewModels
         public int? OltId { get; set; }
         [Required, MaxLength(2000)] public string Description { get; set; } = string.Empty;
         public NiveauRisque NiveauRisque { get; set; } = NiveauRisque.Moyen;
+        // A1 — champs injectés par le controller (non modifiables par l'utilisateur)
+        public string LaunchedByUserId { get; set; } = string.Empty;
+        public SimulationStatut Statut { get; set; } = SimulationStatut.EnAttente;
+        [MaxLength(2000)] public string? ResultatDetails { get; set; }
+        public DateTime DateLancement { get; set; }
     }
     public class AttackSimulationDisplayVM
     {

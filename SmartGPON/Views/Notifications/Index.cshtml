@@ -1,42 +1,64 @@
+@using SmartGPON.Web.ViewModels
 @model List<AuditLogDisplayVM>
 @{ ViewData["Title"] = "Notifications"; }
 
-<div class="page-header d-flex justify-content-between align-items-center">
-  <h1 class="page-title"><i class="bi bi-bell me-2"></i>Notifications</h1>
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item active">Notifications</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-bell me-2"></i>Notifications</h1>
+    </div>
+    @if (Model.Any())
+    {
+      <form asp-action="MarkAllRead" method="post" class="d-inline">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn sg-btn sg-btn-outline btn-sm">
+          <i class="bi bi-check-all me-1"></i>Tout marquer comme lu
+        </button>
+      </form>
+    }
+  </div>
 </div>
 
-@if (!Model.Any())
-{
-  <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Aucune notification récente.</div>
-}
-else
-{
-  <div class="card shadow-sm">
-    <div class="card-body p-0">
-      <div class="list-group list-group-flush">
-        @foreach (var n in Model)
+<div class="page-body">
+  @if (!Model.Any())
+  {
+    <div class="sg-card text-center py-5">
+      <i class="bi bi-bell-slash" style="font-size:48px;opacity:0.3"></i>
+      <p class="mt-3 mb-0 text-muted">Aucune notification.</p>
+    </div>
+  }
+  else
+  {
+    <div class="sg-card">
+      <div class="d-flex flex-column gap-0">
+        @foreach (var item in Model)
         {
-          <div class="list-group-item d-flex align-items-start gap-3 py-3">
-            <div class="mt-1">
-              <i class="bi bi-circle-fill text-primary" style="font-size:8px"></i>
+          <div class="d-flex align-items-start gap-3 py-3 border-bottom">
+            <div style="width:32px;height:32px;background:rgba(37,99,235,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="bi bi-info-circle" style="color:var(--color-telecom-blue);font-size:14px"></i>
             </div>
             <div class="flex-grow-1">
-              <div class="fw-semibold" style="font-size:13px">
-                <span class="badge bg-secondary me-1">@n.ActionType</span>
-                <span class="badge bg-light text-dark border me-1">@n.EntityType</span>
-                @if (!string.IsNullOrEmpty(n.NomTech))
-                {
-                  <span class="text-muted">— @n.PrenomTech @n.NomTech</span>
-                }
+              <div class="fw-500" style="font-size:13px">
+                @item.ActionType — @item.EntityType
               </div>
-              <div class="text-muted" style="font-size:12px">@n.Description</div>
-            </div>
-            <div class="text-muted text-nowrap" style="font-size:11px">
-              @n.OccurredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+              <div class="text-muted" style="font-size:12px">
+                @(item.NomTech != null ? $"{item.PrenomTech} {item.NomTech}" : item.UserId ?? "Système")
+                · @item.OccurredAt.ToString("dd/MM/yyyy HH:mm")
+              </div>
+              @if (!string.IsNullOrEmpty(item.Description))
+              {
+                <div class="text-muted" style="font-size:12px">@item.Description</div>
+              }
             </div>
           </div>
         }
       </div>
     </div>
-  </div>
-}
+  }
+</div>

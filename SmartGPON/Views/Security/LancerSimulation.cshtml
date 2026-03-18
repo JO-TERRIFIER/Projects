@@ -1,46 +1,74 @@
+@using SmartGPON.Web.ViewModels
+@using SmartGPON.Core.Enums
 @model AttackSimulationCreateVM
 @{ ViewData["Title"] = "Lancer une simulation"; }
 
-<div class="page-header">
-  <h1 class="page-title"><i class="bi bi-play-circle me-2"></i>Lancer une simulation d'attaque</h1>
-</div>
+<link rel="stylesheet" href="~/css/gpon-modal.css" />
 
-<div class="card shadow-sm" style="max-width:640px">
-  <div class="card-body">
-    <form asp-action="LancerSimulation" method="post">
-      @Html.AntiForgeryToken()
-      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">OLT cible (optionnel)</label>
-        <select asp-for="OltId" class="form-select">
-          <option value="">— Aucun (test général) —</option>
-        </select>
+<div class="gpon-overlay">
+  <div class="gpon-modal">
+    <div class="gpon-modal-header">
+      <h5><i class="bi bi-bug me-2"></i>Lancer une simulation d'attaque</h5>
+      <a href="@Url.Action("Index", "Security")" class="btn-close-modal">✕</a>
+    </div>
+    <div class="gpon-modal-body">
+      <div class="d-flex align-items-center gap-2 mb-3 p-3"
+           style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:4px">
+        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+        <span class="text-muted small">Cette simulation génère des événements de sécurité dans le journal. Elle ne perturbe pas le réseau réel.</span>
       </div>
-
-      <div class="mb-3">
-        <label asp-for="NiveauRisque" class="form-label fw-semibold">Niveau de risque</label>
-        <select asp-for="NiveauRisque" class="form-select">
-          <option value="@((int)NiveauRisque.Faible)">Faible</option>
-          <option value="@((int)NiveauRisque.Moyen)" selected>Moyen</option>
-          <option value="@((int)NiveauRisque.Eleve)">Élevé</option>
-          <option value="@((int)NiveauRisque.Critique)">Critique</option>
-        </select>
-        <span asp-validation-for="NiveauRisque" class="text-danger small"></span>
-      </div>
-
-      <div class="mb-4">
-        <label asp-for="Description" class="form-label fw-semibold">Description</label>
-        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Décrivez le type d'attaque simulée..."></textarea>
-        <span asp-validation-for="Description" class="text-danger small"></span>
-      </div>
-
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-danger">
-          <i class="bi bi-play-fill me-1"></i>Lancer
-        </button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
-      </div>
-    </form>
+      <form asp-action="LancerSimulation" method="post">
+        @Html.AntiForgeryToken()
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label asp-for="NiveauRisque" class="form-label text-muted small mb-1">Niveau de risque <span class="text-danger">*</span></label>
+            <select asp-for="NiveauRisque" class="form-select">
+              <option value="@NiveauRisque.Faible">🟢 Faible</option>
+              <option value="@NiveauRisque.Moyen" selected>🟡 Moyen</option>
+              <option value="@NiveauRisque.Eleve">🟠 Élevé</option>
+              <option value="@NiveauRisque.Critique">🔴 Critique</option>
+            </select>
+            <span asp-validation-for="NiveauRisque" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="OltId" class="form-label text-muted small mb-1">OLT cible (optionnel)</label>
+            <select asp-for="OltId" class="form-select">
+              <option value="">— Tous les OLTs —</option>
+              @if (ViewBag.Olts != null)
+              {
+                foreach (var o in (IEnumerable<SmartGPON.Core.Entities.Olt>)ViewBag.Olts)
+                {
+                  <option value="@o.Id">@o.Nom</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="col-12">
+            <label asp-for="Description" class="form-label text-muted small mb-1">Description <span class="text-danger">*</span></label>
+            <textarea asp-for="Description" class="form-control" rows="4"
+              placeholder="Décrivez le scénario de simulation d'attaque…"></textarea>
+            <span asp-validation-for="Description" class="text-danger small"></span>
+          </div>
+          <div class="col-12">
+            <label asp-for="ResultatDetails" class="form-label text-muted small mb-1">Détails de résultat attendus <span class="text-muted">(optionnel)</span></label>
+            <textarea asp-for="ResultatDetails" class="form-control" rows="3"
+              placeholder="Ex: Perte de 3 ports, latence élevée…"></textarea>
+            <span asp-validation-for="ResultatDetails" class="text-danger small"></span>
+          </div>
+        </div>
+        <div class="gpon-modal-footer">
+          <a href="@Url.Action("Index", "Security")" class="btn-cancel">Annuler</a>
+          <button type="submit" class="btn sg-btn sg-btn-danger">
+            <i class="bi bi-bug me-1"></i>Lancer la simulation
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
+
+@section Scripts {
+  @if (!ViewData.ModelState.IsValid) {
+    <script>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</script>
+  }
+}

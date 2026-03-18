@@ -2,40 +2,51 @@
 @{ ViewData["Title"] = "Détails du compte"; }
 
 <div class="page-header">
+  <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h1 class="page-title"><i class="bi bi-person-vcard me-2"></i>@ViewData["Title"]</h1>
-        <div class="page-subtitle">Informations du compte utilisateur</div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item"><a asp-controller="Users" asp-action="Index">Utilisateurs</a></li>
+          <li class="breadcrumb-item active">@Model.FullName</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-person me-2"></i>@Model.FullName</h1>
     </div>
-    <a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left me-1"></i>Retour</a>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn sg-btn sg-btn-outline">
+      <i class="bi bi-pencil me-1"></i>Modifier
+    </a>
+  </div>
 </div>
 
 <div class="page-body">
-    <div class="row justify-content-center">
-        <div class="col-md-7">
-            <div class="sg-card">
-                <div class="row g-3">
-                    <div class="col-12">
-                        <div class="sg-label">Email</div>
-                        <div class="mono">@Model.Email</div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="sg-label">Rôle</div>
-                        <span class="pill pill-cyan">@Model.Role</span>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="sg-label">Statut</div>
-                        <span class="pill @(Model.IsActive ? "pill-green" : "pill-red")">@(Model.IsActive ? "Actif" : "Inactif")</span>
-                    </div>
-                    <div class="col-12">
-                        <div class="sg-label">Email confirmé</div>
-                        <span class="pill @(Model.EmailConfirmed ? "pill-green" : "pill-amber")">@(Model.EmailConfirmed ? "Oui" : "Non")</span>
-                    </div>
-                </div>
-                <div class="d-flex gap-2 mt-4">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-primary-sg"><i class="bi bi-pencil me-1"></i>Modifier</a>
-                    <a asp-action="Index" class="btn-ghost-sg">Fermer</a>
-                </div>
-            </div>
+  <div class="sg-card" style="max-width:640px">
+    <div class="d-flex align-items-center gap-4 mb-4">
+      <div style="width:64px;height:64px;background:var(--color-telecom-blue);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:bold;flex-shrink:0">
+        @(Model.FullName?.Substring(0, Math.Min(2, Model.FullName?.Length ?? 0)).ToUpper() ?? "??")
+      </div>
+      <div>
+        <div class="fw-600 fs-5">@Model.FullName</div>
+        <div class="text-muted small">@Model.Email</div>
+        <div class="mt-1">
+          <span class="badge-status @(Model.Role == "Superviseur" ? "status-online" : Model.Role == "Visiteur" ? "status-offline" : "status-warning")">
+            @Model.Role
+          </span>
+          @if (Model.IsActive)
+          { <span class="badge-status status-online ms-1">Actif</span> }
+          else
+          { <span class="badge-status status-offline ms-1">Inactif</span> }
         </div>
+      </div>
     </div>
+    <dl class="row mb-0">
+      @if (!string.IsNullOrEmpty(Model.Specialite))
+      {
+        <dt class="col-5 text-muted small">Spécialité</dt>
+        <dd class="col-7 small">@Model.Specialite</dd>
+      }
+      <dt class="col-5 text-muted small">ID</dt>
+      <dd class="col-7 small text-muted"><code style="font-size:10px">@Model.Id</code></dd>
+    </dl>
+  </div>
 </div>

@@ -1,41 +1,54 @@
-@model BpiUpdateVM
+@model SmartGPON.Web.ViewModels.BpiUpdateVM
 @{ ViewData["Title"] = "Modifier BPI"; }
-<div class="page-header"><h1 class="page-title"><i class="bi bi-pencil-square me-2"></i>Modifier BPI</h1></div>
-<div class="card shadow-sm" style="max-width:600px">
-  <div class="card-body">
-    <form asp-action="Edit" method="post">
-      @Html.AntiForgeryToken()
-      <input type="hidden" asp-for="Id" />
-      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-      <div class="mb-3">
-        <label asp-for="Nom" class="form-label fw-semibold">Nom</label>
-        <input asp-for="Nom" class="form-control" />
-        <span asp-validation-for="Nom" class="text-danger small"></span>
-      </div>
-      <div class="mb-3">
-        <label asp-for="FdtId" class="form-label fw-semibold">FDT</label>
-        <select asp-for="FdtId" class="form-select" asp-items="ViewBag.FdtsSelectList">
-          <option value="">— Choisir un FDT —</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label asp-for="Capacite" class="form-label fw-semibold">Capacité</label>
-        <input asp-for="Capacite" type="number" min="1" class="form-control" />
-      </div>
-      <div class="row mb-4">
-        <div class="col">
-          <label asp-for="Latitude" class="form-label fw-semibold">Latitude</label>
-          <input asp-for="Latitude" class="form-control" />
+
+<link rel="stylesheet" href="~/css/gpon-modal.css" />
+
+<div class="gpon-overlay">
+  <div class="gpon-modal">
+    <div class="gpon-modal-header">
+      <h5><i class="bi bi-pencil me-2"></i>Modifier BPI</h5>
+      <a href="@Url.Action("Index", new { fdtId = Model.FdtId })" class="btn-close-modal">✕</a>
+    </div>
+    <div class="gpon-modal-body">
+      <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="FdtId" type="hidden" />
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label asp-for="Nom" class="form-label text-muted small mb-1">Nom <span class="text-danger">*</span></label>
+            <input asp-for="Nom" class="form-control">
+            <span asp-validation-for="Nom" class="text-danger small"></span>
+          </div>
+          <div class="col-md-4">
+            <label asp-for="Capacite" class="form-label text-muted small mb-1">Capacité</label>
+            <input asp-for="Capacite" class="form-control" type="number" min="1">
+            <span asp-validation-for="Capacite" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="Latitude" class="form-label text-muted small mb-1">Latitude</label>
+            <input asp-for="Latitude" class="form-control">
+            <span asp-validation-for="Latitude" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="Longitude" class="form-label text-muted small mb-1">Longitude</label>
+            <input asp-for="Longitude" class="form-control">
+            <span asp-validation-for="Longitude" class="text-danger small"></span>
+          </div>
         </div>
-        <div class="col">
-          <label asp-for="Longitude" class="form-label fw-semibold">Longitude</label>
-          <input asp-for="Longitude" class="form-control" />
+        <div class="gpon-modal-footer">
+          <a href="@Url.Action("Index", new { fdtId = Model.FdtId })" class="btn-cancel">Annuler</a>
+          <button type="submit" class="btn sg-btn sg-btn-primary">
+            <i class="bi bi-check2 me-1"></i>Enregistrer
+          </button>
         </div>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-floppy me-1"></i>Enregistrer</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
+
+@section Scripts {
+  @if (!ViewData.ModelState.IsValid) {
+    <script>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</script>
+  }
+}

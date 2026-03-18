@@ -1,89 +1,106 @@
 @using SmartGPON.Core.Entities
 @using SmartGPON.Core.Enums
 @model Bpi
-@{
-    ViewData["Title"] = "Détails BPI — " + Model.Nom;
-    var currentRole = User.IsInRole(UserRoles.Superviseur) ? UserRoles.Superviseur
-                    : User.IsInRole(UserRoles.Visiteur) ? UserRoles.Visiteur
-                    : UserRoles.Membre;
-}
-<div class="page-header d-flex justify-content-between align-items-center">
-  <h1 class="page-title"><i class="bi bi-boxes me-2"></i>@Model.Nom</h1>
-  <div class="d-flex gap-2">
-    @if (currentRole != UserRoles.Visiteur) {
-      <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary">
+@{ ViewData["Title"] = "BPI — " + Model.Nom; }
+
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item"><a asp-controller="Bpis" asp-action="Index">BPIs</a></li>
+          <li class="breadcrumb-item active">@Model.Nom</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-diagram-2 me-2"></i>@Model.Nom</h1>
+    </div>
+    <div class="d-flex gap-2">
+      <a asp-controller="BoitiersEtage" asp-action="Create" asp-route-bpiId="@Model.Id"
+         class="btn sg-btn sg-btn-primary">
+        <i class="bi bi-plus me-1"></i>Ajouter boîtier d'étage
+      </a>
+      <a asp-action="Edit" asp-route-id="@Model.Id" class="btn sg-btn sg-btn-outline">
         <i class="bi bi-pencil me-1"></i>Modifier
       </a>
-    }
-    <a asp-action="Index" asp-route-fdtId="@Model.FdtId" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>Retour
-    </a>
+    </div>
   </div>
 </div>
 
-<div class="card shadow-sm mb-4" style="max-width:600px">
-  <div class="card-body">
-    <dl class="row mb-0">
-      <dt class="col-sm-4">Nom</dt>
-      <dd class="col-sm-8">@Model.Nom</dd>
-      <dt class="col-sm-4">FDT</dt>
-      <dd class="col-sm-8">@Model.Fdt?.Nom <span class="text-muted small">/ @Model.Fdt?.Olt?.Nom</span></dd>
-      <dt class="col-sm-4">Capacité</dt>
-      <dd class="col-sm-8">@Model.Capacite ports</dd>
-      <dt class="col-sm-4">Latitude</dt>
-      <dd class="col-sm-8">@(Model.Latitude?.ToString("F6") ?? "—")</dd>
-      <dt class="col-sm-4">Longitude</dt>
-      <dd class="col-sm-8">@(Model.Longitude?.ToString("F6") ?? "—")</dd>
-    </dl>
-  </div>
-</div>
-
-<section class="mt-4">
-  <div class="d-flex align-items-center mb-2 gap-3">
-    <h4 class="mb-0">
-      <i class="bi bi-layers me-1"></i>Boîtiers d'étage
-      <span class="badge bg-secondary ms-1">@Model.BoitiersEtage.Count</span>
-    </h4>
-    @if (currentRole != UserRoles.Visiteur) {
-      <a asp-controller="BoitiersEtage" asp-action="Create" asp-route-bpiId="@Model.Id"
-         class="btn btn-sm btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Ajouter un boîtier d'étage
-      </a>
-    }
-  </div>
-
-  @if (!Model.BoitiersEtage.Any()) {
-    <div class="alert alert-info">Aucun boîtier d'étage enregistré pour ce BPI.</div>
-  } else {
-    <div class="card shadow-sm">
-      <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0">
-          <thead class="table-light"><tr>
-            <th>Nom</th><th>Étage</th><th>Capacité</th><th>Statut</th><th>Actions</th>
-          </tr></thead>
-          <tbody>
-            @foreach (var be in Model.BoitiersEtage.OrderBy(b => b.Etage)) {
-            <tr>
-              <td class="fw-semibold">@be.Nom</td>
-              <td>Étage @be.Etage</td>
-              <td>@be.Capacite ports</td>
-              <td>
-                @if (be.IsActive) { <span class="badge bg-success">Actif</span> }
-                else { <span class="badge bg-danger">Inactif</span> }
-              </td>
-              <td>
-                <a asp-controller="BoitiersEtage" asp-action="Details" asp-route-id="@be.Id"
-                   class="btn btn-xs btn-sm btn-outline-info me-1">Détails</a>
-                @if (currentRole != UserRoles.Visiteur) {
-                  <a asp-controller="BoitiersEtage" asp-action="Edit" asp-route-id="@be.Id"
-                     class="btn btn-xs btn-sm btn-outline-secondary">Modifier</a>
-                }
-              </td>
-            </tr>
-            }
-          </tbody>
-        </table>
+<div class="page-body">
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4">
+      <div class="sg-card h-100">
+        <h2 class="h6 mb-3 fw-600"><i class="bi bi-info-circle me-2"></i>Informations</h2>
+        <dl class="row mb-0">
+          <dt class="col-5 text-muted small">FDT</dt>
+          <dd class="col-7 small">@(Model.Fdt?.Nom ?? "—")</dd>
+          <dt class="col-5 text-muted small">OLT</dt>
+          <dd class="col-7 small">@(Model.Fdt?.Olt?.Nom ?? "—")</dd>
+          <dt class="col-5 text-muted small">Zone</dt>
+          <dd class="col-7 small">@(Model.Fdt?.Olt?.Zone?.Nom ?? "—")</dd>
+          <dt class="col-5 text-muted small">Capacité</dt>
+          <dd class="col-7 small">@Model.Capacite</dd>
+          <dt class="col-5 text-muted small">Latitude</dt>
+          <dd class="col-7 small">@(Model.Latitude?.ToString("F4") ?? "—")</dd>
+          <dt class="col-5 text-muted small">Longitude</dt>
+          <dd class="col-7 small">@(Model.Longitude?.ToString("F4") ?? "—")</dd>
+        </dl>
       </div>
     </div>
-  }
-</section>
+    <div class="col-lg-8">
+      <div class="sg-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h2 class="h6 mb-0 fw-600">
+            <i class="bi bi-layers me-2"></i>Boîtiers d'étage
+            <span class="badge-status status-online ms-2">@(Model.BoitiersEtage?.Count ?? 0)</span>
+          </h2>
+          <a asp-controller="BoitiersEtage" asp-action="Index" asp-route-bpiId="@Model.Id"
+             class="btn sg-btn sg-btn-outline btn-sm">Voir tout</a>
+        </div>
+        @if (Model.BoitiersEtage?.Any() == true)
+        {
+          <table class="sg-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Étage</th>
+                <th>Capacité</th>
+                <th>Statut</th>
+                <th style="width:90px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach (var be in Model.BoitiersEtage)
+              {
+                <tr>
+                  <td class="fw-500">@be.Nom</td>
+                  <td>@be.Etage</td>
+                  <td>@be.Capacite</td>
+                  <td>
+                    @if (be.IsActive)
+                    { <span class="badge-status status-online">Actif</span> }
+                    else
+                    { <span class="badge-status status-offline">Inactif</span> }
+                  </td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a asp-controller="BoitiersEtage" asp-action="Details" asp-route-id="@be.Id"
+                         class="btn sg-btn sg-btn-outline btn-sm">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        else
+        {
+          <p class="text-muted small mb-0">Aucun boîtier d'étage enregistré.</p>
+        }
+      </div>
+    </div>
+  </div>
+</div>

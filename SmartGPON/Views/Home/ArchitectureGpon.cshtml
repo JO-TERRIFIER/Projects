@@ -1,95 +1,196 @@
-@* Views/Home/ArchitectureGpon.cshtml â€” Visualisation Architecture GPON par Client/Projet *@
+@using SmartGPON.Core.Interfaces
+@model NetworkTreeData
 @{
   ViewData["Title"] = "Architecture GPON";
 }
-<div class="page-header">
-  <div><h1 class="page-title">Architecture GPON</h1><div class="page-subtitle">Visualisation de l'architecture rÃ©seau par client et projet</div></div>
-</div>
-<div class="page-body">
-  <div class="sg-card mb-4">
-    <div class="row g-3 align-items-end">
-      <div class="col-md-4">
-        <label class="sg-label">Client</label>
-        <select id="selClient" class="sg-input form-select"><option value="">-- SÃ©lectionner un client --</option></select>
-      </div>
-      <div class="col-md-4">
-        <label class="sg-label">Projet</label>
-        <select id="selProjet" class="sg-input form-select" disabled><option value="">-- SÃ©lectionner un projet --</option></select>
-      </div>
-    </div>
-  </div>
 
-  <div class="sg-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:600"><i class="bi bi-diagram-3 me-2"></i>Arbre GPON</div>
-      <div id="archLegend" style="display:flex;gap:12px;font-size:10px;color:var(--text-muted)">
-        <span><span class="lbadge lvl-zone">Zone</span></span>
-        <span><span class="lbadge lvl-olt">OLT</span></span>
-        <span><span class="lbadge lvl-fdt">FDT</span></span>
-        <span><span class="lbadge lvl-fat">FAT</span></span>
-        <span><span class="lbadge lvl-projet">BPI</span></span>
-      </div>
-    </div>
-    <div id="archTree" style="min-height:80px">
-      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>SÃ©lectionnez un client puis un projet pour visualiser l'architecture GPON</div>
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item active">Architecture GPON</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-diagram-3 me-2"></i>Architecture GPON</h1>
     </div>
   </div>
 </div>
+
+<div class="page-body">
+  <div class="row g-3">
+    <div class="col-lg-3">
+      <div class="sg-card">
+        <h2 class="h6 mb-3 fw-600"><i class="bi bi-funnel me-2"></i>Filtres</h2>
+
+        <!-- FILTRE 1 — CLIENT (optionnel) -->
+        <label class="form-label text-muted small mb-1">Client</label>
+        <div class="sg-combobox mb-3" id="cb-client">
+          <div class="sg-combobox-input-wrap">
+            <input type="text" class="sg-combobox-input form-control form-control-sm"
+                   placeholder="Tous les clients" autocomplete="off" />
+            <input type="hidden" class="sg-combobox-value" />
+            <span class="sg-combobox-arrow">▾</span>
+          </div>
+          <ul class="sg-combobox-list list-unstyled" hidden></ul>
+        </div>
+
+        <!-- FILTRE 2 — PROJET (obligatoire) -->
+        <label class="form-label text-muted small mb-1">Projet <span class="text-danger">*</span></label>
+        <div class="sg-combobox mb-3" id="cb-projet">
+          <div class="sg-combobox-input-wrap">
+            <input type="text" class="sg-combobox-input form-control form-control-sm"
+                   placeholder="Sélectionner un projet..." autocomplete="off" />
+            <input type="hidden" class="sg-combobox-value" />
+            <span class="sg-combobox-arrow">▾</span>
+          </div>
+          <ul class="sg-combobox-list list-unstyled" hidden></ul>
+        </div>
+
+        <!-- FILTRE 3 — ZONE (obligatoire, désactivé par défaut) -->
+        <label class="form-label text-muted small mb-1">Zone <span class="text-danger">*</span></label>
+        <div class="sg-combobox sg-combobox--disabled mb-1" id="cb-zone">
+          <div class="sg-combobox-input-wrap">
+            <input type="text" class="sg-combobox-input form-control form-control-sm"
+                   placeholder="Sélectionnez d'abord un projet" autocomplete="off" />
+            <input type="hidden" class="sg-combobox-value" />
+            <span class="sg-combobox-arrow">▾</span>
+          </div>
+          <ul class="sg-combobox-list list-unstyled" hidden></ul>
+        </div>
+        <p class="text-muted mb-0" style="font-size:11px" id="zone-hint">
+          <i class="bi bi-info-circle me-1"></i>Sélectionnez un projet pour activer ce filtre.
+        </p>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      @if (Model == null)
+      {
+        <div class="sg-card d-flex align-items-center justify-content-center" style="min-height:300px">
+          <div class="text-center text-muted">
+            <i class="bi bi-diagram-3" style="font-size:48px;opacity:0.3"></i>
+            <p class="mt-3 mb-0">Sélectionnez une zone pour visualiser l'architecture GPON.</p>
+          </div>
+        </div>
+      }
+      else
+      {
+        <div class="sg-card">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h6 mb-0 fw-600">
+              <i class="bi bi-geo-alt me-2" style="color:var(--color-telecom-blue)"></i>@Model.Zone.Nom
+              <span class="text-muted fw-400 ms-1">— @(Model.Zone.Projet?.Nom ?? "")</span>
+            </h2>
+            <span class="badge-status status-online">@Model.Olts.Count OLT(s)</span>
+          </div>
+
+          @if (!Model.Olts.Any())
+          {
+            <p class="text-muted small">Aucun OLT dans cette zone.</p>
+          }
+          else
+          {
+            <div class="tree-node-group">
+              @foreach (var olt in Model.Olts)
+              {
+                <div class="tree-node-group mb-2">
+                  <div class="tree-node" onclick="tToggle(this)">
+                    <button class="tree-toggle"><i class="bi bi-plus"></i></button>
+                    <div class="tree-icon" style="background:rgba(37,99,235,0.1);color:var(--color-telecom-blue)">
+                      <i class="bi bi-hdd-network"></i>
+                    </div>
+                    <span class="tree-label">@olt.Nom</span>
+                    @if (!string.IsNullOrEmpty(olt.IpAddress))
+                    {
+                      <span class="badge-status status-online ms-2">@olt.IpAddress</span>
+                    }
+                    <span class="ms-auto text-muted" style="font-size:11px">@olt.NbrePorts ports</span>
+                  </div>
+                  <div class="tree-children">
+                    @foreach (var fdt in olt.Fdts ?? Enumerable.Empty<SmartGPON.Core.Entities.Fdt>())
+                    {
+                      <div class="tree-node-group ms-4">
+                        <div class="tree-node" onclick="tToggle(this)">
+                          <button class="tree-toggle"><i class="bi bi-plus"></i></button>
+                          <div class="tree-icon" style="background:rgba(245,158,11,0.1);color:var(--color-status-warning)">
+                            <i class="bi bi-box"></i>
+                          </div>
+                          <span class="tree-label">@fdt.Nom</span>
+                          @if (fdt.Splitters?.Any() == true)
+                          {
+                            @foreach (var sp in fdt.Splitters)
+                            {
+                              <span class="badge-status status-warning ms-1">@sp.TypeSplitter.ToString() ×@sp.Quantite</span>
+                            }
+                          }
+                        </div>
+                        <div class="tree-children">
+                          @foreach (var fat in fdt.Fats ?? Enumerable.Empty<SmartGPON.Core.Entities.Fat>())
+                          {
+                            <div class="tree-node-group ms-4">
+                              <div class="tree-node">
+                                <span class="tree-spacer"></span>
+                                <div class="tree-icon" style="background:rgba(16,185,129,0.1);color:var(--color-status-online)">
+                                  <i class="bi bi-share"></i>
+                                </div>
+                                <span class="tree-label">@fat.Nom</span>
+                                <span class="ms-auto text-muted" style="font-size:11px">Cap: @fat.Capacite</span>
+                              </div>
+                            </div>
+                          }
+                          @foreach (var bpi in fdt.Bpis ?? Enumerable.Empty<SmartGPON.Core.Entities.Bpi>())
+                          {
+                            <div class="tree-node-group ms-4">
+                              <div class="tree-node" onclick="tToggle(this)">
+                                <button class="tree-toggle"><i class="bi bi-plus"></i></button>
+                                <div class="tree-icon" style="background:rgba(100,116,139,0.1);color:var(--color-text-muted)">
+                                  <i class="bi bi-diagram-2"></i>
+                                </div>
+                                <span class="tree-label">@bpi.Nom</span>
+                                <span class="ms-auto text-muted" style="font-size:11px">Cap: @bpi.Capacite</span>
+                              </div>
+                              <div class="tree-children">
+                                @foreach (var be in bpi.BoitiersEtage ?? Enumerable.Empty<SmartGPON.Core.Entities.BoitierEtage>())
+                                {
+                                  <div class="tree-node ms-4">
+                                    <span class="tree-spacer"></span>
+                                    <div class="tree-icon" style="background:rgba(100,116,139,0.1);color:var(--color-text-muted)">
+                                      <i class="bi bi-layers"></i>
+                                    </div>
+                                    <span class="tree-label">@be.Nom</span>
+                                    <span class="text-muted ms-2" style="font-size:11px">Étage @be.Etage</span>
+                                    @if (be.IsActive)
+                                    { <span class="badge-status status-online ms-2">Actif</span> }
+                                    else
+                                    { <span class="badge-status status-offline ms-2">Inactif</span> }
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="~/css/gpon-modal.css" />
 
 @section Scripts {
-<script>
-(function(){
-  const $=id=>document.getElementById(id);
-  function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-
-  // Load clients
-  fetch('/Home/GetClients').then(r=>r.json()).then(list=>{
-    const sel=$('selClient');
-    list.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nom;sel.appendChild(o);});
-  });
-
-  // Client change â†’ load projects
-  $('selClient').addEventListener('change',function(){
-    const sp=$('selProjet');sp.innerHTML='<option value="">-- SÃ©lectionner un projet --</option>';
-    $('archTree').innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>SÃ©lectionnez un projet</div>';
-    if(!this.value){sp.disabled=true;return;}
-    sp.disabled=false;
-    fetch('/Home/GetProjectsByClient?clientId='+this.value).then(r=>r.json()).then(list=>{
-      list.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nom+' ('+p.statut+')';sp.appendChild(o);});
-    });
-  });
-
-  // Project change â†’ load tree
-  $('selProjet').addEventListener('change',function(){
-    const container=$('archTree');
-    if(!this.value){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:32px 0"><i class="bi bi-diagram-3 d-block mb-2 fs-4"></i>SÃ©lectionnez un projet</div>';return;}
-    container.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted)"><i class="bi bi-arrow-repeat spin"></i> Chargement...</div>';
-    fetch('/Home/GetProjectArchitecture?projectId='+this.value).then(r=>r.json()).then(zones=>{
-      if(!zones.length){container.innerHTML='<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px 0">Aucune donnÃ©e pour ce projet</div>';return;}
-      let html='';
-      zones.forEach(z=>{
-        html+='<div class="tree-node-group"><div class="tree-node" onclick="tToggle(this)"><span class="tree-toggle open"><i class="bi bi-dash"></i></span><span class="tree-icon" style="background:rgba(0,230,118,.1)"><i class="bi bi-geo-alt" style="color:var(--accent-green)"></i></span><span class="tree-label">'+esc(z.nom)+'</span><span class="lbadge lvl-zone ms-2">Zone</span></div><div class="tree-children open"><div class="tree-connector">';
-        (z.children||[]).forEach(o=>{
-          const si=o.statut==='Actif'?'si-on':o.statut==='EnPanne'?'si-err':'si-warn';
-          html+='<div class="tree-node-group"><div class="tree-node" onclick="tToggle(this)"><span class="tree-toggle"><i class="bi bi-plus"></i></span><span class="tree-icon" style="background:rgba(255,179,0,.1)"><i class="bi bi-server" style="color:var(--accent-amber)"></i></span><span class="tree-label">'+esc(o.nom)+(o.marque?' ('+esc(o.marque)+')':'')+'</span><span class="lbadge lvl-olt ms-2">OLT</span><span class="si '+si+' ms-2"></span></div><div class="tree-children"><div class="tree-connector">';
-          (o.children||[]).forEach(f=>{
-            html+='<div class="tree-node-group"><div class="tree-node" onclick="tToggle(this)"><span class="tree-toggle"><i class="bi bi-plus"></i></span><span class="tree-icon" style="background:rgba(255,255,255,.06)"><i class="bi bi-box" style="color:var(--text-secondary)"></i></span><span class="tree-label">'+esc(f.nom)+'</span><span class="lbadge lvl-fdt ms-2">FDT</span></div><div class="tree-children"><div class="tree-connector">';
-            (f.children||[]).forEach(item=>{
-              if(item.type==='FAT'){
-                html+='<div class="tree-node"><span class="tree-spacer"></span><span class="tree-icon" style="background:rgba(255,61,87,.08)"><i class="bi bi-hdd-network" style="color:var(--accent-red);font-size:11px"></i></span><span class="tree-label">'+esc(item.nom)+' <span style="font-size:10px;color:var(--text-muted)">(cap:'+item.capacite+')</span></span><span class="lbadge lvl-fat ms-2">FAT</span></div>';
-              } else {
-                html+='<div class="tree-node"><span class="tree-spacer"></span><span class="tree-icon" style="background:rgba(0,200,224,.08)"><i class="bi bi-building" style="color:var(--accent-cyan);font-size:11px"></i></span><span class="tree-label">'+esc(item.nom)+' <span style="font-size:10px;color:var(--text-muted)">(cap:'+item.capacite+')</span></span><span class="lbadge lvl-projet ms-2">BPI</span></div>';
-              }
-            });
-            html+='</div></div></div>';
-          });
-          html+='</div></div></div>';
-        });
-        html+='</div></div></div>';
-      });
-      container.innerHTML=html;
-    });
-  });
-})();
-</script>
+  <script>
+    window.GPON_ACTIVE_ZONE_ID   = @(ViewBag.ActiveZoneId   ?? 0);
+    window.GPON_ACTIVE_PROJET_ID = @(ViewBag.ActiveProjetId ?? 0);
+    window.GPON_ACTIVE_CLIENT_ID = @(ViewBag.ActiveClientId ?? 0);
+  </script>
+  <script src="~/js/gpon-architecture-filters.js"></script>
 }

@@ -1,0 +1,73 @@
+@model SmartGPON.Web.ViewModels.ResourceCreateVM
+@{ ViewData["Title"] = "Nouvelle ressource"; }
+
+<link rel="stylesheet" href="~/css/gpon-modal.css" />
+
+<div class="gpon-overlay">
+  <div class="gpon-modal">
+    <div class="gpon-modal-header">
+      <h5><i class="bi bi-file-earmark-plus me-2"></i>Nouvelle ressource</h5>
+      <a href="@Url.Action("Index", new { projetId = Model.ProjetId > 0 ? Model.ProjetId : (int?)null })"
+         class="btn-close-modal">✕</a>
+    </div>
+    <div class="gpon-modal-body">
+      <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="row g-3">
+          <div class="col-12">
+            <label asp-for="ProjetId" class="form-label text-muted small mb-1">Projet <span class="text-danger">*</span></label>
+            <select asp-for="ProjetId" class="form-select" id="selProjet">
+              <option value="">— Sélectionner un projet —</option>
+              @if (ViewBag.Projets != null)
+              {
+                foreach (var p in (IEnumerable<SmartGPON.Core.Entities.Projet>)ViewBag.Projets)
+                {
+                  if (Model.ProjetId == p.Id) { <option value="@p.Id" selected>@p.Nom</option> }
+                  else { <option value="@p.Id">@p.Nom</option> }
+                }
+              }
+            </select>
+            <span asp-validation-for="ProjetId" class="text-danger small"></span>
+          </div>
+          <div class="col-12">
+            <label asp-for="ZoneId" class="form-label text-muted small mb-1">Zone <span class="text-muted">(optionnel)</span></label>
+            <select asp-for="ZoneId" class="form-select">
+              <option value="">— Aucune zone —</option>
+              @if (ViewBag.Zones != null)
+              {
+                foreach (var z in (IEnumerable<SmartGPON.Core.Entities.Zone>)ViewBag.Zones)
+                {
+                  <option value="@z.Id">@z.Nom</option>
+                }
+              }
+            </select>
+            <span asp-validation-for="ZoneId" class="text-danger small"></span>
+          </div>
+          <div class="col-12">
+            <label asp-for="NomFichier" class="form-label text-muted small mb-1">Nom du fichier <span class="text-danger">*</span></label>
+            <input asp-for="NomFichier" class="form-control" placeholder="Ex: Plan_Zone_Nord.pdf">
+            <span asp-validation-for="NomFichier" class="text-danger small"></span>
+          </div>
+          <div class="col-12">
+            <label asp-for="CheminFichier" class="form-label text-muted small mb-1">Chemin / URL <span class="text-danger">*</span></label>
+            <input asp-for="CheminFichier" class="form-control" placeholder="Ex: /uploads/plans/plan_z1.pdf">
+            <span asp-validation-for="CheminFichier" class="text-danger small"></span>
+          </div>
+        </div>
+        <div class="gpon-modal-footer">
+          <a href="@Url.Action("Index", new { projetId = Model.ProjetId > 0 ? Model.ProjetId : (int?)null })"
+             class="btn-cancel">Annuler</a>
+          <button type="submit" class="btn sg-btn sg-btn-primary">
+            <i class="bi bi-check2 me-1"></i>Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  @if (!ViewData.ModelState.IsValid) {
+    <script>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</script>
+  }
+}

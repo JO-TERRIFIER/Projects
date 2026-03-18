@@ -20,6 +20,12 @@
         <div class="auth-subtitle">Supervision reseau GPON/FTTH</div>
       </div>
 
+      <div style="background:#f0f4ff;border:1px solid #c7d7fa;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#3b4a6b">
+        <div style="font-weight:600;margin-bottom:4px"><i class="bi bi-info-circle me-1"></i>Compte administrateur par défaut</div>
+        <div>Email : <strong>admin@smartgpon.local</strong></div>
+        <div>Mot de passe : <strong>Admin@123456</strong></div>
+      </div>
+
       @{ var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList(); }
       @if (errors.Any()) {
         <div class="auth-error"><i class="bi bi-exclamation-circle-fill"></i><span>@errors.First()</span></div>
@@ -40,7 +46,7 @@
             name="Email"
             class="auth-input"
             value="@(Model?.Email ?? "")"
-            placeholder="superviseur@smartgpon.local"
+            placeholder="admin@smartgpon.local"
             autofocus
             autocomplete="username"/>
         </div>

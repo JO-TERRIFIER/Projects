@@ -37,6 +37,7 @@ namespace SmartGPON.Web.Controllers
             var d = DenyVisiteur(); if (d != null) return d;
             var ids = await AccessibleProjetIdsAsync();
             ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+            ViewBag.Zones   = await Db.Zones.OrderBy(z => z.Nom).ToListAsync();
             return View(new ResourceCreateVM { ProjetId = projetId ?? 0 });
         }
 
@@ -49,6 +50,7 @@ namespace SmartGPON.Web.Controllers
             {
                 var ids = await AccessibleProjetIdsAsync();
                 ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+                ViewBag.Zones   = await Db.Zones.OrderBy(z => z.Nom).ToListAsync();
                 return View(vm);
             }
             var e = new SmartGPON.Core.Entities.Resource
@@ -56,6 +58,44 @@ namespace SmartGPON.Web.Controllers
             Db.Resources.Add(e); await Db.SaveChangesAsync();
             await LogAsync(vm.ProjetId, "Create", "Resource", e.Id, $"Ressource ajoutée: {e.NomFichier}");
             TempData["Success"] = "Ressource ajoutée.";
+            return RedirectToAction(nameof(Index), new { projetId = vm.ProjetId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var d = DenyVisiteur(); if (d != null) return d;
+            var r = await Db.Resources.FindAsync(id);
+            if (r == null) return NotFound();
+            var ids = await AccessibleProjetIdsAsync();
+            ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+            ViewBag.Zones   = await Db.Zones.OrderBy(z => z.Nom).ToListAsync();
+            return View(new ResourceUpdateVM
+            {
+                Id = r.Id, ProjetId = r.ProjetId, ZoneId = r.ZoneId,
+                NomFichier = r.NomFichier, CheminFichier = r.CheminFichier
+            });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(ResourceUpdateVM vm)
+        {
+            var d = DenyVisiteur(); if (d != null) return d;
+            if (!await CanWriteAsync(vm.ProjetId)) return Forbid();
+            if (!ModelState.IsValid)
+            {
+                var ids = await AccessibleProjetIdsAsync();
+                ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+                ViewBag.Zones   = await Db.Zones.OrderBy(z => z.Nom).ToListAsync();
+                return View(vm);
+            }
+            var r = await Db.Resources.FindAsync(vm.Id);
+            if (r == null) return NotFound();
+            r.ProjetId = vm.ProjetId; r.ZoneId = vm.ZoneId;
+            r.NomFichier = vm.NomFichier; r.CheminFichier = vm.CheminFichier;
+            await Db.SaveChangesAsync();
+            await LogAsync(vm.ProjetId, "Update", "Resource", r.Id, $"Ressource modifiée: {r.NomFichier}");
+            TempData["Success"] = "Ressource modifiée.";
             return RedirectToAction(nameof(Index), new { projetId = vm.ProjetId });
         }
 

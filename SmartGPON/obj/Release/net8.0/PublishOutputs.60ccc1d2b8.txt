@@ -1,0 +1,16 @@
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/SmartGPON
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/appsettings.json
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/SmartGPON.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/SmartGPON.runtimeconfig.json
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/SmartGPON.pdb
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.EntityFrameworkCore.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.EntityFrameworkCore.Abstractions.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.EntityFrameworkCore.Relational.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.Extensions.Caching.Memory.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.Extensions.Logging.Abstractions.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Microsoft.Extensions.Options.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Npgsql.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/Npgsql.EntityFrameworkCore.PostgreSQL.dll
+/home/runner/workspace/SmartGPON/bin/Release/net8.0/publish/SmartGPON.deps.json

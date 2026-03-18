@@ -1,41 +1,114 @@
+@using SmartGPON.Web.ViewModels
 @model List<ApprovalRequestDisplayVM>
-@{ ViewData["Title"] = "Demandes d'approbation"; }
-<div class="page-header"><h1 class="page-title"><i class="bi bi-check2-square me-2"></i>Demandes d'approbation</h1></div>
-@if (!Model.Any()) {
-  <div class="alert alert-info">Aucune demande.</div>
-} else {
-  <div class="card shadow-sm">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light"><tr>
-          <th>Type cible</th><th>Action</th><th>Demandeur</th><th>Projet</th><th>Statut</th><th class="text-end">Actions</th>
-        </tr></thead>
-        <tbody>
-          @foreach (var r in Model) {
-          var badge = r.Status == 0 ? "warning" : (r.Status == 1 ? "success" : "danger");
-          var label = r.Status == 0 ? "En attente" : (r.Status == 1 ? "Approuvé" : "Refusé");
-          <tr>
-            <td><span class="badge bg-light text-dark border">@r.TargetType</span></td>
-            <td><span class="badge bg-secondary">@r.ActionType</span></td>
-            <td style="font-size:12px">@r.RequestedByUserId</td>
-            <td style="font-size:12px">@r.ProjetId</td>
-            <td><span class="badge bg-@badge">@label</span></td>
-            <td class="text-end">
-              @if (r.Status == 0 && !User.IsInRole("Visiteur")) {
-                <form asp-action="Approve" asp-route-id="@r.Id" method="post" class="d-inline">
-                  @Html.AntiForgeryToken()
-                  <button type="submit" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
-                </form>
-                <form asp-action="Reject" asp-route-id="@r.Id" method="post" class="d-inline">
-                  @Html.AntiForgeryToken()
-                  <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>
-                </form>
-              }
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
+@{ ViewData["Title"] = "Approbations"; }
+
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item active">Approbations</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-check2-circle me-2"></i>Demandes d'approbation</h1>
     </div>
   </div>
+</div>
+
+<div class="page-body">
+  <div class="sg-card">
+    <div class="d-flex gap-2 mb-3">
+      <input type="search" id="srch" class="form-control form-control-sm" placeholder="Rechercher…">
+      <select id="filt" class="form-select form-select-sm" style="width:160px">
+        <option value="">Tous les statuts</option>
+        <option value="0">En attente</option>
+        <option value="1">Approuvé</option>
+        <option value="2">Rejeté</option>
+      </select>
+    </div>
+    <table class="sg-table" id="tbl">
+      <thead>
+        <tr>
+          <th>Projet</th>
+          <th>Action</th>
+          <th>Type cible</th>
+          <th>Demandeur</th>
+          <th>Statut</th>
+          @if (User.IsInRole("Superviseur"))
+          {
+            <th style="width:140px">Actions</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var item in Model)
+        {
+          <tr data-search="@item.ProjetNom @item.ActionType @item.TargetType" data-status="@item.Status">
+            <td class="fw-500">@item.ProjetNom</td>
+            <td class="text-muted small">@item.ActionType</td>
+            <td class="text-muted small">@item.TargetType</td>
+            <td class="text-muted small" style="font-size:11px">@item.RequestedByUserId</td>
+            <td>
+              @if (item.Status == 0)
+              { <span class="badge-status status-warning">En attente</span> }
+              else if (item.Status == 1)
+              { <span class="badge-status status-online">Approuvé</span> }
+              else
+              { <span class="badge-status status-offline">Rejeté</span> }
+            </td>
+            @if (User.IsInRole("Superviseur"))
+            {
+              <td>
+                @if (item.Status == 0)
+                {
+                  <div class="d-flex gap-1">
+                    <form asp-action="Approve" asp-route-id="@item.Id" method="post" class="d-inline">
+                      @Html.AntiForgeryToken()
+                      <button type="submit" class="btn sg-btn sg-btn-outline btn-sm"
+                              style="color:var(--color-status-online);border-color:var(--color-status-online)" title="Approuver">
+                        <i class="bi bi-check2"></i>
+                      </button>
+                    </form>
+                    <form asp-action="Reject" asp-route-id="@item.Id" method="post" class="d-inline">
+                      @Html.AntiForgeryToken()
+                      <button type="submit" class="btn sg-btn sg-btn-danger btn-sm" title="Rejeter">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </form>
+                  </div>
+                }
+                else
+                {
+                  <span class="text-muted small">—</span>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+      <p class="text-muted small text-center mt-3 mb-0">Aucune demande d'approbation en cours.</p>
+    }
+  </div>
+</div>
+
+@section Scripts {
+<script>
+const srch = document.getElementById('srch');
+const filt = document.getElementById('filt');
+function filter() {
+  const s = srch.value.toLowerCase();
+  const f = filt.value;
+  document.querySelectorAll('#tbl tbody tr').forEach(r => {
+    const mS = !s || r.dataset.search?.toLowerCase().includes(s);
+    const mF = !f || r.dataset.status === f;
+    r.style.display = (mS && mF) ? '' : 'none';
+  });
+}
+srch.addEventListener('input', filter);
+filt.addEventListener('change', filter);
+</script>
 }

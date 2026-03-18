@@ -39,7 +39,7 @@ namespace SmartGPON.Web.Controllers
         {
             var d = DenyVisiteur(); if (d != null) return d;
             if (!ModelState.IsValid) return View(vm);
-            var entity = new SmartGPON.Core.Entities.Client { Nom = vm.Nom, Code = vm.Code };
+            var entity = new SmartGPON.Core.Entities.Client { Nom = vm.Nom, Code = vm.Code, IsActive = vm.IsActive };
             Db.Clients.Add(entity); await Db.SaveChangesAsync();
             await LogAsync(null, "Create", "Client", entity.Id, $"Client créé: {entity.Nom}");
             TempData["Success"] = "Client créé.";

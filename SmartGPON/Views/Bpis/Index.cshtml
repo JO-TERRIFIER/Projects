@@ -1,40 +1,89 @@
-@model List<BpiDisplayVM>
+@model List<SmartGPON.Web.ViewModels.BpiDisplayVM>
 @{ ViewData["Title"] = "BPIs"; }
-<div class="page-header d-flex justify-content-between align-items-center">
-  <h1 class="page-title"><i class="bi bi-boxes me-2"></i>BPIs</h1>
-  @if (!User.IsInRole("Visiteur")) {
-    <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nouveau BPI</a>
-  }
+
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+          <li class="breadcrumb-item active">BPIs</li>
+        </ol>
+      </nav>
+      <h1 class="h4 mb-0 fw-500"><i class="bi bi-diagram-2 me-2"></i>BPIs</h1>
+    </div>
+    @if (!User.IsInRole("Visiteur"))
+    {
+      <a asp-action="Create" asp-route-fdtId="@ViewBag.FdtId" class="btn sg-btn sg-btn-primary">
+        <i class="bi bi-plus me-1"></i>Nouveau BPI
+      </a>
+    }
+  </div>
 </div>
-@if (!Model.Any()) {
-  <div class="alert alert-info">Aucun BPI accessible.</div>
-} else {
-  <div class="card shadow-sm">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light"><tr>
-          <th>Nom</th><th>FDT</th><th>Capacité</th><th>Lat/Lon</th><th class="text-end">Actions</th>
-        </tr></thead>
-        <tbody>
-          @foreach (var b in Model) {
-          <tr>
-            <td class="fw-semibold">@b.Nom</td>
-            <td>@b.FdtNom</td>
-            <td>@b.Capacite</td>
-            <td class="text-muted" style="font-size:12px">@(b.Latitude?.ToString("F4") ?? "—") / @(b.Longitude?.ToString("F4") ?? "—")</td>
-            <td class="text-end">
-              @if (!User.IsInRole("Visiteur")) {
-                <a asp-action="Edit" asp-route-id="@b.Id" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
-                <form asp-action="Delete" asp-route-id="@b.Id" method="post" class="d-inline">
-                  @Html.AntiForgeryToken()
-                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                </form>
-              }
+
+<div class="page-body">
+  <div class="sg-card">
+    <div class="d-flex gap-2 mb-3">
+      <input type="search" id="srch" class="form-control form-control-sm" placeholder="Rechercher un BPI…">
+    </div>
+    <table class="sg-table" id="tbl">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>FDT</th>
+          <th>Capacité</th>
+          <th>Coordonnées</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var item in Model)
+        {
+          <tr data-search="@item.Nom @item.FdtNom">
+            <td class="fw-500">@item.Nom</td>
+            <td class="text-muted">@item.FdtNom</td>
+            <td>@item.Capacite</td>
+            <td class="text-muted" style="font-size:12px">
+              @if (item.Latitude.HasValue && item.Longitude.HasValue)
+              { @($"{item.Latitude:F4}, {item.Longitude:F4}") }
+              else
+              { <span>—</span> }
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a asp-action="Details" asp-route-id="@item.Id"
+                   class="btn sg-btn sg-btn-outline btn-sm" title="Détails">
+                  <i class="bi bi-eye"></i>
+                </a>
+                @if (!User.IsInRole("Visiteur"))
+                {
+                  <a asp-action="Edit" asp-route-id="@item.Id" class="btn sg-btn sg-btn-outline btn-sm">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn sg-btn sg-btn-danger btn-sm">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                }
+              </div>
             </td>
           </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+        }
+      </tbody>
+    </table>
   </div>
+</div>
+
+@section Scripts {
+<script>
+const srch = document.getElementById('srch');
+srch.addEventListener('input', () => {
+  const s = srch.value.toLowerCase();
+  document.querySelectorAll('#tbl tbody tr').forEach(r => {
+    r.style.display = !s || r.dataset.search?.toLowerCase().includes(s) ? '' : 'none';
+  });
+});
+</script>
 }

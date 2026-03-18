@@ -1,35 +1,60 @@
-@model ProjetCreateVM
+@model SmartGPON.Web.ViewModels.ProjetCreateVM
+@using SmartGPON.Core.Enums
 @{ ViewData["Title"] = "Nouveau projet"; }
-<div class="page-header"><h1 class="page-title"><i class="bi bi-folder-plus me-2"></i>Nouveau projet</h1></div>
-<div class="card shadow-sm" style="max-width:600px">
-  <div class="card-body">
-    <form asp-action="Create" method="post">
-      @Html.AntiForgeryToken()
-      <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-      <div class="mb-3">
-        <label asp-for="Nom" class="form-label fw-semibold">Nom du projet</label>
-        <input asp-for="Nom" class="form-control" placeholder="Ex: Déploiement GPON Zone Nord" />
-        <span asp-validation-for="Nom" class="text-danger small"></span>
-      </div>
-      <div class="mb-3">
-        <label asp-for="ClientId" class="form-label fw-semibold">Client</label>
-        <select asp-for="ClientId" class="form-select" asp-items="ViewBag.ClientsSelectList">
-          <option value="">— Choisir un client —</option>
-        </select>
-        <span asp-validation-for="ClientId" class="text-danger small"></span>
-      </div>
-      <div class="mb-4">
-        <label asp-for="Statut" class="form-label fw-semibold">Statut</label>
-        <select asp-for="Statut" class="form-select">
-          <option value="0">En cours</option>
-          <option value="1">Terminé</option>
-          <option value="2">Suspendu</option>
-        </select>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Créer</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
-      </div>
-    </form>
+
+<link rel="stylesheet" href="~/css/gpon-modal.css" />
+
+<div class="gpon-overlay">
+  <div class="gpon-modal">
+    <div class="gpon-modal-header">
+      <h5><i class="bi bi-folder-plus me-2"></i>Nouveau projet</h5>
+      <a href="@Url.Action("Index")" class="btn-close-modal">✕</a>
+    </div>
+    <div class="gpon-modal-body">
+      <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label asp-for="Nom" class="form-label text-muted small mb-1">Nom <span class="text-danger">*</span></label>
+            <input asp-for="Nom" class="form-control" placeholder="Ex: Déploiement Fibre Z1">
+            <span asp-validation-for="Nom" class="text-danger small"></span>
+          </div>
+          <div class="col-md-4">
+            <label asp-for="Statut" class="form-label text-muted small mb-1">Statut</label>
+            <select asp-for="Statut" class="form-select">
+              <option value="@ProjetStatut.EnCours">En cours</option>
+              <option value="@ProjetStatut.Termine">Terminé</option>
+              <option value="@ProjetStatut.Suspendu">Suspendu</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label asp-for="ClientId" class="form-label text-muted small mb-1">Client <span class="text-danger">*</span></label>
+            <select asp-for="ClientId" class="form-select">
+              <option value="">— Sélectionner un client —</option>
+              @if (ViewBag.Clients != null)
+              {
+                foreach (var c in (IEnumerable<SmartGPON.Core.Entities.Client>)ViewBag.Clients)
+                {
+                  <option value="@c.Id">@c.Nom (@c.Code)</option>
+                }
+              }
+            </select>
+            <span asp-validation-for="ClientId" class="text-danger small"></span>
+          </div>
+        </div>
+        <div class="gpon-modal-footer">
+          <a href="@Url.Action("Index")" class="btn-cancel">Annuler</a>
+          <button type="submit" class="btn sg-btn sg-btn-primary">
+            <i class="bi bi-check2 me-1"></i>Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
+
+@section Scripts {
+  @if (!ViewData.ModelState.IsValid) {
+    <script>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</script>
+  }
+}

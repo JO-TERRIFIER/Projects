@@ -1,71 +1,77 @@
 @model SmartGPON.Web.ViewModels.UserCreateViewModel
-@{ ViewData["Title"] = "Nouveau compte utilisateur"; }
+@{ ViewData["Title"] = "Nouvel utilisateur"; }
 
-<div class="page-header">
-    <div>
-        <h1 class="page-title"><i class="bi bi-person-plus me-2"></i>@ViewData["Title"]</h1>
-        <div class="page-subtitle">Création d'un compte par l'superviseuristrateur</div>
+<link rel="stylesheet" href="~/css/gpon-modal.css" />
+
+<div class="gpon-overlay">
+  <div class="gpon-modal">
+    <div class="gpon-modal-header">
+      <h5><i class="bi bi-person-plus me-2"></i>Nouveau compte utilisateur</h5>
+      <a href="@Url.Action("Index")" class="btn-close-modal">✕</a>
     </div>
-    <a asp-action="Index" class="btn-ghost-sg"><i class="bi bi-arrow-left me-1"></i>Retour</a>
-</div>
-
-<div class="page-body">
-    <div class="row justify-content-center">
-        <div class="col-md-7">
-            <div class="sg-card">
-                <form asp-action="Create" method="post">
-                    @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="sg-label">Nom *</label>
-                            <input asp-for="LastName" class="sg-input" required />
-                            <span asp-validation-for="LastName" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="sg-label">Prénom *</label>
-                            <input asp-for="FirstName" class="sg-input" required />
-                            <span asp-validation-for="FirstName" class="text-danger small"></span>
-                        </div>
-                        <div class="col-12">
-                            <label class="sg-label">Email *</label>
-                            <input asp-for="Email" class="sg-input" type="email" required />
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="sg-label">Mot de passe *</label>
-                            <input asp-for="Password" class="sg-input" type="password" required />
-                            <span asp-validation-for="Password" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="sg-label">Confirmation *</label>
-                            <input asp-for="ConfirmPassword" class="sg-input" type="password" required />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="sg-label">Rôle *</label>
-                            <select asp-for="Role" class="sg-select" required>
-                                <option value="">-- Sélectionner --</option>
-                                @foreach (var role in Model.AvailableRoles)
-                                {
-                                    <option value="@role">@role</option>
-                                }
-                            </select>
-                            <span asp-validation-for="Role" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6 d-flex align-items-end">
-                            <div class="form-check mb-2">
-                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                                <label class="form-check-label" style="color:var(--text-secondary)">Compte actif</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn-primary-sg"><i class="bi bi-check-lg me-1"></i>Créer</button>
-                        <a asp-action="Index" class="btn-ghost-sg">Annuler</a>
-                    </div>
-                </form>
+    <div class="gpon-modal-body">
+      <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label asp-for="FirstName" class="form-label text-muted small mb-1">Prénom <span class="text-danger">*</span></label>
+            <input asp-for="FirstName" class="form-control" placeholder="Ex: Ahmed">
+            <span asp-validation-for="FirstName" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="LastName" class="form-label text-muted small mb-1">Nom <span class="text-danger">*</span></label>
+            <input asp-for="LastName" class="form-control" placeholder="Ex: Benali">
+            <span asp-validation-for="LastName" class="text-danger small"></span>
+          </div>
+          <div class="col-12">
+            <label asp-for="Email" class="form-label text-muted small mb-1">Email <span class="text-danger">*</span></label>
+            <input asp-for="Email" class="form-control" type="email" placeholder="ahmed@example.com">
+            <span asp-validation-for="Email" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="Password" class="form-label text-muted small mb-1">Mot de passe <span class="text-danger">*</span></label>
+            <input asp-for="Password" class="form-control" type="password">
+            <span asp-validation-for="Password" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="ConfirmPassword" class="form-label text-muted small mb-1">Confirmer <span class="text-danger">*</span></label>
+            <input asp-for="ConfirmPassword" class="form-control" type="password">
+            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="Role" class="form-label text-muted small mb-1">Rôle <span class="text-danger">*</span></label>
+            <select asp-for="Role" class="form-select">
+              <option value="">— Sélectionner un rôle —</option>
+              <option value="Superviseur">Superviseur</option>
+              <option value="Membre">Membre</option>
+              <option value="Visiteur">Visiteur</option>
+            </select>
+            <span asp-validation-for="Role" class="text-danger small"></span>
+          </div>
+          <div class="col-md-6">
+            <label asp-for="Specialite" class="form-label text-muted small mb-1">Spécialité</label>
+            <input asp-for="Specialite" class="form-control" placeholder="Ex: Fibre optique">
+          </div>
+          <div class="col-12">
+            <div class="form-check form-switch mt-1">
+              <input asp-for="IsActive" class="form-check-input" type="checkbox" checked>
+              <label asp-for="IsActive" class="form-check-label">Compte actif</label>
             </div>
+          </div>
         </div>
+        <div class="gpon-modal-footer">
+          <a href="@Url.Action("Index")" class="btn-cancel">Annuler</a>
+          <button type="submit" class="btn sg-btn sg-btn-primary">
+            <i class="bi bi-check2 me-1"></i>Créer le compte
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+
+@section Scripts {
+  @if (!ViewData.ModelState.IsValid) {
+    <script>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</script>
+  }
+}
