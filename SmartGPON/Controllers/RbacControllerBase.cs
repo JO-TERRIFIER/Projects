@@ -4,6 +4,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SmartGPON.Core.Entities;
 using SmartGPON.Core.Enums;
 using SmartGPON.Core.Interfaces;
 using SmartGPON.Infrastructure.Data;
@@ -15,6 +16,8 @@ namespace SmartGPON.Web.Controllers
         protected readonly ApplicationDbContext Db;
         protected readonly IUserProjectAssignmentService Assignments;
         protected readonly IAuditLogService Audit;
+        protected IConfiguration Configuration => HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        protected IWebHostEnvironment Env => HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
 
         protected RbacControllerBase(ApplicationDbContext db, IUserProjectAssignmentService assignments, IAuditLogService audit)
         {
@@ -80,5 +83,59 @@ namespace SmartGPON.Web.Controllers
 
         protected Task<int> ProjetIdFromBpiAsync(int bpiId)
             => Db.Bpis.Where(b => b.Id == bpiId).Select(b => b.Fdt.Olt.Zone.ProjetId).FirstOrDefaultAsync();
+
+        // ── Helpers UploadTemp (partagés Projets + Zones) ────────────────
+        protected string TempDir(string sessionGuid)
+        {
+            var uploadPath = Configuration.GetValue<string>("FileUpload:UploadPath") ?? "uploads";
+            return Path.Combine(Env.ContentRootPath, uploadPath, "temp", sessionGuid);
+        }
+
+        /// <summary>
+        /// Déplace les fichiers de /uploads/temp/{sessionGuid}/ vers leur destination finale
+        /// et crée les enregistrements Resource en DB.
+        /// </summary>
+        protected async Task FinalizeTemp(string sessionGuid, int projetId, int? zoneId)
+        {
+            var tempDir = TempDir(sessionGuid);
+            if (!Directory.Exists(tempDir)) return;
+
+            var uploadPath = Configuration.GetValue<string>("FileUpload:UploadPath") ?? "uploads";
+            var uploadRoot = Path.Combine(Env.ContentRootPath, uploadPath);
+
+            foreach (var tempFile in Directory.GetFiles(tempDir))
+            {
+                var fileName  = Path.GetFileName(tempFile);
+                var ext       = Path.GetExtension(fileName);
+                var guid      = Path.GetFileNameWithoutExtension(fileName); // guid sans ext
+
+                string relativePath = zoneId.HasValue
+                    ? Path.Combine("projets", projetId.ToString(), "zones", zoneId.Value.ToString(), fileName)
+                    : Path.Combine("projets", projetId.ToString(), fileName);
+
+                var destFull = Path.Combine(uploadRoot, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destFull)!);
+                System.IO.File.Move(tempFile, destFull, overwrite: true);
+
+                var fi = new FileInfo(destFull);
+                var resource = new Resource
+                {
+                    ProjetId         = projetId,
+                    ZoneId           = zoneId,
+                    NomFichier       = guid,                 // nom GUID (affiché peut être amélioré)
+                    CheminFichier    = relativePath,
+                    UploadedByUserId = CurrentUserId,
+                    UploadedAt       = DateTime.UtcNow,
+                    FileSize         = fi.Length,
+                    FileExtension    = ext,
+                    ContentType      = "application/octet-stream" // MIME pas redétecté ici
+                };
+                Db.Resources.Add(resource);
+            }
+            await Db.SaveChangesAsync();
+
+            // Supprimer dossier temp
+            try { Directory.Delete(tempDir, recursive: true); } catch { /* non bloquant */ }
+        }
     }
 }

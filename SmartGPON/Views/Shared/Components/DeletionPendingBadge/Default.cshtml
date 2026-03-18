@@ -1,0 +1,10 @@
+@* ── Views/Shared/Components/DeletionPendingBadge/Default.cshtml
+   P9 · Badge compte demandes de suppression EnAttente
+*@
+@model int
+
+@if (Model > 0)
+{
+    <span class="badge bg-danger ms-1 badge-sm"
+          title="@Model demande(s) de suppression en attente">@Model</span>
+}

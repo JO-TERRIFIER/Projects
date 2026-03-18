@@ -1,62 +1,116 @@
 @model SmartGPON.Web.ViewModels.ZoneUpdateVM
-@{ ViewData["Title"] = "Modifier zone"; }
+@{
+    ViewData["Title"] = "Modifier zone";
+    var canUpload = !User.IsInRole("Visiteur") && !User.IsInRole("TechTerrain");
+    var canDelete = User.IsInRole("Superviseur") || User.IsInRole("ChefProjet") || User.IsInRole("TechDessin");
+}
 
 <link rel="stylesheet" href="~/css/gpon-modal.css" />
+<link rel="stylesheet" href="~/css/gpon-fileui.css" />
 
 <div class="gpon-overlay">
-  <div class="gpon-modal">
+  <div class="gpon-modal" style="max-width:860px">
     <div class="gpon-modal-header">
       <h5><i class="bi bi-pencil me-2"></i>Modifier zone</h5>
       <a href="@Url.Action("Index")" class="btn-close-modal">✕</a>
     </div>
     <div class="gpon-modal-body">
-      <form asp-action="Edit" method="post">
-        @Html.AntiForgeryToken()
-        <input asp-for="Id" type="hidden" />
-        <div class="row g-3">
-          <div class="col-12">
-            <label asp-for="Nom" class="form-label text-muted small mb-1">Nom <span class="text-danger">*</span></label>
-            <input asp-for="Nom" class="form-control">
-            <span asp-validation-for="Nom" class="text-danger small"></span>
+      <div class="sg-edit-2col">
+
+        {{!-- Colonne gauche: attributs --}}
+        <div>
+          <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="ProjetId" type="hidden" />
+            <div class="row g-3">
+              <div class="col-12">
+                <label asp-for="Nom" class="form-label text-muted small mb-1">Nom <span class="text-danger">*</span></label>
+                <input asp-for="Nom" class="form-control">
+                <span asp-validation-for="Nom" class="text-danger small"></span>
+              </div>
+              <div class="col-md-6">
+                <label asp-for="Latitude" class="form-label text-muted small mb-1">Latitude</label>
+                <input asp-for="Latitude" class="form-control">
+                <span asp-validation-for="Latitude" class="text-danger small"></span>
+              </div>
+              <div class="col-md-6">
+                <label asp-for="Longitude" class="form-label text-muted small mb-1">Longitude</label>
+                <input asp-for="Longitude" class="form-control">
+                <span asp-validation-for="Longitude" class="text-danger small"></span>
+              </div>
+            </div>
+            <div class="gpon-modal-footer">
+              <a href="@Url.Action("Index")" class="btn-cancel">Annuler</a>
+              <button type="submit" class="btn sg-btn sg-btn-primary">
+                <i class="bi bi-check2 me-1"></i>Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {{!-- Colonne droite: fichiers --}}
+        <div class="sg-edit-col-files">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong class="small"><i class="bi bi-paperclip me-1"></i>Fichiers</strong>
+            @if (canUpload)
+            {
+              <button class="sg-upload-btn" id="edit-upload-trigger">
+                <i class="bi bi-plus-circle me-1"></i>Ajouter
+              </button>
+              <input type="file" id="edit-file-input" class="d-none" multiple />
+            }
           </div>
-          <div class="col-12">
-            <label asp-for="ProjetId" class="form-label text-muted small mb-1">Projet <span class="text-danger">*</span></label>
-            <select asp-for="ProjetId" class="form-select">
-              <option value="">— Sélectionner un projet —</option>
-              @if (ViewBag.Projets != null)
-              {
-                foreach (var p in (IEnumerable<SmartGPON.Core.Entities.Projet>)ViewBag.Projets)
-                {
-                  <option value="@p.Id">@p.Nom</option>
-                }
-              }
-            </select>
-            <span asp-validation-for="ProjetId" class="text-danger small"></span>
-          </div>
-          <div class="col-md-6">
-            <label asp-for="Latitude" class="form-label text-muted small mb-1">Latitude</label>
-            <input asp-for="Latitude" class="form-control">
-            <span asp-validation-for="Latitude" class="text-danger small"></span>
-          </div>
-          <div class="col-md-6">
-            <label asp-for="Longitude" class="form-label text-muted small mb-1">Longitude</label>
-            <input asp-for="Longitude" class="form-control">
-            <span asp-validation-for="Longitude" class="text-danger small"></span>
+          <div id="edit-file-zone"
+               data-upload-url="@Url.Action("UploadAjax","Resources")"
+               data-delete-url="@Url.Action("DeleteAjax","Resources")"
+               data-getfiles-url="@Url.Action("GetFiles","Resources")"
+               data-projet-id="@Model.ProjetId"
+               data-zone-id="@Model.Id"
+               data-can-upload="@canUpload.ToString().ToLower()"
+               data-can-delete="@canDelete.ToString().ToLower()">
+            <div class="sg-file-list" id="edit-file-list"></div>
           </div>
         </div>
-        <div class="gpon-modal-footer">
-          <a href="@Url.Action("Index")" class="btn-cancel">Annuler</a>
-          <button type="submit" class="btn sg-btn sg-btn-primary">
-            <i class="bi bi-check2 me-1"></i>Enregistrer
-          </button>
-        </div>
-      </form>
+
+      </div>
     </div>
   </div>
 </div>
 
 @section Scripts {
-  @if (!ViewData.ModelState.IsValid) {
-    <script>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</script>
-  }
+  <script src="~/js/gpon-fileui.js"></script>
+  <script>
+    const sgUrls = {
+      upload:       '@Url.Action("UploadAjax","Resources")',
+      delete_:      '@Url.Action("DeleteAjax","Resources")',
+      getFiles:     '@Url.Action("GetFiles","Resources")',
+      downloadBase: '@Url.Action("Download","Resources")'
+    };
+    loadFileList(@Model.ProjetId, @Model.Id, 'edit-file-list', sgUrls);
+
+    @if (canUpload)
+    {
+      <text>
+      document.getElementById('edit-upload-trigger')?.addEventListener('click', function() {
+          document.getElementById('edit-file-input').click();
+      });
+      document.getElementById('edit-file-input')?.addEventListener('change', async function() {
+          for (const file of Array.from(this.files)) {
+              const r = await uploadFileAjax(@Model.ProjetId, @Model.Id, file, sgUrls);
+              if (r.success) {
+                  loadFileList(@Model.ProjetId, @Model.Id, 'edit-file-list', sgUrls);
+              } else {
+                  alert(r.error || 'Erreur upload.');
+              }
+          }
+          this.value = '';
+      });
+      </text>
+    }
+
+    @if (!ViewData.ModelState.IsValid) {
+      <text>document.querySelector('.gpon-modal')?.scrollIntoView({behavior:'smooth'});</text>
+    }
+  </script>
 }

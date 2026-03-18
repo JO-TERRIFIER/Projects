@@ -1,0 +1,67 @@
+@* ── Views/Zones/Details.cshtml ────────────────────────────────
+   P8 · Modèle: ZoneDetailsVM
+   Intègre _FileList + _UploadModal + _PendingDeletions
+*@
+@using SmartGPON.Web.ViewModels
+@model ZoneDetailsVM
+
+@{
+    ViewData["Title"] = $"Zone — {Model.Nom}";
+}
+
+<div class="container-fluid py-4">
+
+    {{-- Header --}}
+    <div class="d-flex align-items-center mb-4">
+        <a asp-controller="Projets" asp-action="Details" asp-route-id="@Model.ProjetId"
+           class="btn btn-outline-secondary btn-sm me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h3 class="mb-0">@Model.Nom</h3>
+            <small class="text-muted">
+                Projet: <strong>@Model.ProjetNom</strong>
+                @if (Model.Latitude.HasValue)
+                {
+                    <span class="ms-2">📍 @Model.Latitude?.ToString("F6"), @Model.Longitude?.ToString("F6")</span>
+                }
+            </small>
+        </div>
+    </div>
+
+    {{-- Alertes TempData --}}
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    {{-- Section Fichiers --}}
+    <div class="card sg-card mb-4">
+        <div class="card-body">
+            @{
+                ViewBag.CanUpload = Model.CanUpload;
+            }
+            @await Html.PartialAsync("../Resources/_FileList", Model.Files)
+
+            @if (Model.CanUpload)
+            {
+                @await Html.PartialAsync("../Resources/_UploadModal",
+                    new ResourceUploadVM { ProjetId = Model.ProjetId, ZoneId = Model.Id })
+            }
+        </div>
+    </div>
+
+    {{-- Section Demandes en attente --}}
+    @if (Model.CanReview && Model.PendingDeletions.Any())
+    {
+        <div class="card sg-card border-warning">
+            <div class="card-body">
+                @await Html.PartialAsync("../Resources/_PendingDeletions", Model.PendingDeletions)
+            </div>
+        </div>
+    }
+</div>

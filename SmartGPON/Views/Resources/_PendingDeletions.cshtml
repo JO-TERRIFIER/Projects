@@ -1,0 +1,71 @@
+@* ── Views/Resources/_PendingDeletions.cshtml ──────────────────
+   P7 · Modèle: IEnumerable<DeletionRequestVM>
+   Visible uniquement si CanReview (ChefProjet / Superviseur)
+*@
+@using SmartGPON.Web.ViewModels
+@model IEnumerable<DeletionRequestVM>
+
+@if (Model.Any())
+{
+    <div class="sg-pending-deletions mt-4">
+        <h5 class="mb-3">
+            <i class="bi bi-hourglass-split text-warning me-2"></i>
+            Demandes de suppression en attente
+            <span class="badge bg-danger ms-1">@Model.Count()</span>
+        </h5>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-warning">
+                    <tr>
+                        <th>Fichier</th>
+                        <th>Demandé par</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var req in Model)
+                    {
+                        <tr>
+                            <td><strong>@req.NomFichier</strong></td>
+                            <td>@req.RequestedByNom</td>
+                            <td><small>@req.RequestedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small></td>
+                            <td>
+                                {{-- Approuver --}}
+                                <form asp-controller="Resources" asp-action="ApproveDelete"
+                                      asp-route-requestId="@req.Id" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success btn-sm me-1"
+                                            onclick="return confirm('Approuver la suppression de « @req.NomFichier » ? Cette action est irréversible.')">
+                                        ✅ Approuver
+                                    </button>
+                                </form>
+
+                                {{-- Rejeter --}}
+                                <button class="btn btn-outline-danger btn-sm"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#rejectForm-@req.Id">
+                                    ❌ Rejeter
+                                </button>
+
+                                <div class="collapse mt-2" id="rejectForm-@req.Id">
+                                    <form asp-controller="Resources" asp-action="RejectDelete"
+                                          asp-route-requestId="@req.Id" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" name="commentaire" class="form-control"
+                                                   placeholder="Motif de rejet (facultatif)" maxlength="500" />
+                                            <button type="submit" class="btn btn-danger">Confirmer rejet</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

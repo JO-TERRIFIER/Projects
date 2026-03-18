@@ -2,6 +2,8 @@
 @using SmartGPON.Core.Enums
 @{ ViewData["Title"] = "Projets"; }
 
+<link rel="stylesheet" href="~/css/gpon-fileui.css" />
+
 <div class="page-header">
   <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
@@ -40,6 +42,7 @@
           <th>Client</th>
           <th>Statut</th>
           <th>Zones</th>
+          <th>Documents</th>
           <th style="width:120px">Actions</th>
         </tr>
       </thead>
@@ -58,6 +61,11 @@
               { <span class="badge-status status-warning">Suspendu</span> }
             </td>
             <td>@item.ZoneCount zone(s)</td>
+            <td>
+              <button class="sg-upload-btn" onclick="openDocPopup(@item.Id, null, '@Html.Raw(Html.Encode(item.Nom))', sgUrls)">
+                <i class="bi bi-folder me-1"></i>Voir
+              </button>
+            </td>
             <td>
               <div class="d-flex gap-1">
                 <a asp-controller="Zones" asp-action="Index" asp-route-projetId="@item.Id"
@@ -87,6 +95,8 @@
 </div>
 
 @section Scripts {
+<link rel="stylesheet" href="~/css/gpon-fileui.css" />
+<script src="~/js/gpon-fileui.js"></script>
 <script>
 const srch = document.getElementById('srch');
 const filt = document.getElementById('filt');
@@ -101,5 +111,28 @@ function filter() {
 }
 srch.addEventListener('input', filter);
 filt.addEventListener('change', filter);
+
+// A2: URLs via Url.Action (jamais hardcodées)
+const sgUrls = {
+  getFiles:     '@Url.Action("GetFiles","Resources")',
+  downloadBase: '@Url.Action("Download","Resources")'
+};
+
+// A3 guard confirmed: Delete cascade
+document.querySelectorAll('form[DELETEGUARD]').forEach(form => {
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const fd = new FormData(this);
+    const res = await fetch(this.action, { method: 'POST', body: fd,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const json = await res.json().catch(() => null);
+    if (json?.needsConfirmation) {
+      if (!confirm(`Ce projet contient ${json.count} fichier(s). Supprimer quand même ?`)) return;
+      fd.append('confirmed', 'true');
+      await fetch(this.action, { method: 'POST', body: fd });
+    }
+    window.location.href = '@Url.Action("Index")';
+  });
+});
 </script>
 }

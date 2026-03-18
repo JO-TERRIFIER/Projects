@@ -77,6 +77,13 @@ namespace SmartGPON.Core.Enums
         Critical = 3
     }
 
+    public enum DeletionStatut : byte
+    {
+        EnAttente = 0,
+        Approuve  = 1,
+        Rejete    = 2
+    }
+
     /// <summary>ASP.NET Identity roles (AspNetRoles table). Distinct from AssignmentType.</summary>
     public static class UserRoles
     {

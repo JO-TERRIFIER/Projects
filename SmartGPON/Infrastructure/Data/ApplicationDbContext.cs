@@ -43,6 +43,7 @@ namespace SmartGPON.Infrastructure.Data
         // Workflow
         public DbSet<Validation> Validations => Set<Validation>();
         public DbSet<Resource> Resources => Set<Resource>();
+        public DbSet<DeletionRequest> DeletionRequests => Set<DeletionRequest>();
         public DbSet<UserProjectAssignment> UserProjectAssignments => Set<UserProjectAssignment>();
         public DbSet<ApprovalRequest> ApprovalRequests => Set<ApprovalRequest>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -171,6 +172,19 @@ namespace SmartGPON.Infrastructure.Data
             b.Entity<Resource>()
                 .HasOne(e => e.Zone).WithMany(e => e.Resources)
                 .HasForeignKey(e => e.ZoneId).OnDelete(DeleteBehavior.ClientSetNull);
+
+            b.Entity<Resource>().Property(e => e.UploadedByUserId).HasMaxLength(450).IsRequired();
+
+            // ── DeletionRequest ─────────────────────────────
+            b.Entity<DeletionRequest>().HasIndex(e => e.ResourceId);
+            b.Entity<DeletionRequest>().HasIndex(e => new { e.ProjetId, e.Statut });
+            b.Entity<DeletionRequest>().Property(e => e.Statut).HasConversion<byte>();
+            b.Entity<DeletionRequest>()
+                .HasOne(e => e.Resource).WithMany(e => e.DeletionRequests)
+                .HasForeignKey(e => e.ResourceId).OnDelete(DeleteBehavior.Cascade);
+            b.Entity<DeletionRequest>()
+                .HasOne(e => e.Projet).WithMany()
+                .HasForeignKey(e => e.ProjetId).OnDelete(DeleteBehavior.Restrict);
 
             // ── UserProjectAssignment ───────────────────────
             b.Entity<UserProjectAssignment>()

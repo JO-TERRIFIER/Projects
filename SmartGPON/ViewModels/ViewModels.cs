@@ -504,4 +504,82 @@ namespace SmartGPON.Web.ViewModels
         public bool IsActive { get; set; }
         public DateTime AssignedAt { get; set; }
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // RESOURCE — FILE UPLOAD SYSTEM (P4)
+    // ═══════════════════════════════════════════════════════════
+
+    /// <summary>Upload d'un nouveau fichier.</summary>
+    public class ResourceUploadVM
+    {
+        public int ProjetId { get; set; }
+        public int? ZoneId  { get; set; }
+        [Required] public IFormFile File { get; set; } = null!;
+    }
+
+    /// <summary>Renommage d'un fichier existant (Edit A5).</summary>
+    public class ResourceRenameVM
+    {
+        public int Id       { get; set; }
+        public int ProjetId { get; set; }
+        [Required, MaxLength(255)] public string NomFichier { get; set; } = string.Empty;
+    }
+
+    /// <summary>Affichage d'un fichier dans _FileList.</summary>
+    public class ResourceFileVM
+    {
+        public int      Id              { get; set; }
+        public int      ProjetId        { get; set; }
+        public int?     ZoneId          { get; set; }
+        public string   NomFichier      { get; set; } = string.Empty;
+        public string   FileExtension   { get; set; } = string.Empty;
+        public string   ContentType     { get; set; } = string.Empty;
+        public long     FileSize        { get; set; }
+        public string?  UploadedByNom   { get; set; }
+        public DateTime UploadedAt      { get; set; }
+        // Droits calculés (jamais de valeur numérique enum)
+        public bool CanDeleteDirect    { get; set; }
+        public bool CanRequestDelete   { get; set; }
+        public bool HasPendingDeletion { get; set; }
+    }
+
+    /// <summary>Demande de suppression en attente (PendingDeletions).</summary>
+    public class DeletionRequestVM
+    {
+        public int      Id             { get; set; }
+        public int      ResourceId     { get; set; }
+        public int      ProjetId       { get; set; }
+        public string   NomFichier     { get; set; } = string.Empty;
+        public string   RequestedByNom { get; set; } = string.Empty;
+        public DateTime RequestedAt    { get; set; }
+        public string?  CommentaireRejet { get; set; }
+    }
+
+    /// <summary>Page de détail d'un Projet avec fichiers (P8).</summary>
+    public class ProjetDetailsVM
+    {
+        public int    Id        { get; set; }
+        public string Nom       { get; set; } = string.Empty;
+        public string ClientNom { get; set; } = string.Empty;
+        public SmartGPON.Core.Enums.ProjetStatut Statut { get; set; }
+        public IEnumerable<ResourceFileVM>    Files            { get; set; } = Enumerable.Empty<ResourceFileVM>();
+        public IEnumerable<DeletionRequestVM> PendingDeletions { get; set; } = Enumerable.Empty<DeletionRequestVM>();
+        public bool CanUpload { get; set; }
+        public bool CanReview { get; set; }
+    }
+
+    /// <summary>Page de détail d'une Zone avec fichiers (P8).</summary>
+    public class ZoneDetailsVM
+    {
+        public int      Id        { get; set; }
+        public string   Nom       { get; set; } = string.Empty;
+        public string   ProjetNom { get; set; } = string.Empty;
+        public int      ProjetId  { get; set; }
+        public decimal? Latitude  { get; set; }
+        public decimal? Longitude { get; set; }
+        public IEnumerable<ResourceFileVM>    Files            { get; set; } = Enumerable.Empty<ResourceFileVM>();
+        public IEnumerable<DeletionRequestVM> PendingDeletions { get; set; } = Enumerable.Empty<DeletionRequestVM>();
+        public bool CanUpload { get; set; }
+        public bool CanReview { get; set; }
+    }
 }

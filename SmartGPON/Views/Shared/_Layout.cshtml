@@ -114,6 +114,7 @@
     <a asp-controller="Projets" asp-action="Index" class="@Nav("projets")">
       <span class="nav-icon"><i class="bi bi-folder" style="font-size:15px;color:var(--color-text-muted)"></i></span>
       <span class="nav-text">Projets</span>
+      @await Component.InvokeAsync("DeletionPendingBadge")
     </a>
     <a asp-controller="Zones" asp-action="Index" class="@Nav("zones")">
       <span class="nav-icon"><i class="bi bi-geo-alt" style="font-size:15px;color:var(--color-text-muted)"></i></span>

@@ -12,9 +12,12 @@
       </nav>
       <h1 class="h4 mb-0 fw-500"><i class="bi bi-person-gear me-2"></i>Gestion des utilisateurs</h1>
     </div>
-    <a asp-action="Create" class="btn sg-btn sg-btn-primary">
-      <i class="bi bi-person-plus me-1"></i>Nouvel utilisateur
-    </a>
+    @if (User.IsInRole("Superviseur"))
+    {
+      <a asp-action="Create" class="btn sg-btn sg-btn-primary">
+        <i class="bi bi-person-plus me-1"></i>Nouvel utilisateur
+      </a>
+    }
   </div>
 </div>
 

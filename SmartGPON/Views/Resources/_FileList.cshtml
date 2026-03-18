@@ -1,0 +1,108 @@
+@* ── Views/Resources/_FileList.cshtml ─────────────────────────
+   P5 · Modèle: IEnumerable<ResourceFileVM>
+   O2: Download = lien <a> GET · jamais CheminFichier exposé
+*@
+@using SmartGPON.Web.ViewModels
+@model IEnumerable<ResourceFileVM>
+
+@{
+    @functions {
+        string FormatSize(long bytes) {
+            if (bytes >= 1024 * 1024) return $"{bytes / (1024.0 * 1024):F1} MB";
+            if (bytes >= 1024) return $"{bytes / 1024.0:F1} KB";
+            return $"{bytes} o";
+        }
+        string ExtIcon(string ext) => ext.ToLower() switch {
+            ".pdf"  => "📄",
+            ".doc" or ".docx" => "📝",
+            ".xls" or ".xlsx" => "📊",
+            ".ppt" or ".pptx" => "📊",
+            ".dwg"  => "📐",
+            ".jpg" or ".jpeg" or ".png" or ".gif"
+                    or ".bmp" or ".webp" or ".tiff" => "🖼",
+            ".svg"  => "🖼",
+            _       => "📁"
+        };
+    }
+}
+
+<div class="sg-file-list">
+    <div class="sg-file-list__header d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">
+            <i class="bi bi-folder2-open me-2"></i>Fichiers
+            <span class="badge bg-secondary ms-1">@Model.Count()</span>
+        </h5>
+        @if (ViewBag.CanUpload == true)
+        {
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-upload me-1"></i>+ Ajouter un fichier
+            </button>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-light text-muted text-center">
+            <i class="bi bi-inbox me-2"></i>Aucun fichier rattaché.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fichier</th>
+                        <th>Type</th>
+                        <th>Taille</th>
+                        <th>Uploadé par</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="me-1">@ExtIcon(item.FileExtension)</span>
+                                <strong>@item.NomFichier</strong>
+                                @if (item.HasPendingDeletion)
+                                {
+                                    <span class="badge bg-warning text-dark ms-1" title="Demande de suppression en attente">⏳</span>
+                                }
+                            </td>
+                            <td><small class="text-muted">@item.FileExtension.ToUpper()</small></td>
+                            <td><small>@FormatSize(item.FileSize)</small></td>
+                            <td><small class="text-muted">@(item.UploadedByNom ?? "—")</small></td>
+                            <td><small>@item.UploadedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small></td>
+                            <td class="text-end">
+                                {{-- O2: lien GET, jamais URL fichier physique --}}
+                                <a asp-controller="Resources"
+                                   asp-action="Download"
+                                   asp-route-id="@item.Id"
+                                   download="@item.NomFichier"
+                                   class="btn btn-outline-secondary btn-sm me-1"
+                                   title="Télécharger">
+                                    ⬇
+                                </a>
+                                @if (item.CanDeleteDirect || item.CanRequestDelete)
+                                {
+                                    <form asp-controller="Resources" asp-action="Delete"
+                                          asp-route-id="@item.Id" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                title="@(item.CanDeleteDirect ? "Supprimer" : "Demander suppression")"
+                                                onclick="return confirm('Supprimer ce fichier ?')">
+                                            🗑
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

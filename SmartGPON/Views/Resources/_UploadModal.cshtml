@@ -1,0 +1,116 @@
+@* ── Views/Resources/_UploadModal.cshtml ───────────────────────
+   P6 · Modal upload drag&drop · gpon-modal.css
+   A2: message MIME côté client (UX)
+*@
+@using SmartGPON.Web.ViewModels
+@model ResourceUploadVM
+
+@{
+    var allowedExt = ViewBag.AllowedExtensions as string[] ?? Array.Empty<string>();
+    var maxSizeMb  = ViewBag.MaxSizeMb is int m ? m : 50;
+    var accept     = string.Join(",", allowedExt);
+}
+
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content sg-modal-panel">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">
+                    <i class="bi bi-cloud-upload me-2"></i>Ajouter un fichier
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form asp-controller="Resources" asp-action="Upload" method="post"
+                  enctype="multipart/form-data" id="uploadForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ProjetId" />
+                <input type="hidden" asp-for="ZoneId" />
+
+                <div class="modal-body">
+
+                    {{-- Zone drag&drop --}}
+                    <div id="dropZone"
+                         class="border border-2 border-dashed rounded p-4 text-center mb-3"
+                         style="cursor:pointer; transition: background .2s;"
+                         onclick="document.getElementById('fileInput').click()"
+                         ondragover="event.preventDefault(); this.style.background='#1e293b';"
+                         ondragleave="this.style.background='';"
+                         ondrop="handleDrop(event)">
+                        <div id="dropMsg">
+                            <i class="bi bi-cloud-arrow-up fs-2 text-primary"></i>
+                            <p class="mb-1 mt-2">Glissez un fichier ici ou <u>cliquez pour parcourir</u></p>
+                            <small class="text-muted">Max @maxSizeMb MB</small>
+                        </div>
+                        <div id="filePreview" class="d-none">
+                            <i class="bi bi-file-earmark-check fs-2 text-success"></i>
+                            <p class="mb-0 mt-2 fw-bold" id="fileName"></p>
+                            <small class="text-muted" id="fileSize"></small>
+                        </div>
+                    </div>
+
+                    <input type="file" id="fileInput" name="File" accept="@accept" class="d-none"
+                           onchange="previewFile(this)" />
+
+                    {{-- Extensions acceptées --}}
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Extensions acceptées :</small>
+                        <div>
+                            @foreach (var ext in allowedExt)
+                            {
+                                <span class="badge bg-secondary me-1">@ext</span>
+                            }
+                        </div>
+                    </div>
+
+                    {{-- Message MIME -- A2 UX --}}
+                    <div class="alert alert-info py-2 mb-0" style="font-size:.85rem">
+                        <i class="bi bi-shield-check me-1"></i>
+                        Les fichiers sont vérifiés côté serveur. Les extensions renommées seront rejetées.
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger mt-2 py-2">
+                            @Html.ValidationSummary(false)
+                        </div>
+                    }
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary" disabled>
+                        <i class="bi bi-upload me-1"></i>Uploader
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatBytes(bytes) {
+        if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return bytes + ' o';
+    }
+
+    function previewFile(input) {
+        if (!input.files || !input.files[0]) return;
+        const f = input.files[0];
+        document.getElementById('dropMsg').classList.add('d-none');
+        document.getElementById('filePreview').classList.remove('d-none');
+        document.getElementById('fileName').textContent = f.name;
+        document.getElementById('fileSize').textContent = formatBytes(f.size);
+        document.getElementById('submitBtn').disabled = false;
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        document.getElementById('dropZone').style.background = '';
+        const input = document.getElementById('fileInput');
+        input.files = e.dataTransfer.files;
+        previewFile(input);
+    }
+</script>

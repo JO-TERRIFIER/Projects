@@ -36,19 +36,30 @@ namespace SmartGPON.Web.Controllers
         {
             var d = DenyVisiteur(); if (d != null) return d;
             var ids = await AccessibleProjetIdsAsync();
-            ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+            ViewBag.Projets     = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+            ViewBag.SessionGuid = Guid.NewGuid().ToString("N");  // M1: généré controller GET
+            ViewBag.MaxSizeMb   = Configuration.GetValue<int>("FileUpload:MaxSizeMb");
             return View(new ZoneCreateVM { ProjetId = projetId ?? 0 });
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ZoneCreateVM vm)
+        public async Task<IActionResult> Create(ZoneCreateVM vm, string? sessionGuid)
         {
             var d = DenyVisiteur(); if (d != null) return d;
             if (!await CanWriteAsync(vm.ProjetId)) return Forbid();
             if (!ModelState.IsValid)
             {
+                // Rollback temp files (A1: même pattern que Projets)
+                if (!string.IsNullOrWhiteSpace(sessionGuid))
+                {
+                    var tempDir = TempDir(sessionGuid);
+                    if (Directory.Exists(tempDir)) Directory.Delete(tempDir, recursive: true);
+                }
                 var ids = await AccessibleProjetIdsAsync();
-                ViewBag.Projets = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+                ViewBag.Projets     = await Db.Projets.Where(p => ids.Contains(p.Id)).OrderBy(p => p.Nom).ToListAsync();
+                ViewBag.SessionGuid = Guid.NewGuid().ToString("N");
+                ViewBag.MaxSizeMb   = Configuration.GetValue<int>("FileUpload:MaxSizeMb");
+                TempData["Warn"]    = "Les fichiers ont été retirés suite à l'erreur. Veuillez les re-sélectionner.";
                 return View(vm);
             }
             var entity = new SmartGPON.Core.Entities.Zone
@@ -57,6 +68,10 @@ namespace SmartGPON.Web.Controllers
             };
             Db.Zones.Add(entity); await Db.SaveChangesAsync();
             await LogAsync(vm.ProjetId, "Create", "Zone", entity.Id, $"Zone créée: {entity.Nom}");
+
+            // Finaliser fichiers temp (A1: zoneId maintenant connu)
+            if (!string.IsNullOrWhiteSpace(sessionGuid)) await FinalizeTemp(sessionGuid, vm.ProjetId, entity.Id);
+
             TempData["Success"] = "Zone créée.";
             return RedirectToAction(nameof(Index), new { projetId = vm.ProjetId });
         }
@@ -87,15 +102,43 @@ namespace SmartGPON.Web.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, bool confirmed = false)
         {
             var d = DenyVisiteur(); if (d != null) return d;
             var z = await Db.Zones.FindAsync(id);
             if (z == null) return NotFound();
             if (!await CanWriteAsync(z.ProjetId)) return Forbid();
             var pId = z.ProjetId;
-            Db.Zones.Remove(z); await Db.SaveChangesAsync();
-            await LogAsync(pId, "Delete", "Zone", id, $"Zone supprimée: {z.Nom}");
+
+            // A3 guard + A2 transaction
+            var resources = await Db.Resources.Where(r => r.ProjetId == pId && r.ZoneId == id).ToListAsync();
+            if (resources.Count > 0 && !confirmed)
+                return Json(new { needsConfirmation = true, count = resources.Count });
+
+            using var tx = await Db.Database.BeginTransactionAsync();
+            try
+            {
+                Db.Resources.RemoveRange(resources);
+                Db.Zones.Remove(z);
+                await Db.SaveChangesAsync();
+                // Fichiers physiques APRÈS SaveChanges
+                var uploadPath = Configuration.GetValue<string>("FileUpload:UploadPath") ?? "uploads";
+                var uploadRoot = Path.Combine(Env.ContentRootPath, uploadPath);
+                foreach (var r in resources)
+                {
+                    var fp = Path.Combine(uploadRoot, r.CheminFichier);
+                    if (System.IO.File.Exists(fp)) System.IO.File.Delete(fp);
+                }
+                await tx.CommitAsync();
+                await LogAsync(pId, resources.Count > 0 ? "DeleteWithFiles" : "Delete",
+                    "Zone", id, $"Zone supprimée: {z.Nom} · {resources.Count} fichier(s)");
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                TempData["Error"] = "Erreur lors de la suppression.";
+                return RedirectToAction(nameof(Index), new { projetId = pId });
+            }
             TempData["Success"] = "Zone supprimée.";
             return RedirectToAction(nameof(Index), new { projetId = pId });
         }
@@ -103,9 +146,77 @@ namespace SmartGPON.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var z = await Db.Zones.Include(z => z.Projet).Include(z => z.Olts).FirstOrDefaultAsync(z => z.Id == id);
+            var z = await Db.Zones.Include(z => z.Projet).FirstOrDefaultAsync(z => z.Id == id);
             if (z == null) return NotFound();
-            return View(z);
+            var ids = await AccessibleProjetIdsAsync();
+            if (!ids.Contains(z.ProjetId)) return NotFound();
+
+            var resources = await Db.Resources
+                .Where(r => r.ProjetId == z.ProjetId && r.ZoneId == id)
+                .OrderBy(r => r.NomFichier)
+                .ToListAsync();
+
+            // Droits
+            bool canUpload = IsSuperviseur || await Db.UserProjectAssignments.AnyAsync(a =>
+                a.UserId == CurrentUserId && a.ProjetId == z.ProjetId && a.IsActive &&
+                (a.AssignmentType == SmartGPON.Core.Enums.AssignmentType.ChefProjet ||
+                 a.AssignmentType == SmartGPON.Core.Enums.AssignmentType.TechDessin));
+
+            bool canDelDirect = IsSuperviseur || await Db.UserProjectAssignments.AnyAsync(a =>
+                a.UserId == CurrentUserId && a.ProjetId == z.ProjetId && a.IsActive &&
+                a.AssignmentType == SmartGPON.Core.Enums.AssignmentType.ChefProjet);
+
+            bool canReqDel = await Db.UserProjectAssignments.AnyAsync(a =>
+                a.UserId == CurrentUserId && a.ProjetId == z.ProjetId && a.IsActive &&
+                a.AssignmentType == SmartGPON.Core.Enums.AssignmentType.TechDessin);
+
+            bool canReview = IsSuperviseur || canDelDirect;
+
+            var pendingResourceIds = await Db.DeletionRequests
+                .Where(dr => dr.ProjetId == z.ProjetId && dr.Statut == SmartGPON.Core.Enums.DeletionStatut.EnAttente)
+                .Select(dr => dr.ResourceId)
+                .ToListAsync();
+
+            var fileVms = resources.Select(r => new ResourceFileVM
+            {
+                Id = r.Id, ProjetId = r.ProjetId, ZoneId = r.ZoneId,
+                NomFichier = r.NomFichier, FileExtension = r.FileExtension,
+                ContentType = r.ContentType, FileSize = r.FileSize,
+                UploadedAt = r.UploadedAt,
+                CanDeleteDirect   = canDelDirect,
+                CanRequestDelete  = canReqDel,
+                HasPendingDeletion = pendingResourceIds.Contains(r.Id)
+            }).ToList();
+
+            var pendingVms = new List<DeletionRequestVM>();
+            if (canReview)
+            {
+                var pending = await Db.DeletionRequests
+                    .Include(dr => dr.Resource)
+                    .Where(dr => dr.ProjetId == z.ProjetId && dr.Statut == SmartGPON.Core.Enums.DeletionStatut.EnAttente)
+                    .OrderBy(dr => dr.RequestedAt)
+                    .ToListAsync();
+
+                foreach (var req in pending)
+                {
+                    var requester = await Db.Users.FindAsync(req.RequestedByUserId);
+                    pendingVms.Add(new DeletionRequestVM
+                    {
+                        Id = req.Id, ResourceId = req.ResourceId, ProjetId = req.ProjetId,
+                        NomFichier = req.Resource.NomFichier,
+                        RequestedByNom = requester != null ? $"{requester.FirstName} {requester.LastName}" : req.RequestedByUserId,
+                        RequestedAt = req.RequestedAt
+                    });
+                }
+            }
+
+            return View(new ZoneDetailsVM
+            {
+                Id = z.Id, Nom = z.Nom, ProjetNom = z.Projet.Nom, ProjetId = z.ProjetId,
+                Latitude = z.Latitude, Longitude = z.Longitude,
+                Files = fileVms, PendingDeletions = pendingVms,
+                CanUpload = canUpload, CanReview = canReview
+            });
         }
     }
 }

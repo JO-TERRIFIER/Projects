@@ -140,6 +140,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvamV0c1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Projets/SmartGPON/Views/Projets/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvamV0c1xEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Projets/SmartGPON/Views/Projets/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvamV0c1xFZGl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -154,6 +158,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Projets/SmartGPON/Views/Resources/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVzb3VyY2VzXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Resources/_FileList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVzb3VyY2VzXF9GaWxlTGlzdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Resources/_PendingDeletions.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVzb3VyY2VzXF9QZW5kaW5nRGVsZXRpb25zLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Resources/_UploadModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVzb3VyY2VzXF9VcGxvYWRNb2RhbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Projets/SmartGPON/Views/Security/Alerts.cshtml]
@@ -174,6 +190,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Projets/SmartGPON/Views/Security/Simulations.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VjdXJpdHlcU2ltdWxhdGlvbnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Shared/Components/DeletionPendingBadge/Default.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXENvbXBvbmVudHNcRGVsZXRpb25QZW5kaW5nQmFkZ2VcRGVmYXVsdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Projets/SmartGPON/Views/Shared/Error.cshtml]
@@ -206,6 +226,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Projets/SmartGPON/Views/Zones/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWm9uZXNcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projets/SmartGPON/Views/Zones/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWm9uZXNcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Projets/SmartGPON/Views/Zones/Edit.cshtml]

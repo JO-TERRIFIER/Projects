@@ -1,12 +1,17 @@
-@model SmartGPON.Web.ViewModels.ResourceUpdateVM
-@{ ViewData["Title"] = "Modifier ressource"; }
+@* ── Views/Resources/Edit.cshtml ──────────────────────────────
+   P10 · A5: NomFichier uniquement éditable
+   Modèle: ResourceRenameVM
+   CheminFichier jamais affiché / jamais bindé
+*@
+@model SmartGPON.Web.ViewModels.ResourceRenameVM
+@{ ViewData["Title"] = "Renommer le fichier"; }
 
 <link rel="stylesheet" href="~/css/gpon-modal.css" />
 
 <div class="gpon-overlay">
   <div class="gpon-modal">
     <div class="gpon-modal-header">
-      <h5><i class="bi bi-file-earmark-text me-2"></i>Modifier ressource</h5>
+      <h5><i class="bi bi-pencil me-2"></i>Renommer le fichier</h5>
       <a href="@Url.Action("Index", new { projetId = Model.ProjetId })"
          class="btn-close-modal">✕</a>
     </div>
@@ -14,48 +19,39 @@
       <form asp-action="Edit" method="post">
         @Html.AntiForgeryToken()
         <input asp-for="Id" type="hidden" />
+        <input asp-for="ProjetId" type="hidden" />
+
         <div class="row g-3">
+
+          {{-- NomFichier: seule propriété éditable (A5) --}}
           <div class="col-12">
-            <label asp-for="ProjetId" class="form-label text-muted small mb-1">Projet <span class="text-danger">*</span></label>
-            <select asp-for="ProjetId" class="form-select">
-              <option value="">— Sélectionner un projet —</option>
-              @if (ViewBag.Projets != null)
-              {
-                foreach (var p in (IEnumerable<SmartGPON.Core.Entities.Projet>)ViewBag.Projets)
-                {
-                  if (Model.ProjetId == p.Id) { <option value="@p.Id" selected>@p.Nom</option> }
-                  else { <option value="@p.Id">@p.Nom</option> }
-                }
-              }
-            </select>
-            <span asp-validation-for="ProjetId" class="text-danger small"></span>
-          </div>
-          <div class="col-12">
-            <label asp-for="ZoneId" class="form-label text-muted small mb-1">Zone <span class="text-muted">(optionnel)</span></label>
-            <select asp-for="ZoneId" class="form-select">
-              <option value="">— Aucune zone —</option>
-              @if (ViewBag.Zones != null)
-              {
-                foreach (var z in (IEnumerable<SmartGPON.Core.Entities.Zone>)ViewBag.Zones)
-                {
-                  if (Model.ZoneId == z.Id) { <option value="@z.Id" selected>@z.Nom</option> }
-                  else { <option value="@z.Id">@z.Nom</option> }
-                }
-              }
-            </select>
-            <span asp-validation-for="ZoneId" class="text-danger small"></span>
-          </div>
-          <div class="col-12">
-            <label asp-for="NomFichier" class="form-label text-muted small mb-1">Nom du fichier <span class="text-danger">*</span></label>
-            <input asp-for="NomFichier" class="form-control">
+            <label asp-for="NomFichier" class="form-label text-muted small mb-1">
+              Nom du fichier <span class="text-danger">*</span>
+            </label>
+            <input asp-for="NomFichier" class="form-control" autofocus />
             <span asp-validation-for="NomFichier" class="text-danger small"></span>
           </div>
-          <div class="col-12">
-            <label asp-for="CheminFichier" class="form-label text-muted small mb-1">Chemin / URL <span class="text-danger">*</span></label>
-            <input asp-for="CheminFichier" class="form-control">
-            <span asp-validation-for="CheminFichier" class="text-danger small"></span>
+
+          {{-- Métadonnées en lecture seule (non-bindées) --}}
+          <div class="col-6">
+            <label class="form-label text-muted small mb-1">Extension</label>
+            <input class="form-control" value="@ViewBag.FileExtension" readonly disabled />
           </div>
+          <div class="col-6">
+            <label class="form-label text-muted small mb-1">Taille</label>
+            <input class="form-control" value="@(ViewBag.FileSize is long s ? (s >= 1024*1024 ? $"{s/(1024.0*1024):F1} MB" : $"{s/1024.0:F1} KB") : "—")" readonly disabled />
+          </div>
+          <div class="col-12">
+            <label class="form-label text-muted small mb-1">Type MIME</label>
+            <input class="form-control" value="@ViewBag.ContentType" readonly disabled />
+          </div>
+          <div class="col-12">
+            <label class="form-label text-muted small mb-1">Uploadé le</label>
+            <input class="form-control" value="@(ViewBag.UploadedAt is DateTime d ? d.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "—")" readonly disabled />
+          </div>
+
         </div>
+
         <div class="gpon-modal-footer">
           <a href="@Url.Action("Index", new { projetId = Model.ProjetId })"
              class="btn-cancel">Annuler</a>

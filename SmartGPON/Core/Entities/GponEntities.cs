@@ -208,9 +208,33 @@ namespace SmartGPON.Core.Entities
         public int? ZoneId { get; set; }
         [Required, MaxLength(255)] public string NomFichier { get; set; } = string.Empty;
         [Required, MaxLength(500)] public string CheminFichier { get; set; } = string.Empty;
+        // Métadonnées upload (+5 colonnes P1)
+        [Required, MaxLength(450)] public string UploadedByUserId { get; set; } = string.Empty;
+        public DateTime UploadedAt    { get; set; } = DateTime.UtcNow;
+        public long     FileSize      { get; set; }
+        [Required, MaxLength(10)]  public string FileExtension { get; set; } = string.Empty;
+        [Required, MaxLength(100)] public string ContentType   { get; set; } = string.Empty;
 
         public Projet Projet { get; set; } = null!;
         public Zone? Zone { get; set; }
+        public ICollection<DeletionRequest> DeletionRequests { get; set; } = new List<DeletionRequest>();
+    }
+
+    // ── DeletionRequest ──────────────────────────────────────
+    public class DeletionRequest
+    {
+        public int Id { get; set; }
+        public int ResourceId  { get; set; }
+        [Required, MaxLength(450)] public string RequestedByUserId { get; set; } = string.Empty;
+        public int ProjetId    { get; set; }
+        public SmartGPON.Core.Enums.DeletionStatut Statut { get; set; } = SmartGPON.Core.Enums.DeletionStatut.EnAttente;
+        public DateTime RequestedAt  { get; set; } = DateTime.UtcNow;
+        [MaxLength(450)] public string? ReviewedByUserId { get; set; }
+        public DateTime? ReviewedAt  { get; set; }
+        [MaxLength(500)] public string? CommentaireRejet { get; set; }
+
+        public Resource Resource { get; set; } = null!;
+        public Projet   Projet   { get; set; } = null!;
     }
 
     // ── UserProjectAssignment ───────────────────────────────
